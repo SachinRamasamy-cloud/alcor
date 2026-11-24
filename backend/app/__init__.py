@@ -1,0 +1,1 @@
+"""ALCOR modular monolith."""

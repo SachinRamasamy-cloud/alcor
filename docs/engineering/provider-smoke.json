@@ -1,0 +1,174 @@
+{
+  "provider": "Tenrai candidate",
+  "production_approved": false,
+  "results": [
+    {
+      "path": "/anime?q=Frieren&limit=3",
+      "status": 200,
+      "latency_ms": 938,
+      "data_type": "list",
+      "count": 3,
+      "pagination": {
+        "last_visible_page": 2,
+        "has_next_page": true,
+        "current_page": 1,
+        "items": {
+          "count": 3,
+          "total": 4,
+          "per_page": 3
+        }
+      },
+      "rate_headers": {}
+    },
+    {
+      "path": "/manga?q=Yotsuba&limit=3",
+      "status": 200,
+      "latency_ms": 282,
+      "data_type": "list",
+      "count": 3,
+      "pagination": {
+        "last_visible_page": 4,
+        "has_next_page": true,
+        "current_page": 1,
+        "items": {
+          "count": 3,
+          "total": 11,
+          "per_page": 3
+        }
+      },
+      "rate_headers": {}
+    },
+    {
+      "path": "/anime/52991/full",
+      "status": 200,
+      "latency_ms": 281,
+      "data_type": "dict",
+      "count": null,
+      "pagination": null,
+      "rate_headers": {}
+    },
+    {
+      "path": "/anime/21/episodes?page=1",
+      "status": 200,
+      "latency_ms": 484,
+      "data_type": "list",
+      "count": 100,
+      "pagination": {
+        "last_visible_page": 12,
+        "has_next_page": true
+      },
+      "rate_headers": {}
+    },
+    {
+      "path": "/anime/21/episodes?page=2",
+      "status": 200,
+      "latency_ms": 406,
+      "data_type": "list",
+      "count": 100,
+      "pagination": {
+        "last_visible_page": 12,
+        "has_next_page": true
+      },
+      "rate_headers": {}
+    },
+    {
+      "path": "/seasons/now?limit=3",
+      "status": 200,
+      "latency_ms": 375,
+      "data_type": "list",
+      "count": 3,
+      "pagination": {
+        "last_visible_page": 50,
+        "has_next_page": true,
+        "current_page": 1,
+        "items": {
+          "count": 3,
+          "total": 149,
+          "per_page": 3
+        }
+      },
+      "rate_headers": {}
+    },
+    {
+      "path": "/schedules?limit=3",
+      "status": 200,
+      "latency_ms": 360,
+      "data_type": "list",
+      "count": 3,
+      "pagination": {
+        "last_visible_page": 40,
+        "has_next_page": true,
+        "current_page": 1,
+        "items": {
+          "count": 3,
+          "total": 120,
+          "per_page": 3
+        }
+      },
+      "rate_headers": {}
+    },
+    {
+      "path": "/genres/anime",
+      "status": 200,
+      "latency_ms": 359,
+      "data_type": "list",
+      "count": 78,
+      "pagination": null,
+      "rate_headers": {}
+    },
+    {
+      "path": "/anime/52991/relations",
+      "status": 200,
+      "latency_ms": 360,
+      "data_type": "list",
+      "count": 4,
+      "pagination": null,
+      "rate_headers": {}
+    },
+    {
+      "path": "/top/anime?limit=12",
+      "status": 200,
+      "latency_ms": 313,
+      "data_type": "list",
+      "count": 12,
+      "pagination": {
+        "last_visible_page": 2568,
+        "has_next_page": true,
+        "current_page": 1,
+        "items": {
+          "count": 12,
+          "total": 30813,
+          "per_page": 12
+        }
+      },
+      "rate_headers": {}
+    },
+    {
+      "path": "/top/manga?limit=6",
+      "status": 200,
+      "latency_ms": 625,
+      "data_type": "list",
+      "count": 6,
+      "pagination": {
+        "last_visible_page": 14384,
+        "has_next_page": true,
+        "current_page": 1,
+        "items": {
+          "count": 6,
+          "total": 86303,
+          "per_page": 6
+        }
+      },
+      "rate_headers": {}
+    },
+    {
+      "path": "/anime/52991/recommendations",
+      "status": 200,
+      "latency_ms": 562,
+      "data_type": "list",
+      "count": 84,
+      "pagination": null,
+      "rate_headers": {}
+    }
+  ]
+}

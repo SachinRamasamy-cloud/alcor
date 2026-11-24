@@ -29,6 +29,8 @@ One user/media library entry; wishlist projects `planned`; start watching remove
 | Runtime | Supabase, database, Redis, API, static frontend | No dedicated environment supplied |
 | Verification | Unit, real PostgreSQL/Redis integration, browser QA and human review | Tests will be introduced per feature; review remains human-owned |
 
+The owner subsequently supplied a Supabase connection. A credential-in-memory, read-only inspection succeeded: only managed schemas were present; no application tables were found. The supplied role has BYPASSRLS, so it is unsuitable as the private API runtime role. No secret is stored in this record or Git.
+
 ## Decisions
 
 ADR-001: retain the exact stack and modular monolith selected in plan §2. No framework replacement or hosted Sites dependency is introduced. GitHub branch delivery is authorized; production deployment is gated separately by plan P0/P8 and D-SSBP §§5, 10, 17.
