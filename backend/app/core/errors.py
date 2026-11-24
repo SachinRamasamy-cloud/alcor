@@ -21,5 +21,5 @@ async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
                 "request_id": request.state.request_id,
             }
         },
-        headers={"Cache-Control": "no-store"},
+        headers={"Cache-Control": "private, no-store", "X-Request-ID": request.state.request_id},
     )

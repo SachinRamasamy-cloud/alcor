@@ -31,3 +31,15 @@ Per-feature executed commands, results, source commits and limitations will be a
 - Visual evidence: inspected 320px and 1440px screenshots from the browser run. In-app browser access host unavailable; no interactive browser review claimed. Test screenshots/traces are local generated artifacts, with CI configured to upload browser results.
 - Status: public development slice implemented/verified. Episode coverage may be unavailable; empty unsupported tabs/actions are omitted. P0 rights, production source, operational validation, manual screen-reader, independent engineering and editorial acceptance remain pending. This is not a P2 production exit or a production release.
 
+## A03 — Private library API checkpoint
+
+- Source baseline: `24f39d3`. Implemented backend only: asymmetric JWT verification, protected routes, transaction-local identity, restricted runtime role, PostgreSQL RLS, library/wishlist persistence, status/version checks, soft wishlist removal, append-only activity and atomic shared Redis limits for private endpoints.
+- Commands: `python -m uv run python ../scripts/bootstrap_local_db.py`; `python -m uv run alembic upgrade head` with explicit local migration URL; `python -m uv run ruff check .`; `ALCOR_RUN_INTEGRATION=1 python -m uv run pytest -q`; sequential OpenAPI export/type generation; frontend lint/test/build.
+- Results: 17 Python tests passed, including real PostgreSQL concurrent wishlist idempotency, atomic planned-to-in-progress status change, version conflict, two-account RLS, pooled-context reset and shared Redis second/minute budgets. Invalid JWT signature/algorithm/issuer/audience/expiry/subject/role cases passed. The concurrent secondary-unique-constraint failure and fix are recorded in E014.
+- Integration scope: local Docker PostgreSQL/Redis only. Tests use actual restricted database credentials. Supabase was inspected read-only; no remote schema or data mutations occurred. Google OAuth remains unconfigured at the owner's request. No development authentication bypass was added.
+- Status: backend checkpoint implemented and locally verified; frontend personal workflows and real OAuth callback/resume are not implemented. Independent security/engineering review, key-rotation integration, production abuse controls and all release gates remain pending. Do not call this a completed P3 phase or production release.
+
+## Session stop requested by owner
+
+The owner requested a stop because the device battery was low. Remaining source, generated contracts, documentation and error records are committed on the existing review branch and pushed. No claim is made that the full implementation plan is complete. See `docs/engineering/handover.md` for the next ready tasks.
+

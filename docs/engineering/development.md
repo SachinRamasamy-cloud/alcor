@@ -9,7 +9,21 @@ Requirements: Node 24, Python 3.12, Git and Docker Desktop with Linux containers
 5. In `backend`, run the API: `python -m uv run uvicorn app.main:app --host 127.0.0.1 --port 8000`.
 6. In `frontend`, run `npm run dev`; open `http://127.0.0.1:5173`. Vite proxies `/api` to FastAPI.
 
-Database migration instructions are introduced with the database feature. Default development catalogue mode is explicitly labelled fixtures. Supabase Google sign-in requires the actual publishable key and configured exact redirect URL; a database password does not configure OAuth.
+Default development catalogue mode is explicitly labelled fixtures. Supabase Google sign-in requires the actual publishable key and configured exact redirect URL; a database password does not configure OAuth. The owner has deferred Google configuration.
+
+## Local database migration and integration tests
+
+From `backend`, after starting compose:
+
+```powershell
+python -m uv run python ../scripts/bootstrap_local_db.py
+$env:MIGRATION_DATABASE_URL = 'postgresql+asyncpg://alcor_migrate:alcor_local_migration@127.0.0.1:55432/alcor'
+python -m uv run alembic upgrade head
+$env:ALCOR_RUN_INTEGRATION = '1'
+python -m uv run pytest -q
+```
+
+The bootstrap script targets only the fixed loopback development database. It creates a separate non-superuser, NOBYPASSRLS runtime role. Migration credentials are never a runtime fallback. Local development passwords are not production credentials. Without explicit integration opt-in, database/Redis tests are skipped; do not report them as executed. Tests leave randomly owned disposable local records; they do not target Supabase.
 
 ## Checks
 
