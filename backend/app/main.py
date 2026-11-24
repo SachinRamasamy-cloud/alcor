@@ -7,12 +7,18 @@ from starlette.exceptions import HTTPException
 
 from app.core.config import Settings, get_settings
 from app.core.errors import AppError, app_error_handler
+from app.integrations.metadata.provider import DisabledProvider, FixtureProvider
+from app.modules.catalogue.routes import router as catalogue_router
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or get_settings()
     api = FastAPI(title="ALCOR API", version="0.1.0", docs_url="/api/docs")
     api.state.settings = settings
+    api.state.provider = (
+        FixtureProvider() if settings.metadata_provider == "fixture" else DisabledProvider()
+    )
+    api.include_router(catalogue_router)
     api.add_middleware(
         CORSMiddleware,
         allow_origins=settings.allowed_origins,

@@ -4,6 +4,74 @@
  */
 
 export interface paths {
+    "/api/v1/anime": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Anime */
+        get: operations["anime_api_v1_anime_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/anime/{media_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Anime Details */
+        get: operations["anime_details_api_v1_anime__media_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/anime/{media_id}/episodes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Episodes */
+        get: operations["episodes_api_v1_anime__media_id__episodes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/genres": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Genres */
+        get: operations["genres_api_v1_genres_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -21,10 +89,256 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/home": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Home */
+        get: operations["home_api_v1_home_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/manga": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Manga */
+        get: operations["manga_api_v1_manga_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/manga/{media_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Manga Details */
+        get: operations["manga_details_api_v1_manga__media_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Search */
+        get: operations["search_api_v1_search_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: never;
+    schemas: {
+        /** CataloguePage */
+        CataloguePage: {
+            /** Data */
+            data: components["schemas"]["Media"][];
+            /**
+             * Has More
+             * @default false
+             */
+            has_more: boolean;
+            /**
+             * Is Partial
+             * @default true
+             */
+            is_partial: boolean;
+            /**
+             * Is Stale
+             * @default false
+             */
+            is_stale: boolean;
+            /** Next Cursor */
+            next_cursor?: string | null;
+            /**
+             * Source
+             * @default Development snapshot
+             */
+            source: string;
+        };
+        /** Episode */
+        Episode: {
+            /**
+             * Filler
+             * @default false
+             */
+            filler: boolean;
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Order */
+            order: number;
+            /**
+             * Recap
+             * @default false
+             */
+            recap: boolean;
+            /** Released At */
+            released_at?: string | null;
+            /** Title */
+            title?: string | null;
+        };
+        /** EpisodePage */
+        EpisodePage: {
+            /** Confirmed Final Total */
+            confirmed_final_total?: number | null;
+            /**
+             * Coverage Complete
+             * @default false
+             */
+            coverage_complete: boolean;
+            /**
+             * Data
+             * @default []
+             */
+            data: components["schemas"]["Episode"][];
+            /**
+             * Source
+             * @default Development snapshot
+             */
+            source: string;
+        };
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
+        };
+        /** HomeResponse */
+        HomeResponse: {
+            /** Anime */
+            anime: components["schemas"]["Media"][];
+            featured: components["schemas"]["Media"] | null;
+            /** Genres */
+            genres: string[];
+            /** Is Fixture */
+            is_fixture: boolean;
+            /**
+             * Is Partial
+             * @default true
+             */
+            is_partial: boolean;
+            /** Manga */
+            manga: components["schemas"]["Media"][];
+        };
+        /** Media */
+        Media: {
+            /**
+             * Aliases
+             * @default []
+             */
+            aliases: string[];
+            /** Content Rating */
+            content_rating?: string | null;
+            /** External Id */
+            external_id: string;
+            /** Format */
+            format?: string | null;
+            /**
+             * Genres
+             * @default []
+             */
+            genres: string[];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Image Url */
+            image_url?: string | null;
+            /**
+             * Media Type
+             * @enum {string}
+             */
+            media_type: "anime" | "manga";
+            /** Original Title */
+            original_title?: string | null;
+            /** Popularity */
+            popularity?: number | null;
+            /** Rating Count */
+            rating_count?: number | null;
+            /** Score */
+            score?: number | null;
+            source: components["schemas"]["Source"];
+            /** Status */
+            status?: string | null;
+            /**
+             * Studios
+             * @default []
+             */
+            studios: string[];
+            /** Synopsis */
+            synopsis?: string | null;
+            /** Title */
+            title: string;
+            /** Total Units */
+            total_units?: number | null;
+            /** Year */
+            year?: number | null;
+        };
+        /** Source */
+        Source: {
+            /**
+             * Is Fixture
+             * @default true
+             */
+            is_fixture: boolean;
+            /** Name */
+            name: string;
+            /**
+             * Retrieved At
+             * Format: date-time
+             */
+            retrieved_at: string;
+            /** Url */
+            url: string;
+        };
+        /** ValidationError */
+        ValidationError: {
+            /** Context */
+            ctx?: Record<string, never>;
+            /** Input */
+            input?: unknown;
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
+        };
+    };
     responses: never;
     parameters: never;
     requestBodies: never;
@@ -33,6 +347,125 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    anime_api_v1_anime_get: {
+        parameters: {
+            query?: {
+                q?: string;
+                genre?: string | null;
+                format?: string | null;
+                year?: number | null;
+                sort?: "popular" | "score" | "title" | "year";
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CataloguePage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    anime_details_api_v1_anime__media_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                media_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Media"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    episodes_api_v1_anime__media_id__episodes_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                media_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EpisodePage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    genres_api_v1_genres_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string[];
+                };
+            };
+        };
+    };
     health_api_v1_health_get: {
         parameters: {
             query?: never;
@@ -51,6 +484,131 @@ export interface operations {
                     "application/json": {
                         [key: string]: string;
                     };
+                };
+            };
+        };
+    };
+    home_api_v1_home_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HomeResponse"];
+                };
+            };
+        };
+    };
+    manga_api_v1_manga_get: {
+        parameters: {
+            query?: {
+                q?: string;
+                genre?: string | null;
+                format?: string | null;
+                year?: number | null;
+                sort?: "popular" | "score" | "title" | "year";
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CataloguePage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    manga_details_api_v1_manga__media_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                media_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Media"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_api_v1_search_get: {
+        parameters: {
+            query?: {
+                q?: string;
+                genre?: string | null;
+                format?: string | null;
+                year?: number | null;
+                sort?: "popular" | "score" | "title" | "year";
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CataloguePage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
