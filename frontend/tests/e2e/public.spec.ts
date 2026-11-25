@@ -120,6 +120,19 @@ test('discovery options stay in a keyboard-accessible popup',async({page})=>{
   await expect(page.locator('.backend-notice')).toHaveCount(0)
 })
 
+test('footer has the generated brand, complete navigation and owner links',async({page})=>{
+  await page.goto('/')
+  const footer=page.getByRole('contentinfo')
+  await expect(footer.getByText('Discover the unseen.',{exact:true})).toBeVisible()
+  await expect(footer.getByRole('link',{name:'GitHub',exact:true})).toHaveAttribute('href','https://github.com/SachinRamasamy-cloud/alcor')
+  await expect(footer.getByRole('link',{name:'LinkedIn',exact:true})).toHaveAttribute('href','https://www.linkedin.com/in/m-sachin-ramasamy-5146092b5/')
+  for(const path of ['/anime','/manga','/search','/discover','/library','/wishlist','/collections','/history','/statistics','/profile','/settings','/about','/help','/privacy','/terms','/data-sources','/status'])await expect(footer.locator(`a[href="${path}"]`)).toBeVisible()
+  const mark=page.locator('.site-header .brand-mark')
+  await expect(mark).toBeVisible()
+  await expect.poll(()=>mark.evaluate((img:HTMLImageElement)=>img.naturalWidth)).toBeGreaterThan(0)
+  await footer.screenshot({path:test.info().outputPath('footer.png')})
+})
+
 for(const width of [320,375,768,1024,1440]) {
   test(`catalogue and details align at ${width}px`,async({page})=>{
     await page.setViewportSize({width,height:1000})

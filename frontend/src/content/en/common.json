@@ -333,5 +333,15 @@
   "release.NOT_YET_RELEASED": "Upcoming",
   "release.HIATUS": "On hiatus",
   "release.CANCELLED": "Cancelled",
-  "discovery.options": "Discovery options"
+  "discovery.options": "Discovery options",
+  "footer.explore": "Explore",
+  "footer.yourSpace": "Your space",
+  "footer.information": "Information",
+  "footer.tagline": "Discover the unseen.",
+  "footer.description": "Find new stories. Keep your place. Make your library your own.",
+  "footer.github": "GitHub",
+  "footer.linkedin": "LinkedIn",
+  "footer.copyright": "\u00a9 {year} ALCOR.",
+  "footer.creator": "Built by",
+  "footer.metadata": "Catalogue metadata by"
 }
