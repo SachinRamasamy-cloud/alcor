@@ -8,7 +8,7 @@
 
 ## Filtering
 
-Genre, format, year, season and publication status accept multiple choices. Sort has one value. Different fields combine with AND; format/year/season/status accept any selected value. The advanced genre all/any choice remains available. Filters applied by ALCOR use bounded cursor pages, so an unknown global total is not shown as an exact count.
+Genre, format, year, season and publication status accept multiple choices. Choose multiple values, then use Done or close the menu to apply them together. Sort has one value. Different fields combine with AND; format/year/season/status accept any selected value. The advanced genre all/any choice remains available. Filters applied by ALCOR use bounded cursor pages, so an unknown global total is not shown as an exact count.
 
 Saved presets and saved-note search currently support a single format/year/season/status; unsupported combinations are explained rather than silently reduced to one choice. Public filters keep working while personal services start.
 

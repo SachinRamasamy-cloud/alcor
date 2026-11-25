@@ -10,7 +10,7 @@ Library management exposes completion with explicit confirmation. Active trackin
 
 ## A27 — Custom multi-select filters
 
-Reuse the installed accessible dropdown primitive. Genre, format, year, season and publication status support repeated URL values; sort remains single choice. Choices within format/year/season/status match any selected value; fields combine with AND. Genre uses the existing all/any contract. App-owned matching occurs before displayed-page construction, with bounded source scanning and cursor navigation where global totals are unknown. Never silently discard selections or invent totals. Existing advanced-filter and memory-search contracts remain; unsupported combinations must be explicit.
+Reuse the installed accessible dropdown primitive. Genre, format, year, season and publication status support repeated URL values; sort remains single choice. Multi-select changes are collected locally while open and applied once on close, preserving fast consecutive choices and reducing source requests. Choices within format/year/season/status match any selected value; fields combine with AND. Genre uses the existing all/any contract. App-owned matching occurs before displayed-page construction, with bounded source scanning and cursor navigation where global totals are unknown. Never silently discard selections or invent totals. Existing advanced-filter and memory-search contracts remain; unsupported combinations must be explicit.
 
 ## A28 — Anime and manga browse shelves
 
