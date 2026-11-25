@@ -27,3 +27,7 @@ Run relevant unit, real local PostgreSQL/Redis integration, lint/type/build and 
 ## A30 ? Resolver pacing regression
 
 L2 follow-up to the existing A22 quota contract. A full browser run observed arrivals 2497ms apart despite the existing 2501ms scheduling floor. An independent delayed-preflight unit case reproduced compressed dispatches (2464ms). Anchor the unchanged floor after each response, preserving deduplication, account checks, one cooldown retry and all server thresholds. Verify that unit case and the unchanged browser arrival assertion; do not raise quotas or relax the test.
+
+## A26 follow-up ? Account lifecycle
+
+Preserve the existing account boundary in the new completion UI. Scope library dialog state to the current account's component lifetime; capture completion account/version at confirmation, suppress late callbacks after account change/unmount, and never send a captured confirmation for a different user. No authorization policy or storage change. Acceptance: open-dialog account-switch regression and delayed-completion response test, in addition to existing save account-switch tests. Human security review remains pending.

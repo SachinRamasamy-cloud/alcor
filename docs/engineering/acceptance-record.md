@@ -316,3 +316,7 @@ E113 reproduced replacement of TV after selecting Movie during a deferred route 
 ### A30 ? Resolver dispatch spacing
 
 The delayed-preflight test failed before correction at 2464ms and passed after anchoring the unchanged 2501ms floor after each response. All 6 identity transport tests pass. The unchanged browser cooldown/arrival test passed with the original 2500ms minimum, retry/deduplication and resolved-ID assertions. No server quota, retry count, account guard or protected assertion changed. Lint/build passed. This is a local queue correction; other tabs/processes still share provider/server budgets.
+
+### A26 follow-up ? Account-scoped management state
+
+Two independent lifecycle regressions failed before correction: open management state surviving account change, and a late completion callback announcing/closing under the new account. Library content now remounts per account; completion captures its account, rejects mismatched confirmation and suppresses callbacks after switch/unmount. All 12 account tests passed, including both unchanged failing assertions and prior save/start/confirmation/version cases. Lint/build passed. Existing server auth/RLS are unchanged; human security review remains pending.

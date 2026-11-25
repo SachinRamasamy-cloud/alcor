@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter } from 'react-router-dom'
 import { LibraryPage } from './account'
 import { SaveButton } from '../features/library'
+import {CompleteTitle} from '../features/library/complete'
 import { setTokenProvider, type Media } from '../shared/api/client'
 
 const state = vi.hoisted(() => ({ userId: 'account-a' as string | null, notify: vi.fn(), signIn: vi.fn() }))
@@ -19,6 +20,30 @@ function mount(child = <LibraryPage />) {
 beforeEach(() => { history.replaceState(null, '', '/wishlist'); state.userId = 'account-a'; vi.clearAllMocks(); setTokenProvider(async () => state.userId ? { token: 'test-only', userId: state.userId } : null) })
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 describe('library integration', () => {
+  it('hides a previous account management dialog on account switch',async()=>{
+    vi.stubGlobal('fetch',vi.fn(async()=>new Response(JSON.stringify(state.userId==='account-a'?{data:[entry],total:1}:{data:[],total:0}))))
+    const queries=new QueryClient({defaultOptions:{queries:{retry:false}}})
+    const tree=()=> <QueryClientProvider client={queries}><BrowserRouter><LibraryPage/></BrowserRouter></QueryClientProvider>
+    const view=render(tree())
+    fireEvent.click(await screen.findByRole('button',{name:'Manage Test title'}))
+    expect(screen.getByRole('dialog')).toBeVisible()
+    state.userId='account-b';view.rerender(tree())
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+  it('does not announce or close a newer account dialog for a late completion response',async()=>{
+    let complete!:(response:Response)=>void
+    const closed=vi.fn()
+    vi.stubGlobal('fetch',vi.fn(async(_url,init)=>init.method==='POST'?new Promise<Response>(resolve=>{complete=resolve}):new Response(JSON.stringify([{id:'session',active:true,version:4}]))))
+    const queries=new QueryClient({defaultOptions:{queries:{retry:false}}})
+    const tree=()=> <QueryClientProvider client={queries}><CompleteTitle entry={{...entry,status:'in_progress'} as import('../features/library').Entry} onComplete={closed}/></QueryClientProvider>
+    const view=render(tree())
+    await waitFor(()=>expect(screen.getByRole('button',{name:'Mark as completed'})).not.toBeDisabled())
+    fireEvent.click(screen.getByRole('button',{name:'Mark as completed'}));fireEvent.click(screen.getByRole('button',{name:'Mark as completed'}))
+    await waitFor(()=>expect(complete).toBeTypeOf('function'))
+    state.userId='account-b';view.rerender(tree())
+    await act(async()=>complete(new Response('{}')))
+    expect(closed).not.toHaveBeenCalled();expect(state.notify).not.toHaveBeenCalled()
+  })
   it('shows the same saved status on compact and detail buttons and versions Start watching',async()=>{
     let status='planned'
     const fetcher=vi.fn(async(url,init)=>{

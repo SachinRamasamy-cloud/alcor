@@ -95,6 +95,10 @@ export function LibraryGrid({entries,onManage}:{entries:Entry[];onManage:(entry:
   return <div className="media-grid">{entries.map(entry=><MediaCard key={entry.media.id} media={entry.media} context={<span className="personal-card-status">{t(`status.${entry.status}`)}</span>} actions={<button className="card-save" aria-label={t('media.manageLabel',{title:entry.media.title})} onClick={()=>onManage(entry)}><MoreHorizontal size={18}/></button>}/>)}</div>
 }
 export function LibraryPage() {
+  const {userId}=useAuth()
+  return <LibraryContent key={userId??'guest'}/>
+}
+function LibraryContent() {
   const wishlist = useLocation().pathname === '/wishlist'
   const { userId, loading, requireSignIn } = useAuth()
   const [params, setParams] = useSearchParams()
