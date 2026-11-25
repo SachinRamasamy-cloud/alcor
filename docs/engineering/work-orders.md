@@ -104,3 +104,13 @@ Stop the affected feature for conflicting authoritative requirements, unapproved
 ### B01 ? Episode error feedback, 25 November 2026
 
 Risk L2. Scope: details episode section and its browser test. Authority: product ?11 and editorial error/empty-state rules. Reproduced at 7d75845: HTTP 503 episode lookup renders the missing-metadata branch with no error or retry. Expected: keep title/synopsis visible, show contextual error and Retry for failed episode fetch, show loading during actual fetch; successful missing coverage still uses the existing missing-metadata message. No API/schema changes or altered assertions.
+
+### F01 - Preserve the interface while finishing the foundation
+
+25 November 2026; baseline `0fb844c`. Owner supplied `docs/product/ALCOR_FOUNDATION_V1.md` and requested implementation on a new branch with focused, plain-language commits. Branch: `finish-the-foundation`. The latest owner instruction locks existing layout, alignment and styling; it supersedes the attachment's proposed Home reorder/card redesign. No new dependency, parallel agent, production write/migration or deployment is authorized. Provider/scoring/auth/tracking restrictions remain binding.
+
+Risk L2 for discovery and existing card workflows; existing L4 ownership contracts are protected. First slice: reuse bounded personal exclusion logic across Home/Browse and explicit discovery modes, retain search Show All, preserve public rendering with an honest unavailable notice, preserve exact cursors, and publish committed personal state before refresh. Then add direct completion through the existing corner management/dialog pattern, with current account/version checks, no fabricated marks and no automatic completion replay after login. Existing layout classes and stylesheet are protected.
+
+Readiness: clean checkout on main; governing protocol/product/editorial/profile/metadata/browser-first/workflow contracts inspected. Baseline frontend `npm run test`: 108 passed in 34 files. Tests derive from Foundation D01-D21/T01-T05 and existing tracking/state contracts. Focused unit/browser checks, lint/build and diff inspection precede each feature commit. No new DB/API contract in these slices. Human review, live account validation, provider clearance and release remain pending.
+
+Open decisions requested separately: signed-in default/persisted mode, reconciled favorite removal, per-item bulk outcomes and exposure parameters. Do not implement dependent behavior until approved. Historical completion correction, trusted mappings and durable notification contracts need their own frozen work orders; no completion undo is enabled by this task record.
