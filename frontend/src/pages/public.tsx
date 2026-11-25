@@ -5,13 +5,11 @@ import { SpoilerText } from '../features/preferences'
 import { useEffect } from 'react'
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowRight, Star, ArrowUpRight } from 'lucide-react'
-import { m } from 'motion/react'
 import { useCatalogue, useEpisodes, useGenres, useHome, useMedia, SearchField } from '../features/catalogue'
 import { ContinueSections } from '../widgets/continue'
 import { EpisodeList } from '../features/catalogue/episode-list'
 import { ExpandableSynopsis } from '../features/catalogue/synopsis'
 import { PersonalMedia } from '../features/catalogue/personal'
-import { mediaPath } from '../shared/api/anilist'
 import {SaveButton} from '../features/library'
 import {CardActions,CardStatus} from '../features/library/actions'
 import { MediaGrid, Poster } from '../entities/media'
@@ -22,10 +20,11 @@ import { Button, ErrorState, Loading, Pagination } from '../shared/ui'
 import {discoveryLink,DiscoveryNotice} from '../features/catalogue/visibility'
 import {useDiscoveryShelves} from '../features/catalogue/shelf-refill'
 import {useDiscoveryMode} from '../features/catalogue/policy'
-import {selectFeatured} from '../features/catalogue/featured'
 import {HomeDiscovery} from '../widgets/discovery-home'
 import {popularCandidates} from '../features/catalogue/popular-cache'
 import {HomePersonalShelves,SimilarShelf} from '../features/recommendations/views'
+import {HomeHero} from '../widgets/home-hero'
+import type {DiscoveryMode} from '../features/catalogue/policy'
 
 function PageTitle({ title }: { title: string }) {
   useEffect(() => { document.title = `${title} · ${t('brand')}` }, [title])
@@ -50,25 +49,18 @@ function filterLabel(key:string,value:string):string {
   return labels[key]?`${t(labels[key])}: ${value}`:value.replaceAll('_',' ')
 }
 export function HomePage() {
+  const [params]=useSearchParams(),mode=useDiscoveryMode(params)
+  return <div className="shell"><PageTitle title={t('nav.home')}/><HomeHero/><HomeShelves mode={mode}/></div>
+}
+function HomeShelves({mode}:{mode:DiscoveryMode}) {
   const home = useHome()
   const queries=useQueryClient()
-  const [params]=useSearchParams(),mode=useDiscoveryMode(params)
   const visibility=useDiscoveryShelves('home',home.data?{anime:popularCandidates(queries,home.data.anime,'anime'),manga:popularCandidates(queries,home.data.manga,'manga')}:{},mode,home.data?.is_partial??false)
-  if (home.isPending) return <Loading variant="home" page />
+  if (home.isPending) return <Loading variant="catalogue"/>
   if (home.error) return <ErrorState error={home.error} retry={() => { void home.refetch() }} />
-  if(visibility.pending)return <Loading variant="home" page/>
+  if(visibility.pending)return <Loading variant="catalogue"/>
   const anime=visibility.shelves.anime??[],manga=visibility.shelves.manga??[]
-  const featured = selectFeatured([...(home.data.featured&&visibility.items.some(item=>item.id===home.data.featured?.id)?[home.data.featured]:[]),...anime])
-  return <div className="shell"><PageTitle title={t('nav.home')} />
-    <DiscoveryNotice unavailable={visibility.unavailable} refetch={visibility.refetch}/>
-    {!featured&&<h1 className="sr-only">{t('nav.home')}</h1>}
-    {featured && <section data-media-source="" className="hero"><div className="hero-copy"><p className="eyebrow"><span className="tiny-rule" />{t('home.featured')}</p><h1>{featured.title}</h1>
-      {featured.original_title && <p className="hero-original">{featured.original_title}</p>}
-      <div className="hero-metadata"><span><Star size={14} fill="currentColor" />{featured.score?.toFixed(2) ?? t('media.notRated')}</span><span>{featured.year ?? t('media.notAvailable')}</span><span>{featured.format}</span><span>{unitCount(featured.total_units ?? null, featured.media_type)}</span></div>
-      <SpoilerText><p className="hero-synopsis">{featured.synopsis}</p></SpoilerText><div className="hero-genres">{featured.genres.slice(0, 3).map(g => <Link to={discoveryLink(`/anime?genre=${encodeURIComponent(g)}`,mode)} key={g}>{g}</Link>)}</div>
-      <div className="hero-actions"><Link className="button button-primary" to={mediaPath(featured)}>{t('home.details')}<ArrowRight size={16} /></Link><CardActions media={featured} presentation="hero"/></div>
-      <a className="hero-source" href={featured.source.url} target="_blank" rel="noreferrer">{t('media.external')}<ArrowUpRight size={11} /></a>
-    </div><div className="hero-art"><m.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .25 }} className="hero-poster"><Poster media={featured} priority /></m.div><span className="hero-art-label">{featured.original_title ?? featured.title}</span></div></section>}
+  return <><DiscoveryNotice unavailable={visibility.unavailable} refetch={visibility.refetch}/>
     <ContinueSections />
     {visibility.refilling&&<p className="coverage-note" role="status">{t('discovery.refilling')}</p>}
     {visibility.refillError&&<ErrorState error={visibility.refillError} retry={()=>{void visibility.retryRefill()}}/>}
@@ -79,7 +71,7 @@ export function HomePage() {
     <section className="home-section genre-section"><div className="section-heading"><h2>{t('home.genres')}</h2></div><div className="genre-grid">{home.data.genres.slice(0, 8).map((genre, i) => <Link key={genre} to={discoveryLink(`/anime?genre=${encodeURIComponent(genre)}`,mode)}><span className="genre-number">{String(i + 1).padStart(2, '0')}</span><span>{genre}</span><ArrowRight size={17} /></Link>)}</div></section>
     <Section title="home.popularManga" to={discoveryLink('/search?type=manga&sort=popular',mode)} items={manga} />
     <HomeDiscovery mode={mode} position="after-manga" enabled={Boolean(home.data.is_partial)&&!visibility.refilling}/>
-  </div>
+  </>
 }
 
 export function CataloguePage() {
