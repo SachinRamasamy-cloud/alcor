@@ -82,3 +82,8 @@ Final checkpoint: E006–E010 and E012–E014 were resolved by the recorded pass
 - E054: Web retrieval could not display the SVG social icons because its renderer rejects `image/svg+xml`. Direct HTTPS reads from the same pinned official source returned 200; saved those assets with their licence. No application failure or additional package dependency.
 
 - E055: An empty documentation patch used a nonexistent heading anchor and was rejected without edits. Appended the intended acceptance note at the file end instead; source and test results were unaffected.
+
+- E056: Card verification exposed an unguarded genre-array read in the existing account fixture, which omits genres. Treat missing genre data as an empty list without changing the fixture or its write/version assertions. Full verification results are recorded in the A12 acceptance entry.
+- E057: Reads assumed nonexistent `acceptance-records.md` and `frontend/.gitignore`. Read the actual singular acceptance record and repository-root ignore file. No source changes or application failure.
+- E058: The first combined verification output was lost to context truncation. Recovered the completed browser status/artifacts, then reran checks with separate captured results. Strengthened the hover request assertion to match the provider origin and require a positive baseline; it cannot pass merely because the URL spelling differs.
+- E059: Final design review found muted green card accents outside the documented monochrome palette. Replaced them with the existing neutral surface, text and border colors before integration; repeated the responsive accessibility and card checks after the adjustment.

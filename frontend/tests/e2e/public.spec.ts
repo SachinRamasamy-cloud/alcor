@@ -24,7 +24,7 @@ test('guest browses details and search; wishlist prompts without writing', async
   await expect(page.getByRole('searchbox', { name: 'Search anime and manga' })).toHaveValue('Frieren')
 })
 
-for (const width of [320, 375, 768, 1024, 1440]) {
+for (const width of [320, 375, 640, 768, 1024, 1280, 1440, 1600, 1920]) {
   test(`public layout is accessible at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 1000 })
     await page.emulateMedia({ reducedMotion: 'reduce' })
@@ -36,6 +36,49 @@ for (const width of [320, 375, 768, 1024, 1440]) {
     await page.screenshot({ path: test.info().outputPath('home.png'), fullPage: true })
   })
 }
+
+test('cards show complete metadata, visible actions and balanced rows at wide widths',async({page})=>{
+  await page.setViewportSize({width:1920,height:1000})
+  await page.route('https://graphql.anilist.co',route=>{
+    const {query}=route.request().postDataJSON()
+    if(!query.includes('AlcorCatalogue'))return route.fallback()
+    return route.fulfill({contentType:'application/json',body:JSON.stringify({data:{Page:{pageInfo:{hasNextPage:false,lastPage:1,total:24},media:Array.from({length:24},(_,i)=>({...titles[0],id:i+1,title:{english:`Card ${i+1}`},genres:['Action','Adventure'],episodes:12}))}}})})
+  })
+  await page.goto('/anime')
+  const cards=page.locator('.media-card')
+  await expect(cards).toHaveCount(24)
+  const geometry=await cards.evaluateAll(nodes=>nodes.map(node=>{const rect=node.getBoundingClientRect();return {top:Math.round(rect.top),height:rect.height,width:rect.width}}))
+  expect([...new Set(geometry.map(card=>card.top))]).toHaveLength(4)
+  expect(geometry.filter(card=>card.top===geometry[0].top)).toHaveLength(6)
+  expect(Math.max(...geometry.map(card=>card.height))-Math.min(...geometry.map(card=>card.height))).toBeLessThan(1)
+  await expect(cards.first().getByText('12 episodes')).toBeVisible()
+  await expect(cards.first().getByRole('button',{name:'Add Card 1 to wishlist'})).toBeVisible()
+  await cards.first().getByRole('button',{name:'Add Card 1 to wishlist'}).click()
+  await expect(page.getByRole('dialog')).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(cards.first().getByRole('button',{name:'Add Card 1 to wishlist'})).toBeFocused()
+  await page.screenshot({path:test.info().outputPath('cards-wide.png'),fullPage:true})
+})
+
+test('card actions stay usable on a narrow screen and hover does not request more metadata',async({page})=>{
+  let reads=0
+  page.on('request',request=>{if(new URL(request.url()).origin==='https://graphql.anilist.co')reads++})
+  await page.setViewportSize({width:320,height:900})
+  await page.goto('/')
+  await expect(page.locator('.media-card')).toHaveCount(18)
+  const card=page.locator('.media-card').first()
+  const save=card.getByRole('button',{name:/^Add .* to wishlist$/})
+  await expect(save).toBeVisible()
+  const footer=await card.locator('.card-footer').boundingBox(),button=await save.boundingBox()
+  expect(button!.height).toBeGreaterThanOrEqual(44)
+  expect(footer!.height).toBeLessThan(60)
+  const baseline=reads
+  expect(baseline).toBeGreaterThan(0)
+  await card.locator('.poster-wrap').hover()
+  await card.locator('.card-details').focus()
+  expect(reads).toBe(baseline)
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
+})
 
 test('upstream error is not presented as empty results', async ({ page }) => {
   await page.route('https://graphql.anilist.co', route => route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }))

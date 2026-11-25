@@ -5,7 +5,7 @@ export type SkeletonKind = 'home' | 'catalogue' | 'details' | 'library' | 'wishl
 const Block = ({ className = '' }: { className?: string }) => <div className={`skeleton-block ${className}`} />
 function Lines({ count = 3 }: { count?: number }) { return <div className="skeleton-lines">{Array.from({ length: count }, (_, i) => <Block key={i} className={i === count - 1 ? 'skeleton-short' : ''} />)}</div> }
 function Cards() {
-  return <div className="media-grid">{Array.from({ length: 12 }, (_, i) => <div key={i}><Block className="skeleton-poster" /><div className="skeleton-card-copy"><Lines count={2} /></div></div>)}</div>
+  return <div className="media-grid">{Array.from({ length: 12 }, (_, i) => <div key={i} className="media-card"><Block className="skeleton-poster" /><div className="card-body"><Lines count={2} /><Block className="skeleton-short"/><Block className="skeleton-short"/><div className="card-genres"><Block className="skeleton-short"/></div><div className="card-footer"><Block className="skeleton-input skeleton-short"/></div></div></div>)}</div>
 }
 function Detail() {
   return <div className="details-layout"><Block className="skeleton-poster detail-poster" /><div className="detail-main skeleton-detail-copy"><Block className="skeleton-short" /><Block className="skeleton-title" /><Lines count={2} /><div className="skeleton-buttons"><Block /><Block /></div><Lines count={6} /></div></div>

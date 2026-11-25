@@ -356,5 +356,6 @@
   "media.relatedInfo": "Title information",
   "media.backTo": "Back to {type}",
   "media.episodeType": "Episode type",
-  "media.sections": "Title sections"
+  "media.sections": "Title sections",
+  "media.detailsLabel": "View details for {title}"
 }
