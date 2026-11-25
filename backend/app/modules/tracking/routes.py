@@ -12,7 +12,6 @@ from app.modules.tracking.schemas import (
     SessionVersion,
     StartSession,
     UnitDetails,
-    canonical_key,
 )
 
 router = APIRouter(prefix="/api/v1/me", tags=["tracking"])
@@ -24,10 +23,8 @@ def install_routes(name: str, media_type: str, unit: str):
         request: Request, user: User, session_id: UUID, key: str, body: UnitDetails
     ) -> SessionRead:
         await read(request, user, session_id, 0)
-        try:
-            key = canonical_key(key)
-        except ValueError as exc:
-            raise AppError(422, "INVALID_REQUEST", "Check the target label.") from exc
+        if not key or len(key) > 80:
+            raise AppError(422, "INVALID_REQUEST", "Check the target label.")
         return await request.app.state.tracking.unit_details(user, session_id, key, body)
 
     router.add_api_route(

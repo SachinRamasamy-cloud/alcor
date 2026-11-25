@@ -46,7 +46,9 @@ class ProgressWrite(BaseModel):
     @field_validator("keys")
     @classmethod
     def distinct(cls, keys):
-        values = [canonical_key(key) for key in keys]
+        values = keys
+        if any(not key or len(key) > 80 for key in keys):
+            raise ValueError("Progress keys must contain 1-80 characters")
         if len(set(values)) != len(values):
             raise ValueError("Duplicate progress keys")
         return values

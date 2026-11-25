@@ -8,7 +8,18 @@ from app.integrations.metadata.schemas import Media
 from app.modules.library import public as library
 from app.modules.tracking import repository as repo
 from app.modules.tracking.policy import summarize
-from app.modules.tracking.schemas import SessionRead
+from app.modules.tracking.schemas import SessionRead, canonical_key
+
+
+def resolve_target(units, key):
+    exact = next((u for u in units if u["key"] == key), None)
+    if exact is not None:
+        return exact
+    try:
+        manual_key = canonical_key(key)
+    except ValueError:
+        return None
+    return next((u for u in units if u["provenance"] == "manual" and u["key"] == manual_key), None)
 
 
 class TrackingService:
@@ -21,11 +32,10 @@ class TrackingService:
             row = await repo.session_row(session, user, session_id, lock=True)
             if row is None:
                 raise AppError(404, "NOT_FOUND", "This session is not available.")
-            unit = next(
-                (u for u in await repo.targets(session, user, session_id) if u["key"] == key), None
-            )
+            unit = resolve_target(await repo.targets(session, user, session_id), key)
             if unit is None:
                 raise AppError(404, "NOT_FOUND", "This target is not available.")
+            key = unit["key"]
             changed = any(unit[k] != v for k, v in values.items())
             if changed:
                 if row["version"] != body.expected_version:
@@ -322,13 +332,16 @@ class TrackingService:
                 expected = "watched" if row["payload"]["media_type"] == "anime" else "read"
                 if body.state not in {expected, "skipped", "unresolved"}:
                     raise AppError(422, "INVALID_REQUEST", "Use the matching progress type.")
-                indexed = {u["key"]: u for u in units}
-                for key in body.keys:
-                    unit = indexed.get(key)
+                resolved = [resolve_target(units, key) for key in body.keys]
+                valid_keys = [u["key"] for u in resolved if u is not None]
+                if len(set(valid_keys)) != len(valid_keys):
+                    raise AppError(422, "INVALID_REQUEST", "Select each target only once.")
+                for unit in resolved:
                     if unit is None or not unit["released"]:
                         raise AppError(
                             422, "INVALID_REQUEST", "Select available targets from this session."
                         )
+                    key = unit["key"]
                     if unit["state"] != body.state:
                         changes.append({"key": key, "before": unit["state"], "after": body.state})
                         await repo.set_mark(

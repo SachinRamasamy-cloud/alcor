@@ -43,3 +43,5 @@ Final checkpoint: E006–E010 and E012–E014 were resolved by the recorded pass
 - E025: Python lint flagged compressed test statements with semicolons. Applied the repository formatter before lint; no assertions changed.
 - E026: Real database undo tests rejected SELECT FOR UPDATE on the append-only activity table, whose runtime role deliberately lacks UPDATE. Replaced that lock with a transaction-scoped advisory lock per user/action and a plain read; did not broaden database permissions. Original undo tests retained.
 - E027: The first repair command used a root-relative path from the backend directory, so no patch was applied and tests repeated the original failure. Corrected the working directory and applied the diagnosed repair before rerunning.
+
+- E028: A real PostgreSQL regression reproduced provider key `001` being normalized to `1`, causing a false invalid-target error. Preserve provider keys exactly; apply decimal aliases only as a fallback for explicitly manual targets. Original provider-key regression and decimal-manual tests now pass.

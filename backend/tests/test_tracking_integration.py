@@ -9,6 +9,7 @@ from sqlalchemy.exc import IntegrityError
 from app.core.errors import AppError
 from app.infrastructure.database import Database
 from app.integrations.metadata.provider import FixtureProvider
+from app.integrations.metadata.schemas import Episode, EpisodePage
 from app.modules.library.service import LibraryService
 from app.modules.tracking.schemas import ManualTargets, ProgressWrite, SessionVersion, StartSession
 from app.modules.tracking.service import TrackingService
@@ -19,6 +20,31 @@ pytestmark = [
         os.environ.get("ALCOR_RUN_INTEGRATION") != "1", reason="Local PostgreSQL opt-in required"
     ),
 ]
+
+
+async def test_provider_keys_are_not_normalized_as_manual_chapter_labels(database):
+    from datetime import UTC, datetime
+
+    class Provider(FixtureProvider):
+        async def episodes(self, media_id):
+            return EpisodePage(
+                data=[
+                    Episode(
+                        key="001", order=1, label="1", released_at=datetime(2026, 1, 1, tzinfo=UTC)
+                    )
+                ]
+            )
+
+    user = uuid4()
+    provider = Provider()
+    media = (await provider.catalogue())[0]
+    service = TrackingService(database, provider)
+    created = await service.start(user, StartSession(media_id=media.id, request_id=uuid4()))
+    assert created.units[0].key == "001"
+    updated = await service.update(
+        user, created.id, ProgressWrite(expected_version=1, keys=["001"], state="watched")
+    )
+    assert updated.summary.done == 1
 
 
 @pytest.fixture
