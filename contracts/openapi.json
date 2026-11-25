@@ -1466,6 +1466,25 @@
             ],
             "title": "Genre"
           },
+          "genre_match": {
+            "default": "all",
+            "enum": [
+              "all",
+              "any"
+            ],
+            "title": "Genre Match",
+            "type": "string"
+          },
+          "has_image": {
+            "default": false,
+            "title": "Has Image",
+            "type": "boolean"
+          },
+          "has_score": {
+            "default": false,
+            "title": "Has Score",
+            "type": "boolean"
+          },
           "include_genres": {
             "items": {
               "type": "string"
@@ -2615,6 +2634,40 @@
           },
           {
             "in": "query",
+            "name": "genre_match",
+            "required": false,
+            "schema": {
+              "default": "all",
+              "enum": [
+                "all",
+                "any"
+              ],
+              "title": "Genre Match",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "has_score",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Has Score",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "has_image",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Has Image",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
             "name": "exclude_genres",
             "required": false,
             "schema": {
@@ -3143,6 +3196,40 @@
           },
           {
             "in": "query",
+            "name": "genre_match",
+            "required": false,
+            "schema": {
+              "default": "all",
+              "enum": [
+                "all",
+                "any"
+              ],
+              "title": "Genre Match",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "has_score",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Has Score",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "has_image",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Has Image",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
             "name": "exclude_genres",
             "required": false,
             "schema": {
@@ -3559,6 +3646,40 @@
               "maxItems": 50,
               "title": "Include Genres",
               "type": "array"
+            }
+          },
+          {
+            "in": "query",
+            "name": "genre_match",
+            "required": false,
+            "schema": {
+              "default": "all",
+              "enum": [
+                "all",
+                "any"
+              ],
+              "title": "Genre Match",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "has_score",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Has Score",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "has_image",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Has Image",
+              "type": "boolean"
             }
           },
           {
@@ -4500,6 +4621,40 @@
               "maxItems": 50,
               "title": "Include Genres",
               "type": "array"
+            }
+          },
+          {
+            "in": "query",
+            "name": "genre_match",
+            "required": false,
+            "schema": {
+              "default": "all",
+              "enum": [
+                "all",
+                "any"
+              ],
+              "title": "Genre Match",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "has_score",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Has Score",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "has_image",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Has Image",
+              "type": "boolean"
             }
           },
           {
@@ -6590,6 +6745,40 @@
               "maxItems": 50,
               "title": "Include Genres",
               "type": "array"
+            }
+          },
+          {
+            "in": "query",
+            "name": "genre_match",
+            "required": false,
+            "schema": {
+              "default": "all",
+              "enum": [
+                "all",
+                "any"
+              ],
+              "title": "Genre Match",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "has_score",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Has Score",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "has_image",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Has Image",
+              "type": "boolean"
             }
           },
           {

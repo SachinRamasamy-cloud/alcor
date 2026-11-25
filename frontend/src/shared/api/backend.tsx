@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { setBackendReady } from './client'
 import { t } from '../content'
 import { Button } from '../ui'
+import { useAuth } from '../auth'
 
 type BackendState = { ready: boolean; phase: 'ready' | 'waking' | 'offline'; retry: () => void }
 const Context = createContext<BackendState>({ ready: true, phase: 'ready', retry: () => {} })
@@ -44,6 +45,7 @@ export function BackendProvider({ children }: { children: ReactNode }) {
 
 export function BackendNotice() {
   const { phase, retry } = useBackend()
-  if (phase === 'ready') return null
+  const {userId}=useAuth()
+  if (phase === 'ready' || !userId) return null
   return <div className="backend-notice"><div className="shell backend-notice-inner"><p role="status">{t(phase === 'waking' ? 'backend.waking' : 'backend.offline')}</p>{phase === 'offline' && <Button variant="secondary" onClick={retry}>{t('common.retry')}</Button>}</div></div>
 }

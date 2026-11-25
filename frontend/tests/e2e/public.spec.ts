@@ -21,7 +21,7 @@ test('guest browses details and search; wishlist prompts without writing', async
   await expect(page.getByText('Results for Frieren', { exact: true })).toBeVisible()
   await expect(page.locator('.media-card')).toHaveCount(1)
   await page.reload()
-  await expect(page.getByRole('textbox', { name: 'Search anime and manga' })).toHaveValue('Frieren')
+  await expect(page.getByRole('searchbox', { name: 'Search anime and manga' })).toHaveValue('Frieren')
 })
 
 for (const width of [320, 375, 768, 1024, 1440]) {
@@ -57,7 +57,7 @@ test('episode lookup failure offers a contextual retry', async ({ page }) => {
 
 test('public home, search and details remain usable while personal server is unavailable', async ({page}) => {
   await page.goto('/')
-  await expect(page.locator('.backend-notice').getByRole('status')).toContainText('Personal features')
+  await expect(page.locator('.backend-notice')).toHaveCount(0)
   await expect(page.locator('.media-card')).toHaveCount(18)
   await page.getByRole('link',{name:'View details',exact:true}).click()
   await expect(page).toHaveURL(/\/anime\/anilist-\d+$/)
@@ -88,12 +88,46 @@ test('numbered catalogue navigation supports last, first and custom page jumps',
   await expect(page).toHaveURL('/anime?genre=Action')
 })
 
+test('editing a search keeps focus and the caret after results update',async({page})=>{
+  await page.goto('/search?q=Frieren')
+  const input=page.getByRole('searchbox',{name:'Search anime and manga'})
+  await input.focus()
+  await input.press('End')
+  await input.press('Backspace')
+  await expect.poll(()=>new URL(page.url()).searchParams.get('q')).toBe('Friere')
+  await expect(input).toBeFocused()
+  await input.press('n')
+  await expect(input).toHaveValue('Frieren')
+  await expect.poll(()=>new URL(page.url()).searchParams.get('q')).toBe('Frieren')
+  await expect(input).toBeFocused()
+})
+
+test('discovery options stay in a keyboard-accessible popup',async({page})=>{
+  await page.goto('/anime')
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(page.getByText('Discovery mode',{exact:true})).toHaveCount(0)
+  const trigger=page.getByRole('button',{name:'Discovery options',exact:true})
+  await trigger.click()
+  const dialog=page.getByRole('dialog')
+  await expect(dialog.getByRole('combobox',{name:'Discovery mode',exact:true})).toBeVisible()
+  await expect(dialog.getByRole('combobox',{name:'Included genres',exact:true})).toBeVisible()
+  expect((await dialog.boundingBox())!.width).toBeGreaterThan(600)
+  const accessibility=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()
+  expect(accessibility.violations.map(v=>v.id)).toEqual([])
+  await page.keyboard.press('Escape')
+  await expect(dialog).toHaveCount(0)
+  await expect(trigger).toBeFocused()
+  await expect(page.locator('.backend-notice')).toHaveCount(0)
+})
+
 for(const width of [320,375,768,1024,1440]) {
   test(`catalogue and details align at ${width}px`,async({page})=>{
     await page.setViewportSize({width,height:1000})
     await page.goto('/anime')
     await expect(page.locator('.media-card')).toHaveCount(12)
-    await page.getByText('Advanced filters',{exact:true}).click()
+    await page.getByRole('button',{name:'Discovery options',exact:true}).click()
+    await expect(page.getByRole('dialog')).toBeVisible()
+    await page.keyboard.press('Escape')
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
     const shell=await page.locator('.page-body').boundingBox()
     const grid=await page.locator('.media-grid').boundingBox()

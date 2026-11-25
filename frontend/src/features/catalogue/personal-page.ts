@@ -1,9 +1,10 @@
 import { api, ApiError, type CataloguePage } from '../../shared/api/client'
 import { aniCatalogue } from '../../shared/api/anilist'
+import { matchesCustomFilters } from './custom-filters'
 
 // Scan a bounded source window, filter before constructing the displayed page,
 // and preserve the exact unread source offset rather than dropping eligible items.
-export async function personalPage(path: string, params: URLSearchParams, userId: string, signal?: AbortSignal, source = aniCatalogue, exclude = exclusions): Promise<CataloguePage> {
+export async function personalPage(path: string, params: URLSearchParams, userId: string | null, signal?: AbortSignal, source = aniCatalogue, exclude = exclusions): Promise<CataloguePage> {
   const cursor = params.get('cursor')
   const match = cursor ? /^f:(\d+):(\d+)$/.exec(cursor) : null
   let page = match ? Number(match[1]) : 1
@@ -13,12 +14,13 @@ export async function personalPage(path: string, params: URLSearchParams, userId
   for (let scanned = 0; scanned < 3; scanned++) {
     const next = new URLSearchParams(params)
     next.delete('page')
+    if(next.get('genre_match')==='any')next.delete('include_genres')
     next.set('cursor', String(page))
     const result = await source(path, next, signal)
-    const excluded = await exclude(result.data, params.get('mode')!, userId, signal)
+    const excluded = userId ? await exclude(result.data, params.get('mode')!, userId, signal) : []
     for (let i = offset; i < result.data.length; i++) {
       const item = result.data[i]
-      if (!excluded.includes(Number(item.source_ids?.anilist))) data.push(item)
+      if (!excluded.includes(Number(item.source_ids?.anilist)) && matchesCustomFilters(item,params)) data.push(item)
       if (data.length === 24) {
         const unread = i + 1 < result.data.length
         const more = unread || result.has_more

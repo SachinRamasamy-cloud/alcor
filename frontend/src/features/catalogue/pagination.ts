@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useBackend } from '../../shared/api/backend'
 import { useAuth } from '../../shared/auth'
 import { useLocation, useSearchParams } from 'react-router-dom'
+import { needsLocalFilters } from './custom-filters'
 
 export function useCataloguePagination(nextCursor: string | null | undefined, hasNext: boolean) {
   const [params,setParams] = useSearchParams()
@@ -9,7 +10,7 @@ export function useCataloguePagination(nextCursor: string | null | undefined, ha
   const {userId}=useAuth()
   const {ready}=useBackend()
   const queries=useQueryClient()
-  const personal=['hide_watched','new_to_me'].includes(params.get('mode')??'') && params.get('memory')!=='true' && Boolean(userId&&ready)
+  const personal=params.get('memory')!=='true' && (needsLocalFilters(params) || (['hide_watched','new_to_me'].includes(params.get('mode')??'') && Boolean(userId&&ready)))
   const page=Math.max(1,Number(params.get('page'))||1)
   const context=new URLSearchParams(params);context.delete('page');context.delete('cursor')
   const key=['private',userId,'page-cursors',location.pathname,context.toString()]

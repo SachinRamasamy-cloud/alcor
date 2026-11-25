@@ -96,6 +96,9 @@ class CatalogueQuery(BaseModel):
     cursor: str | None = Field(default=None, max_length=512)
     page: int | None = Field(default=None, ge=1, le=10000)
     include_genres: list[str] = Field(default_factory=list, max_length=50)
+    genre_match: Literal["all", "any"] = "all"
+    has_score: bool = False
+    has_image: bool = False
     exclude_genres: list[str] = Field(default_factory=list, max_length=50)
     include_themes: list[str] = Field(default_factory=list, max_length=50)
     exclude_themes: list[str] = Field(default_factory=list, max_length=50)

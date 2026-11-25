@@ -136,7 +136,7 @@ export async function aniDetails(type: string, id: string, signal?: AbortSignal)
 }
 
 export async function aniCatalogue(path: string, params: URLSearchParams, signal?: AbortSignal): Promise<CataloguePage> {
-  if(params.get('studio') || params.get('memory') === 'true') throw new ApiError(422, 'UNSUPPORTED_FILTER')
+  if(params.get('memory') === 'true') throw new ApiError(422, 'UNSUPPORTED_FILTER')
   const page = Number(params.get('page') || params.get('cursor') || 1)
   if (!Number.isSafeInteger(page) || page < 1 || page > 10000) throw new ApiError(422, 'INVALID_CURSOR')
   const variables: Record<string, unknown> = { page, type: path === '/anime' ? 'ANIME' : path === '/manga' ? 'MANGA' : undefined,

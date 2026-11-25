@@ -27,7 +27,16 @@ def eligible_items(
         and (not query.genre or query.genre in m.genres)
         and (not query.format or query.format == m.format)
         and (not query.year or m.year == query.year)
-        and all(g in m.genres for g in query.include_genres)
+        and (
+            not query.include_genres
+            or (
+                all(g in m.genres for g in query.include_genres)
+                if query.genre_match == "all"
+                else any(g in m.genres for g in query.include_genres)
+            )
+        )
+        and (not query.has_score or m.score is not None)
+        and (not query.has_image or bool(m.image_url))
         and not any(g in m.genres for g in query.exclude_genres)
         and all(g in m.themes for g in query.include_themes)
         and not any(g in m.themes for g in query.exclude_themes)

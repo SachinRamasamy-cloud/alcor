@@ -4,6 +4,8 @@ import { aniCatalogue, aniDetails, aniHome } from '../../shared/api/anilist'
 import { useAuth } from '../../shared/auth'
 import { useBackend } from '../../shared/api/backend'
 import { personalPage } from './personal-page'
+export { SearchField } from './search-field'
+import { needsLocalFilters } from './custom-filters'
 
 export const homeOptions = { queryKey: ['public', 'anilist', 'home'], queryFn: ({signal}: {signal:AbortSignal}) => aniHome(signal), staleTime: 300000, retry: false as const }
 export const useHome = () => useQuery(homeOptions)
@@ -19,7 +21,7 @@ export function useCatalogue(path: string, params: URLSearchParams) {
       if(path==='/anime'||path==='/manga') query.set('media_type',path.slice(1))
       return api<import('../../shared/api/client').CataloguePage>(`/me/discover?${query}`,{signal,accountId:userId??'signed-out'})
     }
-    if (personal) return personalPage(path, params, userId!, signal)
+    if (personal || needsLocalFilters(params)) return personalPage(path, params, personal?userId!:null, signal)
     const publicParams = new URLSearchParams(params)
     if (publicParams.get('cursor')?.startsWith('f:')) publicParams.delete('cursor')
     return aniCatalogue(path, publicParams, signal)

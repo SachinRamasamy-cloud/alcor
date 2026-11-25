@@ -1,10 +1,10 @@
 import { DiscoveryControls } from '../features/discovery'
 import { SpoilerText } from '../features/preferences'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowRight, Search, SlidersHorizontal, Star, ArrowUpRight } from 'lucide-react'
+import { ArrowRight, Star, ArrowUpRight } from 'lucide-react'
 import { m } from 'motion/react'
-import { useCatalogue, useEpisodes, useGenres, useHome, useMedia } from '../features/catalogue'
+import { useCatalogue, useEpisodes, useGenres, useHome, useMedia, SearchField } from '../features/catalogue'
 import { ContinueSections } from '../widgets/continue'
 import { PersonalMedia } from '../features/catalogue/personal'
 import { mediaPath } from '../shared/api/anilist'
@@ -13,13 +13,13 @@ import { MediaGrid, Poster } from '../entities/media'
 import type { EpisodePage, Media } from '../shared/api/client'
 import { t, formatDate, unitCount, type MessageKey } from '../shared/content'
 import { useCataloguePagination } from '../features/catalogue/pagination'
-import { Button, ErrorState, Loading, Modal, Pagination } from '../shared/ui'
+import { Button, ErrorState, Loading, Pagination } from '../shared/ui'
 
 function PageTitle({ title }: { title: string }) {
   useEffect(() => { document.title = `${title} · ${t('brand')}` }, [title])
   return null
 }
-export function SnapshotNotice() { return <div className="snapshot-notice"><span className="status-dot" /> <strong>{t('catalogue.direct')}</strong><span>{t('catalogue.directBody')}</span></div> }
+
 function WishlistAction({ media }: { media: Media }) { return <SaveButton media={media} compact /> }
 function Section({ title, to, items }: { title: MessageKey; to: string; items: Media[] }) {
   if (!items.length) return null
@@ -29,12 +29,23 @@ function EpisodeList({ episodes }: { episodes: EpisodePage['data'] }) {
   const [page,setPage]=useState(1)
   return <><ol className="episode-list">{episodes.slice((page-1)*24,page*24).map(ep=><li key={ep.key}><span className="tabular-nums text-muted">{ep.label}</span><span>{ep.title??t('media.notAvailable')}</span></li>)}</ol><Pagination page={page} totalPages={Math.ceil(episodes.length/24)} onChange={setPage}/></>
 }
+function filterLabel(key:string,value:string):string {
+  if(key==='has_score')return t('discovery.ratedOnly')
+  if(key==='has_image')return t('discovery.coversOnly')
+  if(key==='memory')return t('discovery.memory')
+  if(key==='genre_match')return t(value==='any'?'discovery.matchAny':'discovery.matchAll')
+  if(key==='mode')return t(value==='hide_watched'?'discovery.hideWatched':value==='new_to_me'?'discovery.newToMe':'discovery.all')
+  if(key==='sort'&&['popular','score','title','year'].includes(value))return t(`catalogue.${value}` as MessageKey)
+  if(key==='status'&&['FINISHED','RELEASING','NOT_YET_RELEASED','HIATUS','CANCELLED'].includes(value))return t(`release.${value}` as MessageKey)
+  const labels:Record<string,MessageKey>={year:'catalogue.year',year_from:'discovery.yearFrom',year_to:'discovery.yearTo',studio:'media.studio',score_min:'discovery.scoreMin',units_max:'discovery.unitsMax'}
+  return labels[key]?`${t(labels[key])}: ${value}`:value.replaceAll('_',' ')
+}
 export function HomePage() {
   const home = useHome()
   if (home.isPending) return <Loading variant="home" page />
   if (home.error) return <ErrorState error={home.error} retry={() => { void home.refetch() }} />
   const featured = home.data.featured
-  return <div className="shell"><PageTitle title={t('nav.home')} /><SnapshotNotice />
+  return <div className="shell"><PageTitle title={t('nav.home')} />
     {featured && <section className="hero"><div className="hero-copy"><p className="eyebrow"><span className="tiny-rule" />{t('home.featured')}</p><h1>{featured.title}</h1>
       {featured.original_title && <p className="hero-original">{featured.original_title}</p>}
       <div className="hero-metadata"><span><Star size={14} fill="currentColor" />{featured.score?.toFixed(2) ?? t('media.notRated')}</span><span>{featured.year ?? t('media.notAvailable')}</span><span>{featured.format}</span><span>{unitCount(featured.total_units ?? null, featured.media_type)}</span></div>
@@ -52,9 +63,6 @@ export function HomePage() {
 export function CataloguePage() {
   const location = useLocation()
   const [params, setParams] = useSearchParams()
-  const [filtersOpen, setFiltersOpen] = useState(false)
-  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-  useEffect(() => () => clearTimeout(timer.current), [])
   const type = location.pathname === '/anime' ? 'anime' : location.pathname === '/manga' ? 'manga' : null
   const titleKey = type ? `catalogue.${type}` as const : location.pathname === '/search' ? 'catalogue.search' : 'catalogue.discover'
   const requestParams = new URLSearchParams(params)
@@ -64,15 +72,17 @@ export function CataloguePage() {
   function change(key: string, value: string) { setParams(previous => { const next = new URLSearchParams(previous); if (value) next.set(key, value); else next.delete(key); if (key !== 'cursor') {next.delete('cursor');next.delete('page')}; return next }) }
   const filters = <div className="filters-controls"><label>{t('catalogue.genre')}<select value={params.get('genre') ?? ''} onChange={e => change('genre', e.target.value)}><option value="">{t('catalogue.allGenres')}</option>{genres.data?.map(g => <option key={g} value={g}>{g}</option>)}</select></label>
     <label>{t('catalogue.format')}<select value={params.get('format') ?? ''} onChange={e => change('format', e.target.value)}><option value="">{t('catalogue.allFormats')}</option>{(type === 'manga' ? ['Manga', 'Manhwa', 'Manhua', 'Light Novel'] : type === 'anime' ? ['TV', 'Movie', 'OVA', 'ONA', 'Special'] : ['TV', 'Movie', 'Manga', 'Light Novel']).map(f => <option key={f}>{f}</option>)}</select></label>
+    <label>{t('catalogue.year')}<select value={params.get('year')??''} onChange={e=>change('year',e.target.value)}><option value="">{t('catalogue.anyYear')}</option>{Array.from({length:new Date().getFullYear()-1898},(_,i)=>new Date().getFullYear()+1-i).map(year=><option key={year} value={year}>{year}</option>)}</select></label>
+    <label>{t('discovery.season')}<select value={params.get('season')??''} onChange={e=>change('season',e.target.value)}><option value="">{t('discovery.anySeason')}</option>{(['winter','spring','summer','fall'] as const).map(season=><option key={season} value={season}>{t(`discovery.${season}`)}</option>)}</select></label>
+    <label>{t('media.status')}<select value={params.get('status')??''} onChange={e=>change('status',e.target.value)}><option value="">{t('catalogue.anyStatus')}</option>{(['FINISHED','RELEASING','NOT_YET_RELEASED','HIATUS','CANCELLED'] as const).map(status=><option key={status} value={status}>{t(`release.${status}`)}</option>)}</select></label>
     <label>{t('catalogue.sort')}<select value={params.get('sort') ?? 'popular'} onChange={e => change('sort', e.target.value)}>{(['popular', 'score', 'title', 'year'] as const).map(s => <option value={s} key={s}>{t(`catalogue.${s}`)}</option>)}</select></label>
-    <button className="reset-button" onClick={() => setParams({})}>{t('catalogue.reset')}</button></div>
-  return <div className="shell page-body"><PageTitle title={t(titleKey)} /><SnapshotNotice /><div className="page-heading"><h1>{t(titleKey)}</h1><span className="eyebrow">{t('brand')}</span></div>
-    <div className="search-and-filters"><form className="search-field" onSubmit={e => { e.preventDefault(); clearTimeout(timer.current); const value = new FormData(e.currentTarget).get('query'); change('q', String(value ?? '')) }}><Search size={18} /><input key={`${location.pathname}:${params.get('q') ?? ''}`} name="query" aria-label={t('catalogue.searchPlaceholder')} placeholder={t('catalogue.searchPlaceholder')} defaultValue={params.get('q') ?? ''} onChange={e => { const value = e.target.value; clearTimeout(timer.current); timer.current = setTimeout(() => change('q', value), 400) }} /><button aria-label={t('nav.search')} className="icon-button" type="submit"><ArrowRight size={17} /></button></form>
-      <Button variant="secondary" className="mobile-filter-button" onClick={() => setFiltersOpen(true)}><SlidersHorizontal size={17} />{t('catalogue.filters')}</Button></div>
-    <DiscoveryControls params={params} onChange={setParams} items={catalogue.data?.data}/>
-    <div className="desktop-filters">{filters}</div><Modal open={filtersOpen} onOpenChange={setFiltersOpen} title={t('catalogue.filters')}>{filters}</Modal>
+    </div>
+  return <div className="shell page-body catalogue-page"><PageTitle title={t(titleKey)} /><div className="page-heading"><h1>{t(titleKey)}</h1></div>
+    <div className="search-panel"><div className="search-and-filters"><SearchField key={location.pathname} value={params.get('q')??''} onCommit={value=>change('q',value)} busy={catalogue.isFetching}/></div>
+    <div className="desktop-filters filters-toolbar">{filters}<DiscoveryControls params={params} onChange={setParams} items={catalogue.data?.data}/></div>{[...params].some(([key])=>!['page','cursor','q'].includes(key))&&<div className="active-filters" aria-label={t('catalogue.activeFilters')}>{[...params].filter(([key,value])=>!['page','cursor','q'].includes(key)&&value&&value!=='false'&&value!=='all').map(([key,value],index)=><button key={`${key}:${value}:${index}`} className="filter-chip" onClick={()=>{setParams(previous=>{const next=new URLSearchParams(previous);const remaining=next.getAll(key).filter(v=>v!==value);next.delete(key);remaining.forEach(v=>next.append(key,v));next.delete('page');next.delete('cursor');return next})}}>{filterLabel(key,value)}<span aria-hidden="true">&times;</span><span className="sr-only">{t('catalogue.removeFilter')}</span></button>)}</div>}
+    {[...params].some(([key])=>!['page','cursor'].includes(key))&&<button className="reset-button filter-reset" onClick={()=>setParams({})}>{t('catalogue.reset')}</button>}</div>
     {params.get('q') && <p className="results-label">{t('catalogue.resultsFor', { query: params.get('q')! })}</p>}
-    {catalogue.isPending ? <Loading variant="catalogue" /> : catalogue.error ? <ErrorState error={catalogue.error} retry={() => { void catalogue.refetch() }} /> : catalogue.data.data.length ? <><p className="coverage-note">{t(catalogue.data.source==='Saved library'?'catalogue.savedCoverage':'catalogue.coverage')}</p><MediaGrid items={catalogue.data.data} actions={media => <WishlistAction media={media} />} /><Pagination page={pagination.page} totalPages={pagination.personal?null:catalogue.data.total_pages} hasNext={catalogue.data.has_more} availablePages={pagination.availablePages} busy={catalogue.isFetching} onChange={pagination.change}/></> : <div className="state-box"><h2>{t(catalogue.data.has_more?'catalogue.batchEmpty':'catalogue.noResults')}</h2><p>{t(catalogue.data.has_more?'catalogue.batchEmptyBody':'catalogue.noResultsBody')}</p>{catalogue.data.has_more&&<Pagination page={pagination.page} hasNext availablePages={pagination.availablePages} onChange={pagination.change}/>}<Button variant="secondary" onClick={() => setParams({})}>{t('catalogue.reset')}</Button></div>}
+    {catalogue.isPending ? <Loading variant="catalogue" /> : catalogue.error ? <ErrorState error={catalogue.error} retry={() => { void catalogue.refetch() }} /> : catalogue.data.data.length ? <>{catalogue.data.source==='Saved library'&&<p className="coverage-note">{t('catalogue.savedCoverage')}</p>}<MediaGrid items={catalogue.data.data} actions={media => <WishlistAction media={media} />} /><Pagination page={pagination.page} totalPages={pagination.personal?null:catalogue.data.total_pages} hasNext={catalogue.data.has_more} availablePages={pagination.availablePages} busy={catalogue.isFetching} onChange={pagination.change}/></> : <div className="state-box"><h2>{t(catalogue.data.has_more?'catalogue.batchEmpty':'catalogue.noResults')}</h2><p>{t(catalogue.data.has_more?'catalogue.batchEmptyBody':'catalogue.noResultsBody')}</p>{catalogue.data.has_more&&<Pagination page={pagination.page} hasNext availablePages={pagination.availablePages} onChange={pagination.change}/>}<Button variant="secondary" onClick={() => setParams({})}>{t('catalogue.reset')}</Button></div>}
   </div>
 }
 
@@ -84,7 +94,7 @@ export function DetailsPage() {
   if (detail.isPending) return <Loading variant="details" page />
   if (detail.error) return <ErrorState error={detail.error} retry={() => { void detail.refetch() }} />
   const media = detail.data
-  return <div className="shell page-body"><PageTitle title={media.title} /><SnapshotNotice /><Link className="subtle-link mb-8 inline-flex" to={`/${mediaType}`}>{t('common.back')}</Link><div className="details-layout"><div className="detail-poster"><Poster media={media} priority /></div><div className="detail-main"><p className="eyebrow">{media.format} {media.year && ` / ${media.year}`}</p><h1>{media.title}</h1>{media.original_title && <p className="detail-original">{media.original_title}</p>}<div className="hero-metadata"><span><Star size={14} />{media.score ?? t('media.notRated')}</span><span>{media.source.name} {t('media.sourceScore')}</span><span>{unitCount(media.total_units ?? null, media.media_type)}</span></div><div className="hero-actions"><SaveButton media={media} kind="library" /><SaveButton media={media} /></div><div className="hero-genres">{media.genres.map(g => <Link key={g} to={`/${mediaType}?genre=${encodeURIComponent(g)}`}>{g}</Link>)}</div><section className="synopsis-section"><h2>{t('media.synopsis')}</h2><SpoilerText><p>{media.synopsis ?? t('media.noSynopsis')}</p></SpoilerText></section><dl className="detail-facts"><div><dt>{t('media.status')}</dt><dd>{media.status ?? t('media.notAvailable')}</dd></div><div><dt>{t('media.studio')}</dt><dd>{media.studios?.join(', ') || t('media.notAvailable')}</dd></div></dl></div></div>
+  return <div className="shell page-body"><PageTitle title={media.title} /><Link className="subtle-link mb-8 inline-flex" to={`/${mediaType}`}>{t('common.back')}</Link><div className="details-layout"><div className="detail-poster"><Poster media={media} priority /></div><div className="detail-main"><p className="eyebrow">{media.format} {media.year && ` / ${media.year}`}</p><h1>{media.title}</h1>{media.original_title && <p className="detail-original">{media.original_title}</p>}<div className="hero-metadata"><span><Star size={14} />{media.score ?? t('media.notRated')}</span><span>{media.source.name} {t('media.sourceScore')}</span><span>{unitCount(media.total_units ?? null, media.media_type)}</span></div><div className="hero-actions"><SaveButton media={media} kind="library" /><SaveButton media={media} /></div><div className="hero-genres">{media.genres.map(g => <Link key={g} to={`/${mediaType}?genre=${encodeURIComponent(g)}`}>{g}</Link>)}</div><section className="synopsis-section"><h2>{t('media.synopsis')}</h2><SpoilerText><p>{media.synopsis ?? t('media.noSynopsis')}</p></SpoilerText></section><dl className="detail-facts"><div><dt>{t('media.status')}</dt><dd>{media.status ?? t('media.notAvailable')}</dd></div><div><dt>{t('media.studio')}</dt><dd>{media.studios?.join(', ') || t('media.notAvailable')}</dd></div></dl></div></div>
     <section className="episode-section"><h2>{t(mediaType === 'anime' ? 'media.episodes' : 'media.chapters')}</h2>{mediaType === 'anime' && episodes.isPending ? <Loading variant="episodes" /> : mediaType === 'anime' && episodes.error ? <ErrorState error={episodes.error} retry={() => { void episodes.refetch() }} /> : mediaType === 'anime' && episodes.data?.data.length ? <EpisodeList key={id} episodes={episodes.data.data}/> : <p className="mt-4 text-sm text-muted">{t(mediaType === 'anime' ? 'media.episodesMissing' : 'media.chaptersMissing')}</p>}</section>
     <PersonalMedia media={media} />
     <div className="source-note"><span>{t('media.source')}: {media.source.name}</span><span>{t('media.updated', { date: formatDate(media.source.retrieved_at) })}</span><a href={media.source.url} target="_blank" rel="noreferrer">{t('media.external')}<ArrowUpRight size={12} /></a></div>

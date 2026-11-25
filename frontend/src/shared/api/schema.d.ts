@@ -1321,6 +1321,22 @@ export interface components {
             format?: string | null;
             /** Genre */
             genre?: string | null;
+            /**
+             * Genre Match
+             * @default all
+             * @enum {string}
+             */
+            genre_match: "all" | "any";
+            /**
+             * Has Image
+             * @default false
+             */
+            has_image: boolean;
+            /**
+             * Has Score
+             * @default false
+             */
+            has_score: boolean;
             /** Include Genres */
             include_genres?: string[];
             /** Include Planned */
@@ -1692,6 +1708,9 @@ export interface operations {
                 cursor?: string | null;
                 page?: number | null;
                 include_genres?: string[];
+                genre_match?: "all" | "any";
+                has_score?: boolean;
+                has_image?: boolean;
                 exclude_genres?: string[];
                 include_themes?: string[];
                 exclude_themes?: string[];
@@ -1839,6 +1858,9 @@ export interface operations {
                 cursor?: string | null;
                 page?: number | null;
                 include_genres?: string[];
+                genre_match?: "all" | "any";
+                has_score?: boolean;
+                has_image?: boolean;
                 exclude_genres?: string[];
                 include_themes?: string[];
                 exclude_themes?: string[];
@@ -1951,6 +1973,9 @@ export interface operations {
                 cursor?: string | null;
                 page?: number | null;
                 include_genres?: string[];
+                genre_match?: "all" | "any";
+                has_score?: boolean;
+                has_image?: boolean;
                 exclude_genres?: string[];
                 include_themes?: string[];
                 exclude_themes?: string[];
@@ -2400,6 +2425,9 @@ export interface operations {
                 cursor?: string | null;
                 page?: number | null;
                 include_genres?: string[];
+                genre_match?: "all" | "any";
+                has_score?: boolean;
+                has_image?: boolean;
                 exclude_genres?: string[];
                 include_themes?: string[];
                 exclude_themes?: string[];
@@ -3518,6 +3546,9 @@ export interface operations {
                 cursor?: string | null;
                 page?: number | null;
                 include_genres?: string[];
+                genre_match?: "all" | "any";
+                has_score?: boolean;
+                has_image?: boolean;
                 exclude_genres?: string[];
                 include_themes?: string[];
                 exclude_themes?: string[];
