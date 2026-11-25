@@ -14,6 +14,7 @@ vi.mock('../features/profile',async original=>({...await original<typeof import(
 vi.mock('../features/catalogue',()=>({useHome:()=>({data:{anime:[suggestion]},isPending:false,error:null}),useCatalogue:()=>({data:{data:[suggestion,favorite]},isPending:false,error:null})}))
 vi.mock('../features/library',()=>({SaveButton:()=> <button>Save title</button>,useLibrary:()=>({data:{total:1,data:[{media:suggestion}]},isPending:false,error:null})}))
 vi.mock('../features/library/actions',()=>({CardActions:()=> <button>Save title</button>,CardStatus:()=>null}))
+vi.mock('../features/library/favorites',()=>({useFavorites:()=>({data:{data:[favorite],total:1},isPending:false})}))
 vi.mock('../widgets/continue',()=>({ContinueSections:()=> <h2>Continue watching</h2>}))
 afterEach(()=>{cleanup();state.ready=true})
 function mount(){render(<QueryClientProvider client={new QueryClient()}><MemoryRouter><DashboardPage/></MemoryRouter></QueryClientProvider>)}

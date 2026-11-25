@@ -16,6 +16,7 @@ const errorKeys: Record<string, MessageKey> = {
   UPSTREAM_UNAVAILABLE: 'errors.unavailable', CONFLICT: 'errors.conflict',
   RATE_LIMITED: 'errors.rateLimit', UNAUTHORIZED: 'errors.auth', AUTH_UNAVAILABLE: 'auth.unconfigured',
   UNSUPPORTED_FILTER: 'discovery.unsupportedFilter',
+  FAVORITE_LIMIT: 'favorites.limit',
   BACKEND_WAKING: 'backend.actionUnavailable', PROVIDER_NOT_CONFIGURED: 'catalogue.providerPending',
 }
 export class ApiError extends Error {

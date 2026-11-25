@@ -332,6 +332,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/favorites": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Favorites */
+        get: operations["favorites_api_v1_me_favorites_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/favorites/{media_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set Favorite */
+        put: operations["set_favorite_api_v1_me_favorites__media_id__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/history": {
         parameters: {
             query?: never;
@@ -1017,6 +1051,40 @@ export interface components {
              */
             source: string;
         };
+        /** FavoriteMutation */
+        FavoriteMutation: {
+            /** Changed */
+            changed: boolean;
+            entry?: components["schemas"]["LibraryEntry"] | null;
+            /** Favorite */
+            favorite: boolean;
+            /**
+             * Media Id
+             * Format: uuid
+             */
+            media_id: string;
+            preferences: components["schemas"]["PreferencesRead"];
+            /** Preferences Version */
+            preferences_version: number;
+        };
+        /** FavoriteWrite */
+        FavoriteWrite: {
+            /** Expected Preferences Version */
+            expected_preferences_version: number;
+            /** Favorite */
+            favorite: boolean;
+        };
+        /** FavoritesPage */
+        FavoritesPage: {
+            /** Data */
+            data: components["schemas"]["Media"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+            /** Preferences Version */
+            preferences_version: number;
+            /** Total */
+            total: number;
+        };
         /** FilterCreate */
         FilterCreate: {
             /** Name */
@@ -1490,6 +1558,8 @@ export interface components {
              * @enum {string}
              */
             discovery_mode: "all" | "hide_watched" | "new_to_me";
+            /** Favorite Media Ids */
+            favorite_media_ids?: string[] | null;
             /**
              * Include Planned
              * @default true
@@ -2607,6 +2677,74 @@ export interface operations {
                 };
                 content: {
                     "application/json": number[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    favorites_api_v1_me_favorites_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string | null;
+                ids?: string[] | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FavoritesPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_favorite_api_v1_me_favorites__media_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                media_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FavoriteWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FavoriteMutation"];
                 };
             };
             /** @description Validation Error */

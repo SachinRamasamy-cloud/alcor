@@ -23,3 +23,7 @@ Open **My library**, select the title's corner management icon, and choose **Mar
 The rounded profile button opens Dashboard, Profile, Settings, My library, Wishlist, Completed, Collections, History, Statistics and Sign out. Home remains in the main navigation. Guests retain Sign in. Popup menus support keyboard navigation, Escape and outside dismissal.
 
 Implementation and verification records: [task contracts](../engineering/catalogue-workflow-contract.md), [acceptance evidence](../engineering/acceptance-record.md), [error log](../engineering/error-log.md).
+
+## Foundation favourites
+
+`/favorites` is an account-owned management page; completed favourites remain visible regardless of discovery mode. The card-dialog star uses a versioned, acknowledged favourite operation. Favouriting an unrecorded title does not create a library entry, session, unit mark or viewing date. Setup choices and existing library flags are deduplicated until reconciliation; afterward the explicit preference list is authoritative, including an empty list. A removed title is not resurrected by an old setup draft. The questionnaire retains its ten-anime selection limit; other favourites remain independent. The approved storage input limit is 1,000 IDs. A legacy list over that bound needs an explicit reviewed reconciliation rather than silent truncation. API pages remain bounded to 100, UI pages to 24. No realtime synchronization claim; normal owned refresh/version conflicts apply.

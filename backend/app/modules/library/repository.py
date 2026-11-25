@@ -10,11 +10,18 @@ from app.modules.library.schemas import LibraryEntry
 ACTIVE_SESSION = """(SELECT jsonb_build_object('id',s.id,'kind',s.kind,'version',s.version)
     FROM personal.tracking_sessions s WHERE s.user_id=e.user_id
     AND s.media_id=e.media_id AND s.active) AS active_session"""
+PREFERENCE_JOIN = "LEFT JOIN personal.user_preferences p ON p.user_id=e.user_id"
+EFFECTIVE_FAVORITE = """CASE WHEN jsonb_typeof(p.payload->'favorite_media_ids')='array'
+    THEN (p.payload->'favorite_media_ids') ? CAST(e.media_id AS text)
+    ELSE e.favorite OR COALESCE((p.payload #> '{intelligence_profile,favorite_anime_ids}')
+    ? CAST(e.media_id AS text),false) END AS effective_favorite"""
 
 
 def to_entry(row) -> LibraryEntry:
     values = dict(row)
     values["media"] = values.pop("payload")
+    if "effective_favorite" in values:
+        values["favorite"] = values.pop("effective_favorite")
     return LibraryEntry.model_validate(values)
 
 
@@ -23,6 +30,59 @@ async def stored_media(session: AsyncSession, media_id: UUID) -> Media | None:
         text("SELECT payload FROM catalogue.media WHERE id=:id"), {"id": media_id}
     )
     return Media.model_validate(payload) if payload else None
+
+
+async def owned_entry(session, user, media_id):
+    exists = await session.scalar(text(
+        "SELECT 1 FROM personal.library_entries WHERE user_id=:user AND media_id=:media"
+    ), {"user": user, "media": media_id})
+    return await read_entry(session, user, media_id) if exists else None
+
+
+async def verified_ids(session, ids):
+    return set((await session.execute(text(
+        "SELECT id FROM catalogue.media WHERE id=ANY(CAST(:ids AS uuid[]))"
+    ), {"ids": list(ids)})).scalars().all())
+
+
+async def stored_media_batch(session, ids):
+    rows = (await session.execute(text("""
+        SELECT m.payload || jsonb_build_object('source_ids', COALESCE(
+          (SELECT jsonb_object_agg(s.namespace,s.external_id) FROM catalogue.source_ids s
+           WHERE s.media_id=m.id), '{}'::jsonb)) AS payload
+        FROM catalogue.media m WHERE m.id=ANY(CAST(:ids AS uuid[]))
+    """), {"ids": list(ids)})).scalars().all()
+    return [Media.model_validate(value) for value in rows]
+
+
+async def favorite_ids(session, user):
+    return set((await session.execute(text(
+        "SELECT media_id FROM personal.library_entries WHERE user_id=:user AND favorite AND deleted_at IS NULL"
+    ), {"user": user})).scalars().all())
+
+
+async def sync_favorite_flags(session, user, previous, desired, preference_version, setup_ids, skip=(), force=()):
+    changed = set(previous) ^ set(desired)
+    rows = (await session.execute(text("""
+        SELECT * FROM personal.library_entries WHERE user_id=:user AND
+        (favorite IS DISTINCT FROM (media_id=ANY(CAST(:desired AS uuid[])))
+         OR media_id=ANY(CAST(:changed AS uuid[]))) ORDER BY media_id FOR UPDATE
+    """), {"user": user, "desired": list(desired), "changed": list(changed | set(force))})).mappings().all()
+    for row in rows:
+        media_id = row["media_id"]
+        if media_id in skip:
+            continue
+        favorite = media_id in desired
+        version = await session.scalar(text("""
+            UPDATE personal.library_entries SET favorite=:favorite,version=version+1,updated_at=now()
+            WHERE user_id=:user AND media_id=:media RETURNING version
+        """), {"favorite": favorite, "user": user, "media": media_id})
+        if media_id in changed:
+            before = {**dict(row), "favorite": media_id in previous,
+                      "setup_favorite": media_id in setup_ids}
+            await record_activity(session, user, media_id, "library.details", before,
+                                  {"version": version, "favorite": favorite,
+                                   "favorite_preference_version": preference_version})
 
 
 async def ensure_media(session: AsyncSession, media: Media):
@@ -114,7 +174,7 @@ async def read_entry(session: AsyncSession, user_id: UUID, media_id: UUID) -> Li
         (
             await session.execute(
                 text(
-                    f"SELECT e.*, {ACTIVE_SESSION}, m.payload FROM personal.library_entries e JOIN catalogue.media m ON m.id=e.media_id WHERE e.user_id=:user AND e.media_id=:media"
+                    f"SELECT e.*, {ACTIVE_SESSION}, {EFFECTIVE_FAVORITE}, m.payload FROM personal.library_entries e JOIN catalogue.media m ON m.id=e.media_id {PREFERENCE_JOIN} WHERE e.user_id=:user AND e.media_id=:media"
                 ),
                 {"user": user_id, "media": media_id},
             )

@@ -580,6 +580,107 @@
         "title": "EpisodePage",
         "type": "object"
       },
+      "FavoriteMutation": {
+        "properties": {
+          "changed": {
+            "title": "Changed",
+            "type": "boolean"
+          },
+          "entry": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LibraryEntry"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "favorite": {
+            "title": "Favorite",
+            "type": "boolean"
+          },
+          "media_id": {
+            "format": "uuid",
+            "title": "Media Id",
+            "type": "string"
+          },
+          "preferences": {
+            "$ref": "#/components/schemas/PreferencesRead"
+          },
+          "preferences_version": {
+            "title": "Preferences Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "media_id",
+          "favorite",
+          "preferences_version",
+          "changed",
+          "preferences"
+        ],
+        "title": "FavoriteMutation",
+        "type": "object"
+      },
+      "FavoriteWrite": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_preferences_version": {
+            "minimum": 0.0,
+            "title": "Expected Preferences Version",
+            "type": "integer"
+          },
+          "favorite": {
+            "title": "Favorite",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "favorite",
+          "expected_preferences_version"
+        ],
+        "title": "FavoriteWrite",
+        "type": "object"
+      },
+      "FavoritesPage": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/Media"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "preferences_version": {
+            "title": "Preferences Version",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "data",
+          "preferences_version",
+          "total",
+          "next_cursor"
+        ],
+        "title": "FavoritesPage",
+        "type": "object"
+      },
       "FilterCreate": {
         "properties": {
           "name": {
@@ -1949,6 +2050,22 @@
             ],
             "title": "Discovery Mode",
             "type": "string"
+          },
+          "favorite_media_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "maxItems": 1000,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Favorite Media Ids"
           },
           "include_planned": {
             "default": true,
@@ -5279,6 +5396,142 @@
         "summary": "Exclusions",
         "tags": [
           "discovery"
+        ]
+      }
+    },
+    "/api/v1/me/favorites": {
+      "get": {
+        "operationId": "favorites_api_v1_me_favorites_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 24,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 150,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ids",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "format": "uuid",
+                    "type": "string"
+                  },
+                  "maxItems": 100,
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ids"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FavoritesPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Favorites",
+        "tags": [
+          "preferences"
+        ]
+      }
+    },
+    "/api/v1/me/favorites/{media_id}": {
+      "put": {
+        "operationId": "set_favorite_api_v1_me_favorites__media_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "media_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Media Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FavoriteWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FavoriteMutation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set Favorite",
+        "tags": [
+          "preferences"
         ]
       }
     },

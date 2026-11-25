@@ -4,13 +4,13 @@ import { useAuth } from '../../shared/auth'
 import { useLocation, useSearchParams } from 'react-router-dom'
 import { needsLocalFilters } from './custom-filters'
 
-export function useCataloguePagination(nextCursor: string | null | undefined, hasNext: boolean,mode?:string) {
+export function useCataloguePagination(nextCursor: string | null | undefined, hasNext: boolean,mode?:string,owned=false) {
   const [params,setParams] = useSearchParams()
   const location=useLocation()
   const {userId}=useAuth()
   const {ready}=useBackend()
   const queries=useQueryClient()
-  const personal=params.get('memory')!=='true' && (needsLocalFilters(params) || (['hide_watched','new_to_me'].includes(mode??params.get('mode')??'') && Boolean(userId&&ready)))
+  const personal=owned||params.get('memory')!=='true' && (needsLocalFilters(params) || (['hide_watched','new_to_me'].includes(mode??params.get('mode')??'') && Boolean(userId&&ready)))
   const page=Math.max(1,Number(params.get('page'))||1)
   const context=new URLSearchParams(params);context.delete('page');context.delete('cursor')
   if(mode&&userId)context.set('mode',mode)

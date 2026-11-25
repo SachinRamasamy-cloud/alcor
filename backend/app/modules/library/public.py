@@ -46,13 +46,29 @@ async def set_tracking_status(session, user, media_id, completed: bool):
 record_activity = repo.record_activity
 ensure_media = repo.ensure_media
 stored_media = repo.stored_media
+owned_entry = repo.owned_entry
+verified_ids = repo.verified_ids
+stored_media_batch = repo.stored_media_batch
+favorite_ids = repo.favorite_ids
+sync_favorite_flags = repo.sync_favorite_flags
 
 
 async def undo_change(session, user, activity, version):
+    from app.modules.preferences import public as preferences
+
+    before, after = activity["before_state"] or {}, activity["after_state"] or {}
+    favorite_change = activity["action"] == "library.details" and (
+        "favorite" in after and before.get("favorite") != after["favorite"]
+    )
+    if favorite_change:
+        await preferences.lock_state(session, user)
+        current = await preferences.read_state(session, user)
+        expected = after.get("favorite_preference_version")
+        if expected is not None and current.version != expected:
+            raise AppError(409, "CONFLICT", "Preferences changed after this favourite edit.")
     row = await repo.lock_entry(session, user, activity["media_id"])
     if row is None or row["version"] != version:
         raise AppError(409, "CONFLICT", "This item changed after the original action.")
-    before = activity["before_state"] or {}
     if activity["action"] == "library.details":
         if row["deleted_at"] is not None:
             raise AppError(409, "CONFLICT", "This item is no longer active.")
@@ -60,6 +76,12 @@ async def undo_change(session, user, activity, version):
             k: before.get(k) for k in ("rating", "notes", "favorite", "tags", "priority", "reason")
         }
         values["tags"] = values["tags"] or []
+        if favorite_change and (after.get("favorite_preference_version") is not None
+                                or before.get("favorite")
+                                or activity["media_id"] not in preferences.setup_ids(current.data)):
+            await preferences.set_choice(session, user, activity["media_id"], bool(before.get("favorite")),
+                                         skip_library={activity["media_id"]}, record=False,
+                                         restore_setup=bool(before.get("setup_favorite")))
         columns = ",".join(f"{k}=:{k}" for k in values)
         await session.execute(
             text(

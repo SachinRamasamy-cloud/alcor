@@ -16,6 +16,7 @@ import {t} from '../../shared/content'
 import {Button,ErrorState,Loading,Modal} from '../../shared/ui'
 import {captureFlyOrigin,type FlyOrigin} from '../../shared/motion'
 import {libraryStatusLabel} from './labels'
+import {FavoriteButton} from './favorites'
 
 export function useSavedEntry(media:Media){
   const {userId}=useAuth(),{ready}=useBackend()
@@ -39,8 +40,9 @@ function Management({media,entry:initialEntry,close,origin}:{media:Media;entry:E
     {(!entry||entry.status==='planned')&&<><SaveButton media={media} origin={origin} onSaved={close}/><Button disabled={write.isPending} onClick={()=>change('in_progress')}>{t(media.media_type==='anime'?'library.startWatching':'library.startReading')}</Button></>}
     {(!entry||['planned','in_progress','on_hold','dropped','completed'].includes(entry.status))&&<CompleteTitle media={media} entry={entry??undefined} label={t(media.media_type==='anime'?'library.markWatched':'library.markRead')} onComplete={close}/>}
     {entry?<StatusActions entry={entry} close={close}/>:<Button variant="secondary" disabled={write.isPending} onClick={()=>change('not_interested')}>{t('status.not_interested')}</Button>}
+    <FavoriteButton media={media}/>
     <Link className="button button-secondary" to={`${mediaPath(media)}#your-progress`}>{t('media.yourProgress')}</Link>
-  </div><CollectionPicker media={media}/>{entry&&<PersonalDetails media={media}/>}</>
+  </div><CollectionPicker media={media}/>{entry&&<PersonalDetails media={media} showFavorite={false}/>}</>
 }
 function ResolvedManagement({media,close,origin}:{media:Media;close:()=>void;origin?:FlyOrigin}){
   const {userId}=useAuth()

@@ -1,10 +1,13 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Query, Request
 
 from app.core.auth import current_user
 from app.modules.preferences.schemas import (
+    FavoriteMutation,
+    FavoritesPage,
+    FavoriteWrite,
     PreferencesRead,
     PreferencesWrite,
     ProfileRead,
@@ -45,3 +48,15 @@ async def preferences(request: Request, user: User):
 @router.patch("/preferences", response_model=PreferencesRead)
 async def update_preferences(request: Request, user: User, body: PreferencesWrite):
     return await request.app.state.preferences.write(user, body)
+
+
+@router.get("/favorites", response_model=FavoritesPage)
+async def favorites(request: Request, user: User, limit: int = Query(24, ge=1, le=100),
+                    cursor: str | None = Query(None, max_length=150),
+                    ids: Annotated[list[UUID] | None, Query(max_length=100)] = None):
+    return await request.app.state.preferences.favorite_page(user, limit, cursor, ids)
+
+
+@router.put("/favorites/{media_id}", response_model=FavoriteMutation)
+async def set_favorite(request: Request, user: User, media_id: UUID, body: FavoriteWrite):
+    return await request.app.state.preferences.set_favorite(user, media_id, body)

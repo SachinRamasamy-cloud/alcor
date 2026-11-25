@@ -1,4 +1,4 @@
-# Foundation V1 contracts awaiting owner review
+# Foundation V1 interface contracts
 
 25 November 2026. Baseline `e62debd`, branch `finish-the-foundation`.
 The owner approved New to Me, reconciled favourites with durable removal,
@@ -49,7 +49,8 @@ preferences JSON, catalogue identities and library favourite flag.
 - `PUT /api/v1/me/favorites/{canonical_media_id}` accepts
   `{favorite: boolean, expected_preferences_version: integer >= 0}`.
   Return the current preferences version, effective membership and
-  `changed`. A same-desired-state retry is a no-op; an actual stale change
+  `changed`, with committed owned PreferencesRead and optional existing
+  LibraryEntry snapshots for cache publication. A same-desired-state retry is a no-op; an actual stale change
   returns 409. Verify canonical metadata on the server.
 - Under the existing account preference advisory lock, reconcile the
   legacy union on first mutation, apply the explicit choice, and retain

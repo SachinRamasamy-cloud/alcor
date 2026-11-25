@@ -6,6 +6,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.integrations.metadata.schemas import Media
+from app.modules.library.schemas import LibraryEntry
 
 
 class IntelligenceProfile(BaseModel):
@@ -59,6 +60,7 @@ class Preferences(BaseModel):
     notifications: bool = False
     include_planned: bool = True
     discovery_mode: Literal["all", "hide_watched", "new_to_me"] = "new_to_me"
+    favorite_media_ids: list[UUID] | None = Field(default=None, max_length=1000)
     spoiler_mode: bool = False
     preferred_genres: list[str] = Field(default_factory=list, max_length=50)
     preferred_themes: list[str] = Field(default_factory=list, max_length=50)
@@ -67,6 +69,11 @@ class Preferences(BaseModel):
     minimum_rating_votes: int | None = Field(default=None, ge=1)
     preferred_max_units: int | None = Field(default=None, ge=1, le=100000)
     intelligence_profile: IntelligenceProfile | None = None
+
+    @field_validator("favorite_media_ids")
+    @classmethod
+    def distinct_favorites(cls, values):
+        return list(dict.fromkeys(values)) if values is not None else None
 
     @field_validator("timezone")
     @classmethod
@@ -124,3 +131,25 @@ class SetupWrite(BaseModel):
         if self.data.intelligence_profile is None:
             raise ValueError("Setup requires an explicit profile or skip choice")
         return self
+
+
+class FavoritesPage(BaseModel):
+    data: list[Media]
+    preferences_version: int
+    total: int
+    next_cursor: str | None
+
+
+class FavoriteWrite(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    favorite: bool
+    expected_preferences_version: int = Field(ge=0)
+
+
+class FavoriteMutation(BaseModel):
+    media_id: UUID
+    favorite: bool
+    preferences_version: int
+    changed: bool
+    preferences: PreferencesRead
+    entry: LibraryEntry | None = None

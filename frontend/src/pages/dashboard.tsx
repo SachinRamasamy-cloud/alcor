@@ -10,6 +10,7 @@ import { useSetup,storyTraits,type SetupRead } from '../features/profile'
 import { useHome,useCatalogue } from '../features/catalogue'
 import { useLibrary } from '../features/library'
 import {CardActions,CardStatus} from '../features/library/actions'
+import {useFavorites} from '../features/library/favorites'
 import { tasteItems,tasteParams } from '../features/discovery/taste'
 import { MediaGrid } from '../entities/media'
 import { ContinueSections } from '../widgets/continue'
@@ -34,6 +35,12 @@ function Suggestions({setup}:{setup:SetupRead}){
   if(!items.length)return <section className="home-section dashboard-empty"><h2>{title}</h2><p>{t('dashboard.noSuggestions')}</p><Link className="button button-secondary" to={`/anime?${taste.params}`}>{t('nav.discover')}</Link></section>
   return <DashboardShelf title={title} description={description} items={items} to={`/anime?${taste.params}`}/>
 }
+function FavoritesShelf(){
+  const query=useFavorites()
+  if(query.isPending)return <section className="home-section"><h2 className="dashboard-section-title">{t('dashboard.favorites')}</h2><Loading variant="shelf"/></section>
+  if(query.error)return <ErrorState error={query.error} retry={()=>{void query.refetch()}}/>
+  return <DashboardShelf title={t('dashboard.favorites')} description={t('dashboard.favoritesHelp')} items={query.data.data.slice(0,12)} to="/favorites"/>
+}
 function WishlistShelf(){
   const query=useLibrary(true)
   if(query.isPending)return <section className="home-section"><h2 className="dashboard-section-title">{t('nav.wishlist')}</h2><Loading variant="shelf" count={6}/></section>
@@ -52,7 +59,7 @@ export function DashboardPage(){
   useEffect(()=>{document.title=`${t('dashboard.title')} · ALCOR`},[])
   return <div className="shell page-body dashboard-page"><DashboardHeader name={userId?setup.data?.profile.display_name:undefined} needsSetup={Boolean(userId&&ready&&setup.data&&setup.data.preferences.data.intelligence_profile?.setup_status!=='completed')}/>
     {!userId&&<section className="dashboard-setup-callout"><div><h2>{t('dashboard.guestTitle')}</h2><p>{t('dashboard.guestBody')}</p></div><Button onClick={()=>requireSignIn()}>{t('auth.emailLogin')}</Button></section>}
-    {userId&&ready&&<><ContinueSections/>{setup.isPending?<Loading variant="shelf"/>:setup.error?<ErrorState error={setup.error} retry={()=>{void setup.refetch()}}/>:<><Suggestions setup={setup.data}/><DashboardShelf title={t('dashboard.favorites')} description={t('dashboard.favoritesHelp')} items={setup.data.favorites??[]}/><TasteSummary setup={setup.data}/></>}<WishlistShelf/></>}
+    {userId&&ready&&<><ContinueSections/>{setup.isPending?<Loading variant="shelf"/>:setup.error?<ErrorState error={setup.error} retry={()=>{void setup.refetch()}}/>:<><Suggestions setup={setup.data}/><FavoritesShelf/><TasteSummary setup={setup.data}/></>}<WishlistShelf/></>}
     {(!userId||!ready||setup.error)&&<>{home.isPending?<Loading variant="catalogue"/>:home.error?<ErrorState error={home.error} retry={()=>{void home.refetch()}}/>:<DashboardShelf title={t('home.popularAnime')} description={t('dashboard.generalPicks')} items={home.data.anime} to="/anime"/>}</>}
   </div>
 }

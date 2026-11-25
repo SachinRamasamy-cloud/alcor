@@ -13,6 +13,7 @@ const canonical={...media,id:'d98b77b7-5378-4e2e-9c96-18737b47f509'}
 const entry={media:canonical,status:'completed',ever_completed:true,version:1,deleted_at:null} as Entry
 vi.mock('../../shared/auth',()=>({useAuth:()=>({userId:state.userId,requireSignIn:state.signIn})}))
 vi.mock('../../shared/feedback',()=>({useFeedback:()=>state.notify}))
+vi.mock('./favorites',()=>({FavoriteButton:()=>null}))
 vi.mock('../../shared/api/identity',async original=>({...await original<typeof import('../../shared/api/identity')>(),resolveMedia:(...args:unknown[])=>{state.resolve(...args);return Promise.resolve(canonical)}}))
 beforeEach(()=>{state.userId='a';setTokenProvider(async()=>state.userId?{token:'test-only',userId:state.userId}:null)})
 afterEach(()=>{cleanup();vi.unstubAllGlobals();vi.clearAllMocks();setTokenProvider(async()=>null)})

@@ -9,6 +9,7 @@ from app.integrations.metadata.provider import MetadataProvider
 from app.modules.library import repository as repo
 from app.modules.library.policy import INITIAL_STATUSES, TRANSITIONS
 from app.modules.library.schemas import LibraryMutation, LibraryPage, LibraryWrite, WishlistWrite
+from app.modules.preferences import public as preferences
 from app.modules.tracking.public import ensure_initial_session
 
 
@@ -45,10 +46,10 @@ class LibraryService:
                 (
                     await session.execute(
                         text(
-                            f"""SELECT e.*, {repo.ACTIVE_SESSION}, m.payload || jsonb_build_object('source_ids',
+                            f"""SELECT e.*, {repo.ACTIVE_SESSION}, {repo.EFFECTIVE_FAVORITE}, m.payload || jsonb_build_object('source_ids',
                             COALESCE((SELECT jsonb_object_agg(s.namespace,s.external_id)
                             FROM catalogue.source_ids s WHERE s.media_id=m.id), '{{}}'::jsonb)) AS payload
-                            FROM personal.library_entries e JOIN catalogue.media m ON m.id=e.media_id
+                            FROM personal.library_entries e JOIN catalogue.media m ON m.id=e.media_id {repo.PREFERENCE_JOIN}
                             WHERE e.user_id=:user AND e.deleted_at IS NULL AND
                             (e.media_id=ANY(CAST(:ids AS uuid[])) OR EXISTS
                             (SELECT 1 FROM catalogue.source_ids s WHERE s.media_id=m.id
@@ -75,10 +76,15 @@ class LibraryService:
             if any(len(tag) > 50 for tag in values["tags"]):
                 raise AppError(422, "INVALID_REQUEST", "Tags must be at most 50 characters.")
         async with self.database.transaction(user) as session:
+            await preferences.lock_state(session, user)
+            preference = await preferences.read_state(session, user)
+            favorites = await preferences.effective_ids(session, user, preference.data)
             row = await repo.lock_entry(session, user, media_id)
             if row is None or row["deleted_at"] is not None:
                 raise AppError(404, "NOT_FOUND", "This item is not available.")
-            changed = any(row[key] != value for key, value in values.items())
+            before = {**dict(row), "favorite": media_id in favorites,
+                      "setup_favorite": media_id in preferences.setup_ids(preference.data)}
+            changed = any(before[key] != value for key, value in values.items())
             if not changed:
                 result = LibraryMutation(
                     entry=await repo.read_entry(session, user, media_id), changed=False
@@ -86,6 +92,11 @@ class LibraryService:
             else:
                 if row["version"] != body.expected_version:
                     raise AppError(409, "CONFLICT", "Review the latest state and try again.")
+                favorite_result = None
+                if "favorite" in values and values["favorite"] != before["favorite"]:
+                    favorite_result = await preferences.set_choice(
+                        session, user, media_id, values["favorite"], skip_library={media_id}, record=False
+                    )
                 allowed = {"rating", "notes", "favorite", "tags", "priority", "reason"}
                 assignments = ",".join(f"{key}=:{key}" for key in values if key in allowed)
                 await session.execute(
@@ -95,13 +106,16 @@ class LibraryService:
                     {**values, "user": user, "media": media_id},
                 )
                 entry = await repo.read_entry(session, user, media_id)
+                after = entry.model_dump(mode="json", exclude={"media"})
+                if favorite_result and favorite_result.changed:
+                    after["favorite_preference_version"] = favorite_result.preferences_version
                 await repo.record_activity(
                     session,
                     user,
                     media_id,
                     "library.details",
-                    dict(row),
-                    entry.model_dump(mode="json", exclude={"media"}),
+                    before,
+                    after,
                 )
                 result = LibraryMutation(entry=entry, changed=True)
         return result
@@ -127,7 +141,7 @@ class LibraryService:
                 (
                     await session.execute(
                         text(
-                            f"SELECT e.*, {repo.ACTIVE_SESSION}, m.payload FROM personal.library_entries e JOIN catalogue.media m ON m.id=e.media_id WHERE e.user_id=:user AND e.deleted_at IS NULL AND (CAST(:status AS text) IS NULL OR e.status=:status) AND (CAST(:cursor AS uuid) IS NULL OR e.media_id>CAST(:cursor AS uuid)) ORDER BY e.media_id LIMIT :limit OFFSET :offset"
+                            f"SELECT e.*, {repo.ACTIVE_SESSION}, {repo.EFFECTIVE_FAVORITE}, m.payload FROM personal.library_entries e JOIN catalogue.media m ON m.id=e.media_id {repo.PREFERENCE_JOIN} WHERE e.user_id=:user AND e.deleted_at IS NULL AND (CAST(:status AS text) IS NULL OR e.status=:status) AND (CAST(:cursor AS uuid) IS NULL OR e.media_id>CAST(:cursor AS uuid)) ORDER BY e.media_id LIMIT :limit OFFSET :offset"
                         ),
                         {
                             "user": user_id,

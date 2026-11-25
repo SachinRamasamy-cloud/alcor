@@ -1,12 +1,25 @@
+import base64
+import binascii
+from uuid import UUID
+
 from sqlalchemy import text
 
 from app.core.errors import AppError
 from app.modules.library import public as library
-from app.modules.preferences.schemas import Preferences, PreferencesRead, ProfileRead, SetupRead
+from app.modules.preferences import favorites as favorite_state
+from app.modules.preferences.schemas import (
+    FavoritesPage,
+    Preferences,
+    PreferencesRead,
+    ProfileRead,
+    SetupRead,
+)
 
 
-async def verified_favorites(session, data):
+async def verified_favorites(session, data, effective=True):
     ids = data.intelligence_profile.favorite_anime_ids if data.intelligence_profile else []
+    if effective and data.favorite_media_ids is not None:
+        ids = [media_id for media_id in ids if media_id in data.favorite_media_ids]
     favorites = []
     for media_id in ids:
         media = await library.stored_media(session, media_id)
@@ -72,7 +85,12 @@ class PreferenceService:
                 body.data = body.data.model_copy(
                     update={"discovery_mode": Preferences.model_validate(row["payload"]).discovery_mode}
                 )
-            await verified_favorites(session, body.data)
+            await verified_favorites(session, body.data, effective=False)
+            body.data = await favorite_state.prepare_preferences(
+                session, user,
+                PreferencesRead(data=Preferences.model_validate(row["payload"]) if row else Preferences(), version=current),
+                body.data,
+            )
             if row and Preferences.model_validate(row["payload"]) == body.data:
                 return PreferencesRead(data=body.data, version=current)
             await session.execute(
@@ -139,7 +157,15 @@ class PreferenceService:
                         "discovery_mode": Preferences.model_validate(preferences["payload"]).discovery_mode
                     }
                 )
-            favorites = await verified_favorites(session, body.data)
+            submitted_favorites = await verified_favorites(session, body.data, effective=False)
+            body.data = await favorite_state.prepare_preferences(
+                session, user, PreferencesRead(
+                    data=Preferences.model_validate(preferences["payload"]) if preferences else Preferences(),
+                    version=preferences_version,
+                ), body.data,
+            )
+            selected = set(body.data.intelligence_profile.favorite_anime_ids)
+            favorites = [media for media in submitted_favorites if media.id in selected]
             name = body.display_name.strip()
             if (
                 profile
@@ -231,3 +257,31 @@ class PreferenceService:
             )
             result = ProfileRead(display_name=name, version=current + 1)
         return result
+
+    async def favorite_page(self, user, limit=24, cursor=None, ids=None):
+        last = None
+        if cursor:
+            try:
+                last = UUID(base64.urlsafe_b64decode(cursor + "=" * (-len(cursor) % 4)).decode())
+            except (ValueError, UnicodeDecodeError, binascii.Error) as exc:
+                raise AppError(422, "INVALID_CURSOR", "Reset the favourite page.") from exc
+        async with self.database.transaction(user) as session:
+            current = await favorite_state.read_state(session, user)
+            effective = await favorite_state.effective_ids(session, user, current.data)
+            if ids is not None:
+                effective &= set(ids)
+            ordered = sorted(effective)
+            selected = [media_id for media_id in ordered if last is None or media_id > last]
+            page = selected[:limit]
+            media = {item.id: item for item in await library.stored_media_batch(session, page)}
+            if set(media) != set(page):
+                raise AppError(409, "IDENTITY_CONFLICT", "A favourite identity needs review.")
+            next_cursor = base64.urlsafe_b64encode(str(page[-1]).encode()).decode().rstrip("=") if len(selected) > limit else None
+            return FavoritesPage(data=[media[media_id] for media_id in page], total=len(ordered),
+                                 preferences_version=current.version, next_cursor=next_cursor)
+
+    async def set_favorite(self, user, media_id, body):
+        async with self.database.transaction(user) as session:
+            await favorite_state.lock_state(session, user)
+            return await favorite_state.set_choice(session, user, media_id, body.favorite,
+                                                   body.expected_preferences_version)

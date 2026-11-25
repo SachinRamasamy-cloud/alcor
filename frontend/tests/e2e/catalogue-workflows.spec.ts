@@ -55,7 +55,7 @@ for(const width of [375,1440])test(`account menu provides keyboard navigation an
   const bounds=await trigger.boundingBox();expect(bounds!.width).toBe(bounds!.height)
   await trigger.focus();await page.keyboard.press('Enter')
   const menu=page.getByRole('menu',{name:'Account menu',exact:true})
-  for(const label of ['Dashboard','Profile','Settings','My library','Wishlist','Completed','Collections','Watch and reading history','Your statistics','Sign out'])await expect(menu.getByRole('menuitem',{name:label,exact:true})).toBeVisible()
+  for(const label of ['Dashboard','Profile','Settings','My library','Wishlist','Completed','Favorites','Collections','Watch and reading history','Your statistics','Sign out'])await expect(menu.getByRole('menuitem',{name:label,exact:true})).toBeVisible()
   await page.keyboard.press('Escape');await expect(trigger).toBeFocused()
   await trigger.click();await page.getByRole('heading',{name:'Account navigation fixture'}).click({position:{x:5,y:5}});await expect(menu).toHaveCount(0)
   await trigger.click()

@@ -7,6 +7,7 @@ from app.core.errors import AppError
 from app.integrations.metadata.schemas import Media
 from app.modules.catalogue.service import eligible_items, select_page
 from app.modules.discovery.schemas import FilterRead, PersonalPage
+from app.modules.preferences import public as preference_state
 from app.modules.preferences.schemas import Preferences
 
 
@@ -103,6 +104,7 @@ class DiscoveryService:
                 {"user": user},
             )
             preferences = Preferences.model_validate(pref) if pref else Preferences()
+            favorite_ids = await preference_state.effective_ids(session, user, preferences)
             planned = (
                 query.include_planned
                 if query.include_planned is not None
@@ -138,7 +140,7 @@ class DiscoveryService:
                 str(r["media_id"]): {
                     "status": r["status"],
                     "ever_completed": r["ever_completed"],
-                    "favorite": r["favorite"],
+                    "favorite": r["media_id"] in favorite_ids,
                     "version": r["version"],
                 }
                 for r in rows

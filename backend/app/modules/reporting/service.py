@@ -144,6 +144,8 @@ class ReportingService:
         return {"undone": True, "changed": True}
 
     async def statistics(self, user):
+        from app.modules.preferences import public as preferences
+
         async with self.database.transaction(user) as session:
             library_counts = (
                 (
@@ -157,6 +159,9 @@ class ReportingService:
                 .mappings()
                 .one()
             )
+            library_counts = dict(library_counts)
+            preference = await preferences.read_state(session, user)
+            library_counts["favorites"] = len(await preferences.effective_ids(session, user, preference.data))
             progress = (
                 (
                     await session.execute(

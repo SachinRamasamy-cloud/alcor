@@ -16,6 +16,7 @@ for(const width of [375,1440])test(`card completion keeps the locked layout and 
     if(url.pathname.endsWith('/discovery-exclusions')){await route.fulfill({json:recorded?[701]:[]});return}
     if(url.pathname.endsWith('/watch-sessions')){await route.fulfill({json:[]});return}
     if(url.pathname.endsWith('/collections')){await route.fulfill({json:{data:[]}});return}
+    if(url.pathname.endsWith('/favorites')){await route.fulfill({json:{data:[],total:0,preferences_version:0,next_cursor:null}});return}
     unhandled.push(url.pathname);await route.fulfill({status:404,json:{error:{code:'NOT_FOUND'}}})
   })
   await page.route('https://s4.anilist.co/**',route=>route.fulfill({contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450"><rect width="300" height="450" fill="#ddd"/></svg>'}))
