@@ -11,6 +11,7 @@ import type {Media} from '../shared/api/client'
 import {t} from '../shared/content'
 import {ErrorState,Loading} from '../shared/ui'
 import {CataloguePage} from './public'
+import {discoveryMode,discoveryLink,useDiscoveryVisibility,DiscoveryNotice} from '../features/catalogue/visibility'
 
 export function BrowseShelf({title,items,to,description}:{title:string;items:Media[];to:string;description?:string}){
   const rail=useRef<HTMLDivElement>(null)
@@ -28,11 +29,16 @@ function Suggestions({setup,type}:{setup:SetupRead;type:'anime'|'manga'}){
 }
 function Shelves({type}:{type:'anime'|'manga'}){
   const browse=useBrowse(type),setup=useSetup()
+  const [params]=useSearchParams(),mode=discoveryMode(params.get('mode'))
+  const visibility=useDiscoveryVisibility(browse.data?Object.values(browse.data).flat():[],mode)
   useEffect(()=>{document.title=`${t(type==='anime'?'nav.anime':'nav.manga')} · ALCOR`},[type])
   if(browse.isPending)return <Loading variant="browse" page/>
   if(browse.error)return <ErrorState error={browse.error} retry={()=>{void browse.refetch()}}/>
+  if(visibility.pending)return <Loading variant="browse" page/>
   return <div className="shell page-body browse-page"><header className="browse-heading"><div><p className="eyebrow">{t('footer.tagline')}</p><h1>{t(type==='anime'?'nav.anime':'nav.manga')}</h1><p>{t(type==='anime'?'browse.animeIntro':'browse.mangaIntro')}</p></div><Link className="button button-primary" to={`/search?type=${type}`}><Search size={17}/>{t(type==='anime'?'browse.searchAnime':'browse.searchManga')}</Link></header>
-    {browseSections(type).map(({key,params})=>key==='trending'&&setup.data&&tasteParams(setup.data.preferences.data,type).personal?<Suggestions key={`${type}:taste`} type={type} setup={setup.data}/>:<BrowseShelf key={key} title={t(key==='latest'?'browse.latest':key==='popular'?'browse.popular':key==='top'?'browse.top':key==='trending'?'browse.trending':type==='anime'?'browse.upcoming':'browse.publishing')} items={browse.data[key]} to={`/search?${params}`}/>)}
+    <DiscoveryNotice unavailable={visibility.unavailable} refetch={visibility.refetch}/>
+    {visibility.personal&&!visibility.unavailable&&<p className="coverage-note">{t('discovery.partialPersonal')}</p>}
+    {browseSections(type).map(({key,params})=>key==='trending'&&setup.data&&tasteParams(setup.data.preferences.data,type).personal?<Suggestions key={`${type}:taste`} type={type} setup={setup.data}/>:<BrowseShelf key={key} title={t(key==='latest'?'browse.latest':key==='popular'?'browse.popular':key==='top'?'browse.top':key==='trending'?'browse.trending':type==='anime'?'browse.upcoming':'browse.publishing')} items={browse.data[key].filter(item=>visibility.items.some(candidate=>candidate.id===item.id))} to={discoveryLink(`/search?${params}`,mode)}/>)}
     {(!setup.data||!tasteParams(setup.data.preferences.data,type).personal)&&<div className="browse-profile-invite"><div><h2>{t('browse.yourTaste')}</h2><p>{t('browse.tasteHelp')}</p></div><Link className="button button-secondary" to="/setup">{t('dashboard.startSetup')}</Link></div>}
   </div>
 }
@@ -40,5 +46,5 @@ export function BrowsePage(){
   const type=useLocation().pathname==='/manga'?'manga':'anime'
   const [params]=useSearchParams()
   // Preserve existing bookmarked filter URLs; bare navigation opens shelves.
-  return params.size?<CataloguePage/>:<Shelves key={type} type={type}/>
+  return [...params.keys()].some(key=>key!=='mode')?<CataloguePage/>:<Shelves key={type} type={type}/>
 }

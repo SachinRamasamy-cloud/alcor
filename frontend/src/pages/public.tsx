@@ -17,6 +17,7 @@ import type { Media } from '../shared/api/client'
 import { t, formatDate, unitCount, type MessageKey } from '../shared/content'
 import { useCataloguePagination } from '../features/catalogue/pagination'
 import { Button, ErrorState, Loading, Pagination } from '../shared/ui'
+import {discoveryMode,discoveryLink,useDiscoveryVisibility,DiscoveryNotice} from '../features/catalogue/visibility'
 
 function PageTitle({ title }: { title: string }) {
   useEffect(() => { document.title = `${title} · ${t('brand')}` }, [title])
@@ -42,21 +43,29 @@ function filterLabel(key:string,value:string):string {
 }
 export function HomePage() {
   const home = useHome()
+  const [params]=useSearchParams(),mode=discoveryMode(params.get('mode'))
+  const candidates=home.data?[...(home.data.featured?[home.data.featured]:[]),...home.data.anime,...home.data.manga]:[]
+  const visibility=useDiscoveryVisibility(candidates,mode)
   if (home.isPending) return <Loading variant="home" page />
   if (home.error) return <ErrorState error={home.error} retry={() => { void home.refetch() }} />
-  const featured = home.data.featured
+  if(visibility.pending)return <Loading variant="home" page/>
+  const eligible=(items:Media[])=>items.filter(item=>visibility.items.some(candidate=>candidate.id===item.id))
+  const anime=eligible(home.data.anime),manga=eligible(home.data.manga)
+  const featured = home.data.featured&&eligible([home.data.featured]).length?home.data.featured:anime[0]??null
   return <div className="shell"><PageTitle title={t('nav.home')} />
+    <DiscoveryNotice unavailable={visibility.unavailable} refetch={visibility.refetch}/>
     {featured && <section data-media-source="" className="hero"><div className="hero-copy"><p className="eyebrow"><span className="tiny-rule" />{t('home.featured')}</p><h1>{featured.title}</h1>
       {featured.original_title && <p className="hero-original">{featured.original_title}</p>}
       <div className="hero-metadata"><span><Star size={14} fill="currentColor" />{featured.score?.toFixed(2) ?? t('media.notRated')}</span><span>{featured.year ?? t('media.notAvailable')}</span><span>{featured.format}</span><span>{unitCount(featured.total_units ?? null, featured.media_type)}</span></div>
-      <SpoilerText><p className="hero-synopsis">{featured.synopsis}</p></SpoilerText><div className="hero-genres">{featured.genres.slice(0, 3).map(g => <Link to={`/anime?genre=${encodeURIComponent(g)}`} key={g}>{g}</Link>)}</div>
+      <SpoilerText><p className="hero-synopsis">{featured.synopsis}</p></SpoilerText><div className="hero-genres">{featured.genres.slice(0, 3).map(g => <Link to={discoveryLink(`/anime?genre=${encodeURIComponent(g)}`,mode)} key={g}>{g}</Link>)}</div>
       <div className="hero-actions"><Link className="button button-primary" to={mediaPath(featured)}>{t('home.details')}<ArrowRight size={16} /></Link><SaveButton media={featured} /></div>
       <a className="hero-source" href={featured.source.url} target="_blank" rel="noreferrer">{featured.source.name}<ArrowUpRight size={11} /></a>
     </div><div className="hero-art"><m.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .25 }} className="hero-poster"><Poster media={featured} priority /></m.div><span className="hero-art-label">{featured.original_title ?? featured.title}</span></div></section>}
     <ContinueSections />
-    <Section title="home.popularAnime" to="/search?type=anime&sort=popular" items={home.data.anime} />
-    <section className="home-section genre-section"><div className="section-heading"><h2>{t('home.genres')}</h2></div><div className="genre-grid">{home.data.genres.slice(0, 8).map((genre, i) => <Link key={genre} to={`/anime?genre=${encodeURIComponent(genre)}`}><span className="genre-number">{String(i + 1).padStart(2, '0')}</span><span>{genre}</span><ArrowRight size={17} /></Link>)}</div></section>
-    <Section title="home.popularManga" to="/search?type=manga&sort=popular" items={home.data.manga} />
+    {visibility.personal&&!visibility.unavailable&&anime.length+manga.length<home.data.anime.length+home.data.manga.length&&<p className="coverage-note">{t('discovery.partialPersonal')} <Link to={discoveryLink('/search',mode)}>{t('home.all')}</Link></p>}
+    <Section title="home.popularAnime" to={discoveryLink('/search?type=anime&sort=popular',mode)} items={anime} />
+    <section className="home-section genre-section"><div className="section-heading"><h2>{t('home.genres')}</h2></div><div className="genre-grid">{home.data.genres.slice(0, 8).map((genre, i) => <Link key={genre} to={discoveryLink(`/anime?genre=${encodeURIComponent(genre)}`,mode)}><span className="genre-number">{String(i + 1).padStart(2, '0')}</span><span>{genre}</span><ArrowRight size={17} /></Link>)}</div></section>
+    <Section title="home.popularManga" to={discoveryLink('/search?type=manga&sort=popular',mode)} items={manga} />
   </div>
 }
 
@@ -86,6 +95,7 @@ export function CataloguePage() {
     <div className="catalogue-type-tabs" aria-label={t('catalogue.mediaType')}>{(['all','anime','manga'] as const).map(value=><button key={value} aria-pressed={value===(type??'all')} onClick={()=>{const next=new URLSearchParams(params);next.delete('type');next.delete('page');next.delete('cursor');if(value!=='all')next.set('type',value);if(location.pathname==='/anime'||location.pathname==='/manga')navigate(`/search?${next}`);else setParams(next)}}>{t(value==='all'?'catalogue.allMedia':value==='anime'?'nav.anime':'nav.manga')}</button>)}</div><div className="desktop-filters filters-toolbar">{filters}<DiscoveryControls params={params} onChange={setParams} items={catalogue.data?.data}/></div>{[...params].some(([key])=>!['page','cursor','q','type'].includes(key))&&<div className="active-filters" aria-label={t('catalogue.activeFilters')}>{[...params].filter(([key,value])=>!['page','cursor','q','type'].includes(key)&&value&&value!=='false'&&value!=='all').map(([key,value],index)=><button key={`${key}:${value}:${index}`} className="filter-chip" onClick={()=>{setParams(previous=>{const next=new URLSearchParams(previous);const remaining=next.getAll(key).filter(v=>v!==value);next.delete(key);remaining.forEach(v=>next.append(key,v));next.delete('page');next.delete('cursor');return next})}}>{filterLabel(key,value)}<span aria-hidden="true">&times;</span><span className="sr-only">{t('catalogue.removeFilter')}</span></button>)}</div>}
     {[...params].some(([key])=>!['page','cursor','type'].includes(key))&&<button className="reset-button filter-reset" onClick={()=>setParams(type?{type}:{})}>{t('catalogue.reset')}</button>}</div>
     {params.get('q') && <p className="results-label">{t('catalogue.resultsFor', { query: params.get('q')! })}</p>}
+    {catalogue.personalUnavailable&&<p role="status" className="coverage-note">{t('discovery.filterUnavailable')}</p>}
     {catalogue.isPending ? <Loading variant="catalogue" /> : catalogue.error ? <ErrorState error={catalogue.error} retry={() => { void catalogue.refetch() }} /> : catalogue.data.data.length ? <>{catalogue.data.source==='Saved library'&&<p className="coverage-note">{t('catalogue.savedCoverage')}</p>}<MediaGrid items={catalogue.data.data} actions={media => <WishlistAction media={media} />} /><Pagination page={pagination.page} totalPages={pagination.personal?null:catalogue.data.total_pages} hasNext={catalogue.data.has_more} availablePages={pagination.availablePages} busy={catalogue.isFetching} onChange={pagination.change}/></> : <div className="state-box"><h2>{t(catalogue.data.has_more?'catalogue.batchEmpty':'catalogue.noResults')}</h2><p>{t(catalogue.data.has_more?'catalogue.batchEmptyBody':'catalogue.noResultsBody')}</p>{catalogue.data.has_more&&<Pagination page={pagination.page} hasNext availablePages={pagination.availablePages} onChange={pagination.change}/>}<Button variant="secondary" onClick={() => setParams(type?{type}:{})}>{t('catalogue.reset')}</Button></div>}
   </div>
 }

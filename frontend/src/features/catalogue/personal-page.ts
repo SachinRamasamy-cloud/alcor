@@ -1,6 +1,7 @@
 import { api, ApiError, type CataloguePage } from '../../shared/api/client'
 import { aniCatalogue } from '../../shared/api/anilist'
 import { matchesCustomFilters,multiValueFields } from './custom-filters'
+import { sameTitle } from '../../shared/api/identity'
 
 // Scan a bounded source window, filter before constructing the displayed page,
 // and preserve the exact unread source offset rather than dropping eligible items.
@@ -21,7 +22,7 @@ export async function personalPage(path: string, params: URLSearchParams, userId
     const excluded = userId ? await exclude(result.data, params.get('mode')!, userId, signal) : []
     for (let i = offset; i < result.data.length; i++) {
       const item = result.data[i]
-      if (!excluded.includes(Number(item.source_ids?.anilist)) && matchesCustomFilters(item,params)) data.push(item)
+      if (!excluded.includes(Number(item.source_ids?.anilist)) && matchesCustomFilters(item,params) && !data.some(previous=>sameTitle(previous,item))) data.push(item)
       if (data.length === 24) {
         const unread = i + 1 < result.data.length
         const more = unread || result.has_more
@@ -34,7 +35,12 @@ export async function personalPage(path: string, params: URLSearchParams, userId
   return { page:Number(params.get('page'))||1, data, has_more: true, next_cursor: `f:${page}:0`, source: 'AniList', is_partial: true, is_stale: false }
 }
 
-async function exclusions(items: CataloguePage['data'], mode: string, userId: string, signal?: AbortSignal) {
+export async function exclusions(items: CataloguePage['data'], mode: string, userId: string, signal?: AbortSignal) {
   if (!items.length) return []
-  return api<number[]>('/me/discovery-exclusions', { signal, accountId: userId, method: 'POST', body: JSON.stringify({ mode, candidates: items.map(m => ({ anilist_id: Number(m.source_ids?.anilist), mal_id: m.source_ids?.mal ? Number(m.source_ids.mal) : null, media_type: m.media_type })) }) })
+  const excluded:number[]=[]
+  for(let offset=0;offset<items.length;offset+=100){
+    const batch=items.slice(offset,offset+100)
+    excluded.push(...await api<number[]>('/me/discovery-exclusions', { signal, accountId: userId, method: 'POST', body: JSON.stringify({ mode, candidates: batch.map(m => ({ anilist_id: Number(m.source_ids?.anilist), mal_id: m.source_ids?.mal ? Number(m.source_ids.mal) : null, media_type: m.media_type })) }) }))
+  }
+  return [...new Set(excluded)]
 }

@@ -27,3 +27,5 @@ Personal details slice: title and episode/chapter ratings/notes, favorites, tags
 Reporting/recovery slice: private history pages, saved-record statistics, soft library removal and version-aware undo for supported details/removals/non-completing progress are implemented. Original activity is retained; unknown durations are not estimated.
 
 Profile/preferences slice: private display name, IANA timezone, explicit discovery preferences, notification opt-in, reduced motion and synopsis spoiler controls are implemented. User-set evidence thresholds do not imply a completed recommendation algorithm.
+
+Foundation F01: explicit personal modes now also filter Home's hero/rows and Browse shelves; failures/loading cannot claim confirmed eligibility. Public fallback is labelled. Existing layout/alignment is locked by the owner's 25 November Foundation request. Default-mode persistence and direct card completion follow separately; later Foundation stages remain outstanding.

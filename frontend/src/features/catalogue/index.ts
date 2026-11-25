@@ -17,7 +17,7 @@ export function useCatalogue(path: string, params: URLSearchParams) {
   const mode = params.get('mode')
   const memory = params.get('memory') === 'true'
   const personal = memory || Boolean(userId && ready && ['hide_watched', 'new_to_me'].includes(mode ?? ''))
-  return useQuery({ queryKey: personal ? ['private', userId, 'anilist-catalogue', path, params.toString()] : ['public', 'anilist', path, params.toString()], queryFn: async ({signal}) => {
+  const query=useQuery({ queryKey: personal ? ['private', userId, 'anilist-catalogue', path, params.toString()] : ['public', 'anilist', path, params.toString()], queryFn: async ({signal}) => {
     if (memory) {
       if(!supportsSavedFilters(params))throw new ApiError(422,'UNSUPPORTED_FILTER')
       const query = new URLSearchParams(params)
@@ -29,6 +29,7 @@ export function useCatalogue(path: string, params: URLSearchParams) {
     if (publicParams.get('cursor')?.startsWith('f:')) publicParams.delete('cursor')
     return aniCatalogue(path, publicParams, signal)
   }, staleTime: 120000, retry: false })
+  return {...query,personalUnavailable:Boolean(userId&&!ready&&['hide_watched','new_to_me'].includes(mode??''))}
 }
 export const useMedia = (mediaType: string, id: string) => useQuery({
   queryKey: ['public', 'anilist', mediaType, id], queryFn: ({ signal }) => /^(anilist|mal)-/.test(id) ? aniDetails(mediaType, id, signal) : api<Media>(`/${mediaType}/${id}`, { signal }), staleTime: 900000, retry: false,
