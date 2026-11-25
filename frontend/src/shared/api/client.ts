@@ -17,6 +17,8 @@ const errorKeys: Record<string, MessageKey> = {
   RATE_LIMITED: 'errors.rateLimit', UNAUTHORIZED: 'errors.auth', AUTH_UNAVAILABLE: 'auth.unconfigured',
   UNSUPPORTED_FILTER: 'discovery.unsupportedFilter',
   FAVORITE_LIMIT: 'favorites.limit',
+  COMPLETION_UNAVAILABLE: 'tracking.completionUnavailable',
+  COMPLETION_REQUIRES_SESSION: 'tracking.completionRequiresSession',
   BACKEND_WAKING: 'backend.actionUnavailable', PROVIDER_NOT_CONFIGURED: 'catalogue.providerPending',
 }
 export class ApiError extends Error {

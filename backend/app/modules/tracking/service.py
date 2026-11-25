@@ -6,8 +6,9 @@ from sqlalchemy import text
 from app.core.errors import AppError
 from app.integrations.metadata.schemas import Media
 from app.modules.library import public as library
+from app.modules.library.policy import require_completion
 from app.modules.tracking import repository as repo
-from app.modules.tracking.policy import summarize
+from app.modules.tracking.policy import summarize_session
 from app.modules.tracking.schemas import SessionRead, canonical_key
 
 
@@ -101,9 +102,10 @@ class TrackingService:
             result = []
             for row in rows:
                 targets = grouped[row["id"]]
-                summary = summarize(
+                summary = summarize_session(
                     targets,
                     {u["key"]: u["state"] for u in targets},
+                    status=row["payload"].get("status"),
                     final_total=row["final_total"],
                     coverage=row["coverage_complete"],
                     skip_counts=row["skip_counts"],
@@ -170,9 +172,10 @@ class TrackingService:
 
     async def read_in_transaction(self, session, user, row, offset=0):
         units = await repo.targets(session, user, row["id"])
-        summary = summarize(
+        summary = summarize_session(
             units,
             {u["key"]: u["state"] for u in units},
+            status=row["payload"].get("status"),
             final_total=row["final_total"],
             coverage=row["coverage_complete"],
             skip_counts=row["skip_counts"],
@@ -327,6 +330,8 @@ class TrackingService:
             row = await repo.session_row(session, user, session_id, lock=True)
             if row["version"] != body.expected_version or not row["active"]:
                 raise AppError(409, "CONFLICT", "Review the latest session state.")
+            if complete:
+                require_completion(row["payload"].get("status"))
             units = await repo.targets(session, user, session_id)
             changes = []
             if not complete:
@@ -349,9 +354,10 @@ class TrackingService:
                             session, user, session_id, row["media_id"], key, body.state
                         )
                         unit["state"] = body.state
-            summary = summarize(
+            summary = summarize_session(
                 units,
                 {u["key"]: u["state"] for u in units},
+                status=row["payload"].get("status"),
                 final_total=row["final_total"],
                 coverage=row["coverage_complete"],
                 skip_counts=row["skip_counts"],

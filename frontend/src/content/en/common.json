@@ -355,6 +355,8 @@
   "media.sourceScore": "score",
   "discovery.backendFilter": "Sign in to use personal filters and saved searches.",
   "discovery.filterUnavailable": "Personal filtering is temporarily unavailable. General catalogue results may include titles in your history.",
+  "tracking.completionUnavailable": "This title is still releasing or has not released. Keep tracking available episodes or chapters instead of marking the whole title complete.",
+  "tracking.completionRequiresSession": "This title has an active tracking session. Open its progress and complete that session using the latest state.",
   "discovery.refilling": "Finding more titles outside your saved history…",
   "discovery.shelfWindow": "Some shelves have fewer matches after checking three source pages. Use that shelf’s View all to continue browsing with the same filters.",
   "discovery.shelfEmpty": "No matches in the titles checked so far. View all continues with the same filters.",

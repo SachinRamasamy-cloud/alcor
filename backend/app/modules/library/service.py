@@ -7,7 +7,7 @@ from app.core.errors import AppError
 from app.infrastructure.database import Database
 from app.integrations.metadata.provider import MetadataProvider
 from app.modules.library import repository as repo
-from app.modules.library.policy import INITIAL_STATUSES, TRANSITIONS
+from app.modules.library.policy import INITIAL_STATUSES, TRANSITIONS, require_completion
 from app.modules.library.schemas import LibraryMutation, LibraryPage, LibraryWrite, WishlistWrite
 from app.modules.preferences import public as preferences
 from app.modules.tracking.public import ensure_initial_session
@@ -208,6 +208,12 @@ class LibraryService:
             same_wishlist = not wishlist or (
                 existing["priority"] == wishlist.priority and existing["reason"] == wishlist.reason
             )
+            if change.status == "completed":
+                active = await session.scalar(text(
+                    "SELECT id FROM personal.tracking_sessions WHERE user_id=:user AND media_id=:media AND active"
+                ), {"user": user_id, "media": media_id})
+                if active:
+                    raise AppError(409, "COMPLETION_REQUIRES_SESSION", "Complete the active session using its current version.")
             if same_status and same_wishlist and not created:
                 return LibraryMutation(
                     entry=await repo.read_entry(session, user_id, media_id), changed=False
@@ -221,6 +227,9 @@ class LibraryService:
                         "INVALID_TRANSITION",
                         "This status change requires a deliberate correction or new session.",
                     )
+            if change.status == "completed":
+                current_media = await repo.stored_media(session, media_id)
+                require_completion(current_media.status)
             await session.execute(
                 text(
                     "UPDATE personal.library_entries SET status=:status,ever_completed=ever_completed OR :completed,priority=:priority,reason=:reason,deleted_at=NULL,version=version+:increment,updated_at=now() WHERE user_id=:user AND media_id=:media"

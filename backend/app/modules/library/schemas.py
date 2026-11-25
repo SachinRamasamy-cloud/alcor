@@ -5,7 +5,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field, computed_field
 
 from app.integrations.metadata.schemas import Media
-from app.modules.library.policy import TRANSITIONS
+from app.modules.library.policy import TRANSITIONS, completion_unavailable
 
 LibraryStatus = Literal[
     "planned", "in_progress", "completed", "on_hold", "dropped", "not_interested"
@@ -49,7 +49,10 @@ class LibraryEntry(BaseModel):
     @computed_field
     @property
     def allowed_statuses(self) -> list[LibraryStatus]:
-        return sorted(TRANSITIONS[self.status]) if self.deleted_at is None else []
+        statuses = TRANSITIONS[self.status] if self.deleted_at is None else set()
+        if self.active_session or completion_unavailable(self.media.status):
+            statuses = statuses - {"completed"}
+        return sorted(statuses)
 
 
 class LibraryPage(BaseModel):

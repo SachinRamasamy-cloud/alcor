@@ -8,6 +8,7 @@ import {t} from '../../shared/content'
 import type {Entry} from '.'
 import {publishLibraryEntry} from './cache'
 import {readSavedStatus} from './status'
+import {completionUnavailable} from './completion-policy'
 type Session={id:string;version:number;active:boolean}
 
 export function CompleteTitle({entry,media,onComplete,label}:{entry?:Entry;media?:Media;onComplete:()=>void;label?:string}){
@@ -30,6 +31,7 @@ export function CompleteTitle({entry,media,onComplete,label}:{entry?:Entry;media
     return {entry:saved,changed:result.version!==session.version}
   },onSuccess:(value,_variables,context)=>{if(context.accountId!==currentAccount.current)return;const published=publishLibraryEntry(queries,context.accountId!,value.entry,[title.id,...(title.source_ids?.anilist?[`anilist-${title.source_ids.anilist}`]:[])]);if(value.changed&&published)notify(t('library.completed'));onComplete()},onError:(error:Error,_variables,context)=>{if(context?.accountId===currentAccount.current)notify(error.message)},onSettled:(_value,_error,_variables,context)=>{void queries.invalidateQueries({queryKey:['private',context?.accountId]})}})
   if(legacy&&sessions.error)return <ErrorState error={sessions.error} retry={()=>{void sessions.refetch()}}/>
+  if(completionUnavailable(title))return <div><Button variant="secondary" disabled>{label??t('tracking.complete')}</Button><p className="text-sm text-muted">{t('tracking.completionUnavailable')}</p></div>
   if(confirmation)return <div className="completion-confirmation"><p>{t('tracking.completeHelp')}</p><div className="personal-dialog-actions"><Button variant="secondary" disabled={write.isPending} onClick={()=>setConfirmation(null)}>{t('common.cancel')}</Button><Button disabled={write.isPending} onClick={()=>write.mutate()}>{t('tracking.complete')}</Button></div></div>
   const active=legacy?sessions.data?.find(item=>item.active)??null:entry?.active_session?{...entry.active_session,active:true}:null
   const allowed=!entry||entry.status==='planned'||entry.status==='in_progress'||Boolean(active)

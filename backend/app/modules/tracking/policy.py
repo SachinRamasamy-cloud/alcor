@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 
+from app.modules.library.policy import release_finished
+
 
 class ProgressSummary(BaseModel):
     done: int
@@ -39,3 +41,10 @@ def summarize(
         caught_up=bool(coverage and released and not unresolved and not completed),
         completed=completed,
     )
+
+
+def summarize_session(units, marks, *, status, final_total, coverage, skip_counts):
+    summary = summarize(units, marks, final_total=final_total, coverage=coverage, skip_counts=skip_counts)
+    if summary.completed and not release_finished(status):
+        return summary.model_copy(update={"completed": False, "caught_up": True})
+    return summary

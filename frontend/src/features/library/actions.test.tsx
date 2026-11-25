@@ -18,6 +18,13 @@ vi.mock('../../shared/api/identity',async original=>({...await original<typeof i
 beforeEach(()=>{state.userId='a';setTokenProvider(async()=>state.userId?{token:'test-only',userId:state.userId}:null)})
 afterEach(()=>{cleanup();vi.unstubAllGlobals();vi.clearAllMocks();setTokenProvider(async()=>null)})
 function tree(queries:QueryClient,child=<><CardActions media={media}/><CardStatus media={media}/></>){return <QueryClientProvider client={queries}><MemoryRouter>{child}</MemoryRouter></QueryClientProvider>}
+it('explains why an ongoing title cannot be finally completed and sends no write',()=>{
+  const fetcher=vi.fn();vi.stubGlobal('fetch',fetcher)
+  render(tree(new QueryClient(),<CompleteTitle entry={{...entry,media:{...canonical,status:'RELEASING'},status:'in_progress',active_session:null}} onComplete={()=>{}}/>))
+  expect(screen.getByRole('button',{name:'Mark as completed'})).toBeDisabled()
+  expect(screen.getByText(/This title is still releasing/)).toBeVisible()
+  expect(fetcher).not.toHaveBeenCalled()
+})
 it('asserts historical completion directly from a card without creating wishlist or unit marks',async()=>{
   let recorded=false
   const fetcher=vi.fn<typeof fetch>(async(url,options)=>{
