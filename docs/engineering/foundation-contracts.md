@@ -4,8 +4,9 @@
 The owner approved New to Me, reconciled favourites with durable removal,
 per-item bulk outcomes, and the proposed impression parameters in chat.
 Those approvals are recorded in F02. The following **additive interface
-contracts** are proposed for the next two focused features; they have not
-yet been implemented or approved. Existing UI/alignment remains locked.
+contracts** were explicitly approved by the owner in chat on 25 November
+2026. Implementation and verification are recorded separately in F04/F05.
+Existing UI/alignment remains locked.
 
 ## F04: Authoritative card actions and session labels
 
