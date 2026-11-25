@@ -282,3 +282,9 @@ Full browser run: 62 of 63 passed; the existing home-skeleton scroll assertion f
 After switching decorative source cancellation to revert its initial style, repeated the two pulse/flight cases and resize case: all 3 passed, including restoration of source scale to 1 after cancellation. Final lint/build were repeated successfully. No test assertion or motion guard was relaxed.
 
 `git diff --check` and actual proxied readiness JSON passed. E096-E101 contain the source/tool/test incidents. Local implementation and scoped verification are complete; the intermittent skeleton-test cause, actual owner save demonstration, independent human visual/security review and physical-device/release acceptance remain open. Operational behavior is documented in [confirmed-save-motion.md](confirmed-save-motion.md).
+
+### A26 ? Saved membership and library completion, 25 November 2026
+
+Implemented batched owned status reads for canonical/AniList references, confirmed bookmark states and versioned start actions. Library management now confirms completion through the active session assertion endpoint, or the existing library assertion when no session exists. No metadata resolution on status reads, migration, security-policy change, unit marks or inferred completion dates.
+
+Executed: local real PostgreSQL `ALCOR_RUN_INTEGRATION=1 python -m uv run pytest tests/test_library_integration.py -q` (4 passed); frontend account/status tests (11 passed), lint and production build passed. OpenAPI export (with backend PYTHONPATH) and TypeScript regeneration succeeded. Generated interface remains backward compatible for existing UUID reads. Human review, live owner acceptance and production release pending. Errors E102?E106 record failed tooling/initial checks and corrections.

@@ -19,6 +19,33 @@ function mount(child = <LibraryPage />) {
 beforeEach(() => { history.replaceState(null, '', '/wishlist'); state.userId = 'account-a'; vi.clearAllMocks(); setTokenProvider(async () => state.userId ? { token: 'test-only', userId: state.userId } : null) })
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 describe('library integration', () => {
+  it('shows the same saved status on compact and detail buttons and versions Start watching',async()=>{
+    let status='planned'
+    const fetcher=vi.fn(async(url,init)=>{
+      if(init.method==='PUT'){expect(JSON.parse(init.body)).toEqual({status:'in_progress',expected_version:7});status='in_progress';return new Response(JSON.stringify({entry:{...entry,status},changed:true}))}
+      expect(String(url)).toContain('/media-status?');return new Response(JSON.stringify([{...entry,status}]))
+    })
+    vi.stubGlobal('fetch',fetcher)
+    mount(<><SaveButton media={media}/><SaveButton media={media} compact/><SaveButton media={media} kind="library"/></>)
+    expect(await screen.findByRole('button',{name:'In wishlist'})).toHaveAttribute('aria-pressed','true')
+    expect(screen.getByRole('button',{name:'In wishlist: Test title'})).toBeDisabled()
+    fireEvent.click(screen.getByRole('button',{name:'Add to library'}))
+    await waitFor(()=>expect(screen.getAllByRole('button',{name:'In your library'})).toHaveLength(2))
+    expect(screen.getByRole('button',{name:'In your library: Test title'})).toHaveAttribute('aria-pressed','true')
+  })
+  it('confirms completion through the active session with its version and no invented marks',async()=>{
+    const fetcher=vi.fn(async(url,init)=>new Response(JSON.stringify(String(url).includes('/watch-sessions')?(init.method==='POST'?{id:'session',version:5}:[{id:'session',active:true,version:4}]):{data:[{...entry,status:'in_progress'}],total:1})))
+    vi.stubGlobal('fetch',fetcher);mount()
+    fireEvent.click(await screen.findByRole('button',{name:'Manage Test title'}))
+    await waitFor(()=>expect(screen.getByRole('button',{name:'Mark as completed'})).not.toBeDisabled())
+    fireEvent.click(screen.getByRole('button',{name:'Mark as completed'}))
+    expect(fetcher.mock.calls.some(([,init])=>init.method==='POST')).toBe(false)
+    fireEvent.click(screen.getByRole('button',{name:'Mark as completed'}))
+    await waitFor(()=>expect(state.notify).toHaveBeenCalledWith('Marked as completed.'))
+    const call=fetcher.mock.calls.find(([,init])=>init.method==='POST')!
+    expect(String(call[0])).toContain('/watch-sessions/session/complete')
+    expect(JSON.parse(call[1].body)).toEqual({expected_version:4})
+  })
   it('sends expected version and refreshes account-scoped data after starting', async () => {
     const fetcher = vi.fn().mockImplementation((_url, init) => Promise.resolve(new Response(JSON.stringify(init.method === 'PUT' ? { entry: { ...entry, status: 'in_progress' }, changed: true } : { data: [entry], total: 1, next_cursor: null }), { status: 200 })))
     vi.stubGlobal('fetch', fetcher)
@@ -58,12 +85,13 @@ describe('library integration', () => {
   })
   it('emits wishlist motion only after a changed server response',async()=>{
     let complete!:(response:Response)=>void
-    vi.stubGlobal('fetch',vi.fn(()=>new Promise<Response>(resolve=>{complete=resolve})))
+    vi.stubGlobal('fetch',vi.fn((url)=>String(url).includes('/media-status?')?Promise.resolve(new Response('[]')):new Promise<Response>(resolve=>{complete=resolve})))
     const effect=vi.fn();window.addEventListener('alcor:confirmed-save-motion',effect)
     try{
       mount(<SaveButton media={media} compact/>)
+      await waitFor(()=>expect(screen.getByRole('button',{name:'Add Test title to wishlist'})).not.toBeDisabled())
       fireEvent.click(screen.getByRole('button',{name:'Add Test title to wishlist'}))
-      await waitFor(()=>expect(fetch).toHaveBeenCalledOnce())
+      await waitFor(()=>expect(complete).toBeTypeOf('function'))
       expect(effect).not.toHaveBeenCalled()
       await act(async()=>complete(new Response(JSON.stringify({entry,changed:true}))))
       await waitFor(()=>expect(effect).toHaveBeenCalledOnce())
@@ -72,14 +100,15 @@ describe('library integration', () => {
   })
   it('does not celebrate a previous account response after account switching',async()=>{
     let complete!:(response:Response)=>void
-    vi.stubGlobal('fetch',vi.fn(()=>new Promise<Response>(resolve=>{complete=resolve})))
+    vi.stubGlobal('fetch',vi.fn((url)=>String(url).includes('/media-status?')?Promise.resolve(new Response('[]')):new Promise<Response>(resolve=>{complete=resolve})))
     const effect=vi.fn();window.addEventListener('alcor:confirmed-save-motion',effect)
     try{
       const queries=new QueryClient()
       const tree=<QueryClientProvider client={queries}><BrowserRouter><SaveButton media={media}/></BrowserRouter></QueryClientProvider>
       const view=render(tree)
+      await waitFor(()=>expect(screen.getByRole('button',{name:'Add to wishlist'})).not.toBeDisabled())
       fireEvent.click(screen.getByRole('button',{name:'Add to wishlist'}))
-      await waitFor(()=>expect(fetch).toHaveBeenCalledOnce())
+      await waitFor(()=>expect(complete).toBeTypeOf('function'))
       state.userId='account-b'
       view.rerender(<QueryClientProvider client={queries}><BrowserRouter><SaveButton media={media}/></BrowserRouter></QueryClientProvider>)
       await act(async()=>complete(new Response(JSON.stringify({entry,changed:true}))))
@@ -89,8 +118,9 @@ describe('library integration', () => {
   })
   it.each([false, true])('does not announce a save for no-op or failed write (failure=%s)', async failure => {
     const effect=vi.fn();window.addEventListener('alcor:confirmed-save-motion',effect)
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(failure ? { error: { code: 'CONFLICT' } } : { entry, changed: false }), { status: failure ? 409 : 200 })))
+    vi.stubGlobal('fetch', vi.fn((url)=>Promise.resolve(new Response(JSON.stringify(String(url).includes('/media-status?')?[]:failure ? { error: { code: 'CONFLICT' } } : { entry, changed: false }), { status: String(url).includes('/media-status?')?200:failure ? 409 : 200 }))))
     mount(<SaveButton media={media} />)
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Add to wishlist' })).not.toBeDisabled())
     fireEvent.click(screen.getByRole('button', { name: 'Add to wishlist' }))
     await waitFor(() => expect(screen.getByRole('button', { name: 'Add to wishlist' })).not.toBeDisabled())
     expect(state.notify).not.toHaveBeenCalledWith('Added to wishlist.')

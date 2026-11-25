@@ -2,6 +2,7 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, Request
+from pydantic import PositiveInt
 
 from app.core.auth import current_user
 from app.modules.library.schemas import (
@@ -27,9 +28,14 @@ async def remove_library(
 
 @router.get("/media-status", response_model=list[LibraryEntry])
 async def overlay(
-    request: Request, user: User, ids: Annotated[list[UUID], Query(min_length=1, max_length=100)]
+    request: Request, user: User,
+    ids: Annotated[list[UUID] | None, Query(max_length=100)] = None,
+    anilist_ids: Annotated[list[PositiveInt] | None, Query(max_length=100)] = None,
 ):
-    return await request.app.state.library.overlay(user, ids)
+    from app.core.errors import AppError
+    if not (ids or anilist_ids) or len(ids or []) + len(anilist_ids or []) > 100:
+        raise AppError(422, "INVALID_REQUEST", "Choose between 1 and 100 titles.")
+    return await request.app.state.library.overlay(user, ids or [], anilist_ids or [])
 
 
 @router.patch("/library/{media_id}", response_model=LibraryMutation)

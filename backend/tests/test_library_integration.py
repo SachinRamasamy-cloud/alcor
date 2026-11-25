@@ -89,6 +89,28 @@ async def test_real_rls_and_pooled_context_reset(database):
         assert await session.scalar(text("SELECT count(*) FROM personal.library_entries")) == 1
 
 
+async def test_saved_overlay_uses_verified_source_mapping_and_owner(database):
+    service = LibraryService(database, FixtureProvider())
+    user, other = uuid4(), uuid4()
+    from app.integrations.metadata.anilist import map_media
+    from app.modules.library.repository import ensure_media
+    source_id = 1900000000 + uuid4().int % 100000000
+    media = map_media({"id": source_id, "type": "ANIME", "title": {"english": "Overlay fixture"}})
+    async with database.transaction(user) as session:
+        await ensure_media(session, media)
+    await service.change(user, media.id, LibraryWrite(status="planned"))
+    # Seeded identity map is authoritative, even when an older payload lacks it.
+    async with database.transaction(user) as session:
+        source = await session.scalar(text("SELECT external_id FROM catalogue.source_ids WHERE namespace='anilist' AND media_id=:id"), {"id": media.id})
+    assert source is not None
+    entries = await service.overlay(user, [], [int(source)])
+    assert len(entries) == 1 and entries[0].media.id == media.id
+    assert entries[0].media.source_ids["anilist"] == source
+    assert await service.overlay(other, [], [int(source)]) == []
+    assert await service.overlay(user, [], [2147483647]) == []
+    assert len(await service.overlay(user, [media.id], [int(source)])) == 1
+
+
 async def test_shared_redis_second_and_minute_budgets():
     a, b = RateLimiter("redis://127.0.0.1:56379/0"), RateLimiter("redis://127.0.0.1:56379/0")
     scope = f"test:{uuid4()}"

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Bookmark, Plus } from 'lucide-react'
+import { Bookmark, Check, Plus } from 'lucide-react'
+import {readSavedStatus} from './status'
 import {useLayoutEffect,useRef,type MouseEvent} from 'react'
 import type { components } from '../../shared/api/schema'
 import { api, type Media } from '../../shared/api/client'
@@ -47,11 +48,16 @@ export function SaveButton({ media, kind = 'wishlist', compact = false }: { medi
   const { userId, requireSignIn } = useAuth()
   const write = useLibraryWrite()
   const { ready } = useBackend()
-  const disabled = write.isPending || Boolean(userId && !ready)
+  const saved=useQuery({queryKey:['private',userId,'media-status',media.media_type,media.id],enabled:Boolean(userId&&ready),queryFn:()=>readSavedStatus(media,userId!),staleTime:30000,retry:false})
+  const entry=saved.data
+  const already=Boolean(entry&&(kind==='wishlist'||entry.status!=='planned'))
+  const disabled = write.isPending || Boolean(userId && (!ready||saved.isPending)) || already
+  const label=already?t(entry?.status==='planned'?'media.inWishlist':entry?.status==='completed'?'status.completed':'media.inLibrary'):saved.error?t('media.retryStatus'):t(kind === 'wishlist' ? 'media.addWishlist' : 'media.addLibrary')
   const save = (event:MouseEvent<HTMLButtonElement>) => {
     if (!userId) requireSignIn(kind, { kind, mediaId: media.id })
-    else write.mutate({ id: media.id, status: kind === 'wishlist' ? 'planned' : 'in_progress',origin:captureFlyOrigin(event.currentTarget) })
+    else if(saved.error)void saved.refetch()
+    else if(!already)write.mutate({ id: media.id, status: kind === 'wishlist' ? 'planned' : 'in_progress',version:entry?.version,origin:captureFlyOrigin(event.currentTarget) })
   }
-  if (compact) return <button className="card-save" aria-label={t('media.wishlistLabel', { title: media.title })} title={userId && !ready ? t('backend.actionUnavailable') : undefined} disabled={disabled} onClick={save}><Bookmark size={17} /></button>
-  return <Button variant={kind === 'wishlist' ? 'secondary' : 'primary'} title={userId && !ready ? t('backend.actionUnavailable') : undefined} disabled={disabled} onClick={save}>{kind === 'wishlist' ? <Bookmark size={16} /> : <Plus size={16} />}{t(kind === 'wishlist' ? 'media.addWishlist' : 'media.addLibrary')}</Button>
+  if (compact) return <button className="card-save" aria-pressed={already} aria-label={already||saved.error?`${label}: ${media.title}`:t('media.wishlistLabel', { title: media.title })} title={userId && !ready ? t('backend.actionUnavailable') : label} disabled={disabled} onClick={save}><Bookmark size={17} fill={already?'currentColor':'none'} /></button>
+  return <Button variant={kind === 'wishlist' ? 'secondary' : 'primary'} aria-pressed={already} title={userId && !ready ? t('backend.actionUnavailable') : undefined} disabled={disabled} onClick={save}>{already?<Check size={16}/>:kind === 'wishlist' ? <Bookmark size={16} /> : <Plus size={16} />}{label}</Button>
 }

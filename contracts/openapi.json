@@ -5580,16 +5580,43 @@
           {
             "in": "query",
             "name": "ids",
-            "required": true,
+            "required": false,
             "schema": {
-              "items": {
-                "format": "uuid",
-                "type": "string"
-              },
-              "maxItems": 100,
-              "minItems": 1,
-              "title": "Ids",
-              "type": "array"
+              "anyOf": [
+                {
+                  "items": {
+                    "format": "uuid",
+                    "type": "string"
+                  },
+                  "maxItems": 100,
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ids"
+            }
+          },
+          {
+            "in": "query",
+            "name": "anilist_ids",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "exclusiveMinimum": 0,
+                    "type": "integer"
+                  },
+                  "maxItems": 100,
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Anilist Ids"
             }
           }
         ],

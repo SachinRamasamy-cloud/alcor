@@ -2769,8 +2769,9 @@ export interface operations {
     };
     overlay_api_v1_me_media_status_get: {
         parameters: {
-            query: {
-                ids: string[];
+            query?: {
+                ids?: string[] | null;
+                anilist_ids?: number[] | null;
             };
             header?: never;
             path?: never;

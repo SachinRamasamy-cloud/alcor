@@ -47,15 +47,23 @@ class LibraryService:
             )
         return LibraryMutation(entry=entry, changed=True)
 
-    async def overlay(self, user, ids):
+    async def overlay(self, user, ids, anilist_ids=()):
         async with self.database.transaction(user) as session:
             rows = (
                 (
                     await session.execute(
                         text(
-                            "SELECT e.*,m.payload FROM personal.library_entries e JOIN catalogue.media m ON m.id=e.media_id WHERE e.user_id=:user AND e.media_id=ANY(CAST(:ids AS uuid[])) AND e.deleted_at IS NULL"
+                            """SELECT e.*, m.payload || jsonb_build_object('source_ids',
+                            COALESCE((SELECT jsonb_object_agg(s.namespace,s.external_id)
+                            FROM catalogue.source_ids s WHERE s.media_id=m.id), '{}'::jsonb)) AS payload
+                            FROM personal.library_entries e JOIN catalogue.media m ON m.id=e.media_id
+                            WHERE e.user_id=:user AND e.deleted_at IS NULL AND
+                            (e.media_id=ANY(CAST(:ids AS uuid[])) OR EXISTS
+                            (SELECT 1 FROM catalogue.source_ids s WHERE s.media_id=m.id
+                            AND s.namespace='anilist' AND s.media_type=m.media_type
+                            AND s.external_id=ANY(CAST(:anilist AS text[]))))"""
                         ),
-                        {"user": user, "ids": ids},
+                        {"user": user, "ids": ids, "anilist": [str(i) for i in anilist_ids]},
                     )
                 )
                 .mappings()
