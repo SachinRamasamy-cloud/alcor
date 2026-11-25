@@ -28,6 +28,8 @@ for media_type in ("anime", "manga"):
                        "popularity": item.get("popularity"),
                        "total_units": item.get("episodes") if media_type == "anime" else item.get("chapters"),
                        "genres": [g["name"] for g in item.get("genres", [])],
+                       "themes": [g["name"] for g in item.get("themes", [])],
+                       "season": item.get("season"),
                        "studios": [s["name"] for s in item.get("studios", [])],
                        "content_rating": item.get("rating"),
                        "source": {"name": "Tenrai / MyAnimeList", "url": item["url"],
@@ -35,5 +37,6 @@ for media_type in ("anime", "manga"):
 target = root / "backend/app/integrations/metadata/fixtures"
 target.mkdir(parents=True, exist_ok=True)
 (target / "catalogue.json").write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
-(target / "episodes.json").write_text("{}\n", encoding="utf-8", newline="\n")
+if not (target / "episodes.json").exists():
+    (target / "episodes.json").write_text("{}\n", encoding="utf-8", newline="\n")
 print(f"Reduced {len(result)} development records; production use remains gated.")

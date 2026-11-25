@@ -27,6 +27,8 @@
       "Drama",
       "Fantasy"
     ],
+    "themes": [],
+    "season": "fall",
     "studios": [
       "Madhouse"
     ],
@@ -68,6 +70,10 @@
       "Drama",
       "Fantasy"
     ],
+    "themes": [
+      "Military"
+    ],
+    "season": "spring",
     "studios": [
       "Bones"
     ],
@@ -103,6 +109,12 @@
       "Sci-Fi",
       "Suspense"
     ],
+    "themes": [
+      "Adult Cast",
+      "Psychological",
+      "Time Travel"
+    ],
+    "season": "spring",
     "studios": [
       "White Fox"
     ],
@@ -142,6 +154,12 @@
       "Drama",
       "Suspense"
     ],
+    "themes": [
+      "Gore",
+      "Military",
+      "Survival"
+    ],
+    "season": "spring",
     "studios": [
       "Wit Studio"
     ],
@@ -181,6 +199,13 @@
       "Comedy",
       "Sci-Fi"
     ],
+    "themes": [
+      "Gag Humor",
+      "Historical",
+      "Parody",
+      "Samurai"
+    ],
+    "season": "spring",
     "studios": [
       "Bandai Namco Pictures"
     ],
@@ -219,6 +244,13 @@
       "Drama",
       "Sci-Fi"
     ],
+    "themes": [
+      "Gag Humor",
+      "Historical",
+      "Parody",
+      "Samurai"
+    ],
+    "season": "winter",
     "studios": [
       "Bandai Namco Pictures"
     ],
@@ -255,6 +287,11 @@
       "Action",
       "Fantasy"
     ],
+    "themes": [
+      "Gore",
+      "Urban Fantasy"
+    ],
+    "season": "summer",
     "studios": [
       "MAPPA"
     ],
@@ -293,6 +330,12 @@
       "Fantasy",
       "Suspense"
     ],
+    "themes": [
+      "Isekai",
+      "Psychological",
+      "Time Travel"
+    ],
+    "season": "spring",
     "studios": [
       "White Fox"
     ],
@@ -331,6 +374,8 @@
       "Adventure",
       "Fantasy"
     ],
+    "themes": [],
+    "season": "fall",
     "studios": [
       "Madhouse"
     ],
@@ -371,6 +416,11 @@
       "Mystery",
       "Supernatural"
     ],
+    "themes": [
+      "Historical",
+      "Racing"
+    ],
+    "season": "winter",
     "studios": [
       "David Production"
     ],
@@ -412,6 +462,12 @@
       "Drama",
       "Sci-Fi"
     ],
+    "themes": [
+      "Adult Cast",
+      "Military",
+      "Space"
+    ],
+    "season": "winter",
     "studios": [
       "K-Factory",
       "Kitty Film Mitaka Studio"
@@ -453,6 +509,13 @@
       "Comedy",
       "Sci-Fi"
     ],
+    "themes": [
+      "Gag Humor",
+      "Historical",
+      "Parody",
+      "Samurai"
+    ],
+    "season": "spring",
     "studios": [
       "Sunrise"
     ],
@@ -492,6 +555,12 @@
       "Fantasy",
       "Horror"
     ],
+    "themes": [
+      "Gore",
+      "Military",
+      "Psychological"
+    ],
+    "season": null,
     "studios": [],
     "content_rating": null,
     "source": {
@@ -529,6 +598,10 @@
       "Mystery",
       "Supernatural"
     ],
+    "themes": [
+      "Historical"
+    ],
+    "season": null,
     "studios": [],
     "content_rating": null,
     "source": {
@@ -562,6 +635,11 @@
       "Adventure",
       "Award Winning"
     ],
+    "themes": [
+      "Historical",
+      "Samurai"
+    ],
+    "season": null,
     "studios": [],
     "content_rating": null,
     "source": {
@@ -595,6 +673,8 @@
       "Adventure",
       "Fantasy"
     ],
+    "themes": [],
+    "season": null,
     "studios": [],
     "content_rating": null,
     "source": {
@@ -631,6 +711,11 @@
       "Mystery",
       "Suspense"
     ],
+    "themes": [
+      "Isekai",
+      "Urban Fantasy"
+    ],
+    "season": null,
     "studios": [],
     "content_rating": null,
     "source": {
@@ -664,6 +749,11 @@
       "Drama",
       "Mystery"
     ],
+    "themes": [
+      "Adult Cast",
+      "Psychological"
+    ],
+    "season": null,
     "studios": [],
     "content_rating": null,
     "source": {

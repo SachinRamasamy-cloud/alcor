@@ -33,3 +33,7 @@ Risk L2 reporting/L4 ownership. Add history keyset pages, recorded statistics, s
 ## Preferences and profile contract
 
 L2/L4 ownership. Private, versioned display name and explicit discovery preferences; timezone uses IANA validation, notifications default off, motion defaults to system, no inferred preferences from watch frequency. Quality/minimum-positive evidence thresholds remain optional user choices rather than invented defaults. Save drafts against original versions, preserve private caches per account, and test actual database isolation/stale writes. Additive local migration 006; Google/import/export remain excluded.
+
+## Discovery/filter execution contract
+
+L2 discovery/L4 personal isolation. Extend existing filters without changing prior defaults. Include/exclude genres/themes, year ranges, source score, studio, season, publication status and known-length filters run before pagination. Hide watched excludes ever-completed; New to me excludes recorded started/dropped/not-interested and optionally planned. Memory search covers available synopsis and account-private notes only. Saved presets are owned/versioned; random picks from eligible available data. Hidden-gem thresholds are explicitly supplied, not invented defaults. No personalized scoring (owner-deferred). Fixture metadata is enriched only from existing attributed source snapshots; coverage stays partial. Tests must verify exclusions before page, missing-value behavior, private-note isolation and preset ownership/idempotence.

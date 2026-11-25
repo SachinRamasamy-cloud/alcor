@@ -1,3 +1,4 @@
+import { DiscoveryControls } from '../features/discovery'
 import { SpoilerText } from '../features/preferences'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
@@ -62,6 +63,7 @@ export function CataloguePage() {
   return <div className="shell page-body"><PageTitle title={t(titleKey)} /><SnapshotNotice /><div className="page-heading"><h1>{t(titleKey)}</h1><span className="eyebrow">{t('brand')}</span></div>
     <div className="search-and-filters"><form className="search-field" onSubmit={e => { e.preventDefault(); clearTimeout(timer.current); const value = new FormData(e.currentTarget).get('query'); change('q', String(value ?? '')) }}><Search size={18} /><input key={`${location.pathname}:${params.get('q') ?? ''}`} name="query" aria-label={t('catalogue.searchPlaceholder')} placeholder={t('catalogue.searchPlaceholder')} defaultValue={params.get('q') ?? ''} onChange={e => { const value = e.target.value; clearTimeout(timer.current); timer.current = setTimeout(() => change('q', value), 400) }} /><button aria-label={t('nav.search')} className="icon-button" type="submit"><ArrowRight size={17} /></button></form>
       <Button variant="secondary" className="mobile-filter-button" onClick={() => setFiltersOpen(true)}><SlidersHorizontal size={17} />{t('catalogue.filters')}</Button></div>
+    <DiscoveryControls params={params} onChange={setParams}/>
     <div className="desktop-filters">{filters}</div><Modal open={filtersOpen} onOpenChange={setFiltersOpen} title={t('catalogue.filters')}>{filters}</Modal>
     {params.get('q') && <p className="results-label">{t('catalogue.resultsFor', { query: params.get('q')! })}</p>}
     {catalogue.isPending ? <Loading /> : catalogue.error ? <ErrorState error={catalogue.error} retry={() => { void catalogue.refetch() }} /> : catalogue.data.data.length ? <><p className="coverage-note">{t('catalogue.coverage')}</p><MediaGrid items={catalogue.data.data} actions={media => <WishlistAction media={media} />} /><div className="pagination">{params.has('cursor') && <Button variant="secondary" onClick={() => change('cursor', '')}>{t('catalogue.back')}</Button>}{catalogue.data.has_more && <Button variant="secondary" onClick={() => change('cursor', catalogue.data.next_cursor!)}>{t('catalogue.more')}<ArrowRight size={15} /></Button>}</div></> : <div className="state-box"><h2>{t('catalogue.noResults')}</h2><p>{t('catalogue.noResultsBody')}</p><Button variant="secondary" onClick={() => setParams({})}>{t('catalogue.reset')}</Button></div>}

@@ -18,6 +18,12 @@ Baseline inspected: README-only repository at `12b945b`. Both plans and the full
 
 ## Execution and stop conditions
 
+### A08 - Browser-first catalogue and backend cold starts, 25 November 2026
+
+Owner explicitly authorized direct frontend AniList reads and backend-dependent personal operations. Risk L2 public integration, L4 identity/private boundaries. Scope: separate public GraphQL transport, bounded request scheduling, accurate source labels, stable provider references, verified server-side identity resolution, nonblocking backend readiness, and responsive alignment. No change to progress mathematics, authentication or deferred recommendation scoring. Existing MAL identities and personal history must remain intact. No frontend metadata is trusted for persistence. Acceptance: browser-only home/search/details with the ALCOR API unavailable; failed source requests distinguished from empty data; no bearer token sent to AniList; 429 cooldown respected; personal writes require backend readiness; identity regression tests and five-width browser/layout checks. Dependencies: existing HTTPX, browser fetch and current test tools. No new dependency required.
+
+AniList terms reviewed at https://docs.anilist.co/guide/terms-of-use and rate limits at https://docs.anilist.co/guide/rate-limiting. Personal/noncommercial use does not resolve the separate competing-tracker restriction. Owner reports personal use, not written provider permission. Production provider clearance and human release review remain pending; implementation and mocked local verification may proceed.
+
 ### A03-F — Account frontend, 25 November 2026
 
 Baseline `bcba4a9` inspected. Risk L4 at session/account boundaries; ordinary UI L2. Authority: existing plan §§8, 10.1 and owner resume request. Scope: frontend auth, library/wishlist, shared transport, copy and tests only; no new dependencies, remote migrations, security-policy changes or live OAuth configuration. Contracts: existing generated LibraryPage/LibraryMutation; Supabase PKCE; no runtime auth bypass. Acceptance: malformed/expired/external pending actions rejected, callback exchange/replay deduplicated, logout/account switch cancels/removes private queries, wishlist writes only after authentication, success feedback only after changed server response, API failures never shown as empty data, version supplied on status changes. Verify unit/component tests, lint/build and existing guest browser regressions. Live Google and independent security/editorial acceptance remain pending; user explicitly deferred credentials.

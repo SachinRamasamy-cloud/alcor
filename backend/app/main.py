@@ -15,6 +15,8 @@ from app.integrations.metadata.provider import DisabledProvider, FixtureProvider
 from app.modules.catalogue.routes import router as catalogue_router
 from app.modules.collections.routes import router as collections_router
 from app.modules.collections.service import CollectionService
+from app.modules.discovery.routes import router as discovery_router
+from app.modules.discovery.service import DiscoveryService
 from app.modules.library.routes import router as library_router
 from app.modules.library.service import LibraryService
 from app.modules.preferences.routes import router as preferences_router
@@ -53,6 +55,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     api.include_router(reporting_router)
     api.state.preferences = PreferenceService(api.state.database)
     api.include_router(preferences_router)
+    api.state.discovery = DiscoveryService(api.state.database, api.state.provider)
+    api.include_router(discovery_router)
     api.add_middleware(
         CORSMiddleware,
         allow_origins=settings.allowed_origins,

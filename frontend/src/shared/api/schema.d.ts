@@ -55,6 +55,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/discover/hidden-gems": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Hidden Gems */
+        get: operations["hidden_gems_api_v1_discover_hidden_gems_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/discover/random": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Random Title */
+        get: operations["random_title_api_v1_discover_random_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/genres": {
         parameters: {
             query?: never;
@@ -256,6 +290,23 @@ export interface paths {
         };
         /** Continue Anime */
         get: operations["continue_anime_api_v1_me_continue_watching_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/discover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Discover */
+        get: operations["discover_api_v1_me_discover_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -470,6 +521,42 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/saved-filters": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Filters */
+        get: operations["filters_api_v1_me_saved_filters_get"];
+        put?: never;
+        /** Save Filter */
+        post: operations["save_filter_api_v1_me_saved_filters_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/saved-filters/{filter_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Filter */
+        delete: operations["delete_filter_api_v1_me_saved_filters__filter_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Filter */
+        patch: operations["update_filter_api_v1_me_saved_filters__filter_id__patch"];
         trace?: never;
     };
     "/api/v1/me/statistics": {
@@ -788,6 +875,38 @@ export interface components {
              */
             source: string;
         };
+        /** FilterCreate */
+        FilterCreate: {
+            /** Name */
+            name: string;
+            query: components["schemas"]["PersonalQuery"];
+            /**
+             * Request Id
+             * Format: uuid
+             */
+            request_id: string;
+        };
+        /** FilterRead */
+        FilterRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            query: components["schemas"]["PersonalQuery"];
+            /** Version */
+            version: number;
+        };
+        /** FilterUpdate */
+        FilterUpdate: {
+            /** Expected Version */
+            expected_version: number;
+            /** Name */
+            name: string;
+            query: components["schemas"]["PersonalQuery"];
+        };
         /** GroupCount */
         GroupCount: {
             /** Count */
@@ -1003,6 +1122,8 @@ export interface components {
             rating_count?: number | null;
             /** Score */
             score?: number | null;
+            /** Season */
+            season?: ("winter" | "spring" | "summer" | "fall") | null;
             source: components["schemas"]["Source"];
             /** Status */
             status?: string | null;
@@ -1013,12 +1134,112 @@ export interface components {
             studios: string[];
             /** Synopsis */
             synopsis?: string | null;
+            /**
+             * Themes
+             * @default []
+             */
+            themes: string[];
             /** Title */
             title: string;
             /** Total Units */
             total_units?: number | null;
             /** Year */
             year?: number | null;
+        };
+        /** PersonalPage */
+        PersonalPage: {
+            /** Data */
+            data: components["schemas"]["Media"][];
+            /**
+             * Has More
+             * @default false
+             */
+            has_more: boolean;
+            /**
+             * Is Partial
+             * @default true
+             */
+            is_partial: boolean;
+            /**
+             * Is Stale
+             * @default false
+             */
+            is_stale: boolean;
+            /** Next Cursor */
+            next_cursor?: string | null;
+            /** Personal Status */
+            personal_status: {
+                [key: string]: components["schemas"]["StatusOverlay"];
+            };
+            /**
+             * Source
+             * @default Development snapshot
+             */
+            source: string;
+        };
+        /** PersonalQuery */
+        PersonalQuery: {
+            /** Cursor */
+            cursor?: string | null;
+            /** Exclude Genres */
+            exclude_genres?: string[];
+            /** Exclude Themes */
+            exclude_themes?: string[];
+            /** Format */
+            format?: string | null;
+            /** Genre */
+            genre?: string | null;
+            /** Include Genres */
+            include_genres?: string[];
+            /** Include Planned */
+            include_planned?: boolean | null;
+            /** Include Themes */
+            include_themes?: string[];
+            /**
+             * Limit
+             * @default 24
+             */
+            limit: number;
+            /** Media Type */
+            media_type?: ("anime" | "manga") | null;
+            /**
+             * Memory
+             * @default false
+             */
+            memory: boolean;
+            /**
+             * Mode
+             * @default all
+             * @enum {string}
+             */
+            mode: "all" | "hide_watched" | "new_to_me";
+            /**
+             * Q
+             * @default
+             */
+            q: string;
+            /** Score Min */
+            score_min?: number | null;
+            /** Season */
+            season?: ("winter" | "spring" | "summer" | "fall") | null;
+            /**
+             * Sort
+             * @default popular
+             * @enum {string}
+             */
+            sort: "popular" | "score" | "title" | "year";
+            /** Status */
+            status?: string | null;
+            /** Studio */
+            studio?: string | null;
+            /** Units Max */
+            units_max?: number | null;
+            /** Year */
+            year?: number | null;
+            /** Year From */
+            year_from?: number | null;
+            /** Year To */
+            year_to?: number | null;
         };
         /** Preferences */
         Preferences: {
@@ -1223,6 +1444,20 @@ export interface components {
             /** Time Coverage */
             time_coverage: string;
         };
+        /** StatusOverlay */
+        StatusOverlay: {
+            /** Ever Completed */
+            ever_completed: boolean;
+            /** Favorite */
+            favorite: boolean;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "planned" | "in_progress" | "completed" | "on_hold" | "dropped" | "not_interested";
+            /** Version */
+            version: number;
+        };
         /** UndoRequest */
         UndoRequest: {
             /** Expected Version */
@@ -1311,6 +1546,18 @@ export interface operations {
                 sort?: "popular" | "score" | "title" | "year";
                 limit?: number;
                 cursor?: string | null;
+                include_genres?: string[];
+                exclude_genres?: string[];
+                include_themes?: string[];
+                exclude_themes?: string[];
+                year_from?: number | null;
+                year_to?: number | null;
+                score_min?: number | null;
+                units_max?: number | null;
+                studio?: string | null;
+                status?: string | null;
+                season?: ("winter" | "spring" | "summer" | "fall") | null;
+                memory?: boolean;
             };
             header?: never;
             path?: never;
@@ -1400,6 +1647,90 @@ export interface operations {
             };
         };
     };
+    hidden_gems_api_v1_discover_hidden_gems_get: {
+        parameters: {
+            query: {
+                min_score: number;
+                min_votes: number;
+                min_popularity_rank: number;
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CataloguePage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    random_title_api_v1_discover_random_get: {
+        parameters: {
+            query?: {
+                q?: string;
+                genre?: string | null;
+                format?: string | null;
+                year?: number | null;
+                sort?: "popular" | "score" | "title" | "year";
+                limit?: number;
+                cursor?: string | null;
+                include_genres?: string[];
+                exclude_genres?: string[];
+                include_themes?: string[];
+                exclude_themes?: string[];
+                year_from?: number | null;
+                year_to?: number | null;
+                score_min?: number | null;
+                units_max?: number | null;
+                studio?: string | null;
+                status?: string | null;
+                season?: ("winter" | "spring" | "summer" | "fall") | null;
+                memory?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Media"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     genres_api_v1_genres_get: {
         parameters: {
             query?: never;
@@ -1472,6 +1803,18 @@ export interface operations {
                 sort?: "popular" | "score" | "title" | "year";
                 limit?: number;
                 cursor?: string | null;
+                include_genres?: string[];
+                exclude_genres?: string[];
+                include_themes?: string[];
+                exclude_themes?: string[];
+                year_from?: number | null;
+                year_to?: number | null;
+                score_min?: number | null;
+                units_max?: number | null;
+                studio?: string | null;
+                status?: string | null;
+                season?: ("winter" | "spring" | "summer" | "fall") | null;
+                memory?: boolean;
             };
             header?: never;
             path?: never;
@@ -1893,6 +2236,58 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     }[];
+                };
+            };
+        };
+    };
+    discover_api_v1_me_discover_get: {
+        parameters: {
+            query?: {
+                q?: string;
+                genre?: string | null;
+                format?: string | null;
+                year?: number | null;
+                sort?: "popular" | "score" | "title" | "year";
+                limit?: number;
+                cursor?: string | null;
+                include_genres?: string[];
+                exclude_genres?: string[];
+                include_themes?: string[];
+                exclude_themes?: string[];
+                year_from?: number | null;
+                year_to?: number | null;
+                score_min?: number | null;
+                units_max?: number | null;
+                studio?: string | null;
+                status?: string | null;
+                season?: ("winter" | "spring" | "summer" | "fall") | null;
+                memory?: boolean;
+                media_type?: ("anime" | "manga") | null;
+                mode?: "all" | "hide_watched" | "new_to_me";
+                include_planned?: boolean | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonalPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -2425,6 +2820,127 @@ export interface operations {
             };
         };
     };
+    filters_api_v1_me_saved_filters_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FilterRead"][];
+                };
+            };
+        };
+    };
+    save_filter_api_v1_me_saved_filters_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FilterCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FilterRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_filter_api_v1_me_saved_filters__filter_id__delete: {
+        parameters: {
+            query: {
+                expected_version: number;
+            };
+            header?: never;
+            path: {
+                filter_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_filter_api_v1_me_saved_filters__filter_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                filter_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FilterUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FilterRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     statistics_api_v1_me_statistics_get: {
         parameters: {
             query?: never;
@@ -2760,6 +3276,18 @@ export interface operations {
                 sort?: "popular" | "score" | "title" | "year";
                 limit?: number;
                 cursor?: string | null;
+                include_genres?: string[];
+                exclude_genres?: string[];
+                include_themes?: string[];
+                exclude_themes?: string[];
+                year_from?: number | null;
+                year_to?: number | null;
+                score_min?: number | null;
+                units_max?: number | null;
+                studio?: string | null;
+                status?: string | null;
+                season?: ("winter" | "spring" | "summer" | "fall") | null;
+                memory?: boolean;
             };
             header?: never;
             path?: never;

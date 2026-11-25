@@ -12,12 +12,12 @@ def normalize(text: str) -> str:
     return " ".join(unicodedata.normalize("NFKC", text).casefold().split())
 
 
-def select_page(
+def eligible_items(
     items: list[Media],
     query: CatalogueQuery,
     media_type: str | None = None,
     excluded: set[UUID] | None = None,
-) -> CataloguePage:
+) -> list[Media]:
     search = normalize(query.q)
     filtered = [
         m
@@ -27,7 +27,27 @@ def select_page(
         and (not query.genre or query.genre in m.genres)
         and (not query.format or query.format == m.format)
         and (not query.year or m.year == query.year)
-        and (not search or any(search in normalize(t) for t in [m.title, *m.aliases]))
+        and all(g in m.genres for g in query.include_genres)
+        and not any(g in m.genres for g in query.exclude_genres)
+        and all(g in m.themes for g in query.include_themes)
+        and not any(g in m.themes for g in query.exclude_themes)
+        and (query.year_from is None or (m.year is not None and m.year >= query.year_from))
+        and (query.year_to is None or (m.year is not None and m.year <= query.year_to))
+        and (query.score_min is None or (m.score is not None and m.score >= query.score_min))
+        and (
+            query.units_max is None
+            or (m.total_units is not None and m.total_units <= query.units_max)
+        )
+        and (not query.studio or query.studio in m.studios)
+        and (not query.status or query.status == m.status)
+        and (not query.season or query.season == m.season)
+        and (
+            not search
+            or any(
+                search in normalize(t)
+                for t in [m.title, *m.aliases, *([m.synopsis or ""] if query.memory else [])]
+            )
+        )
     ]
 
     def order(m: Media):
@@ -42,11 +62,23 @@ def select_page(
         return (relevance if search else 0, value, str(m.id))
 
     filtered.sort(key=order)
+    return filtered
+
+
+def select_page(
+    items: list[Media],
+    query: CatalogueQuery,
+    media_type: str | None = None,
+    excluded: set[UUID] | None = None,
+    context: str = "",
+) -> CataloguePage:
+    filtered = eligible_items(items, query, media_type, excluded)
     fingerprint = hashlib.sha256(
         json.dumps(
             {
                 **query.model_dump(exclude={"cursor", "limit"}),
                 "media_type": media_type,
+                "context": context,
                 "excluded": sorted(str(i) for i in excluded or []),
             },
             sort_keys=True,

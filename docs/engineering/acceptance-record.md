@@ -106,3 +106,9 @@ Date: 25 November 2026. Baseline `fddd452`. L2 behavior/L4 ownership. Added loca
 Commands: local Alembic upgrade; backend formatter/lint and actual PostgreSQL suite (30 passed), sequential OpenAPI/type generation; frontend lint, typecheck/production build, 25 unit/component tests and 8 public browser regressions passed. Initial entry measured 203.55 KB gzip. Known uncompressed-size warning remains. Added first-party tzdata for Windows IANA support after a reproduced failure, following https://docs.python.org/3/library/zoneinfo.html. Lockfile preserved reproducibility. E029-E031 record the timezone and test/typecheck failures; assertions retained.
 
 Status: implemented/locally verified on the review branch. Real Google configuration remains excluded; production and human security/editorial review pending. Notification delivery and recommendation ranking are separate features, not implied by saving these preferences.
+
+## Advanced discovery checkpoint
+
+25 November 2026. L2 filtering/L4 saved-filter ownership. Added explicit include/exclude genre/theme, year/score/unit/studio/status/season filters, owned saved filters, private history exclusions before pagination, and bounded source-snapshot random selection. No recommendation weights or default hidden-gem thresholds invented. Provider snapshot coverage is partial. The subsequent owner-requested AniList browser migration supersedes the public transport in this checkpoint.
+
+Executed: backend `ALCOR_RUN_INTEGRATION=1 python -m uv run pytest -q` (33 passed); frontend `npm run lint`, `npm run test` (25 passed), `npm run build` (passed, 203.90 KB initial gzip, existing size warning). OpenAPI export and generated TypeScript were completed sequentially. No new browser validation claimed for this checkpoint. Human acceptance and production release pending.

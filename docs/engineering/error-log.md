@@ -49,3 +49,7 @@ Final checkpoint: E006–E010 and E012–E014 were resolved by the recorded pass
 - E029: IANA timezone validation failed for Asia/Kolkata on Windows because the host lacked timezone data. Added CPython-maintained tzdata as a locked runtime dependency, following the official zoneinfo data-source guidance; original timezone tests passed.
 - E030: A history error test reused a single Response body across both preference/history fetches, exhausting its stream. Updated the fixture to return a fresh HTTP response per call; original error/empty assertions retained and passed.
 - E031: Final typecheck found an unsupported RTL `exact` option in a history test and an optional generated preference array. Used an anchored accessible-name matcher and a null-safe array fallback; no assertion was removed.
+
+- E032: Discovery integration fixture attempted a transition on the same already-completed title used for exclusion testing. Used distinct source identities for the two cases; original exclusion/transition assertions retained. Full local suite: 33 passed.
+- E033: Direct documentation opens returned HTTP 403 for AniList guide pages. Official indexed documentation supplied the terms and rate-limit evidence; no claim of successful direct-page retrieval.
+- E034: Inspection attempted `catalogue/router.py`; this repository names the file `routes.py`. Read the actual route file; no source change or application failure.
