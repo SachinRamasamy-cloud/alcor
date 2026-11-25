@@ -461,11 +461,12 @@ main:focus { outline: none; }
     overflow-y: auto;
     scrollbar-width: thin;
   }
+  .detail-sidebar .detail-poster { max-width: max(160px,calc((100dvh - 230px) * 2 / 3)); margin-inline: auto; }
 }
 .details-page .detail-poster { width: 100%; border: 5px solid #fff; box-shadow: 0 10px 35px #00000012; border-radius: 8px; overflow: hidden; }
 .detail-save-actions { display: grid; gap: 10px; margin-top: 20px; }
 .detail-save-actions .inline-flex, .detail-save-actions .button { width: 100%; justify-content: center; }
-.detail-info-panel { display: grid; gap: 22px; padding: 24px; margin-top: 24px; border: 1px solid #e7e9e4; border-radius: 8px; background: #fafbf8; }
+.detail-info-panel { display: grid; grid-template-columns: repeat(auto-fit,minmax(120px,1fr)); gap: 20px; padding: 20px; margin-top: 24px; border: 1px solid #e7e9e4; border-radius: 8px; background: #fafbf8; }
 .detail-info-panel dt { font-size: 11px; color: #626262; margin-bottom: 7px; }
 .detail-info-panel dd { font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }
 .details-page .detail-main { max-width: none; padding-top: 30px; min-width: 0; }
@@ -480,7 +481,6 @@ main:focus { outline: none; }
 .detail-section-nav { display: flex; align-items: center; flex-wrap: wrap; gap: 24px; border-block: 1px solid #e6e8e2; margin-top: 28px; font-size: 12px; }
 .detail-section-nav a { display: inline-flex; align-items: center; min-height: 52px; }
 .detail-section-nav a:hover { text-decoration: underline; text-underline-offset: 5px; }
-.detail-mobile-facts { display: none; }
 .details-page .episode-section { border-top: 0; margin-top: 28px; padding-top: 0; scroll-margin-top: 105px; }
 .personal-media-section { scroll-margin-top: 105px; }
 .episode-attribution { font-size: 10px; color: #626262; }
@@ -519,11 +519,7 @@ main:focus { outline: none; }
   .detail-sidebar { margin-top: -55px; display: grid; grid-template-columns: 125px minmax(0,1fr); gap: 18px; align-items: end; }
   .detail-save-actions { margin: 0 0 4px; gap: 9px; }
   .detail-save-actions .button { padding-inline: 10px; font-size: 11px; }
-  .detail-sidebar .detail-info-panel { display: none; }
   .details-page .detail-main { padding-top: 26px; }
-  .detail-mobile-facts { display: block; margin-top: 24px; border: 1px solid #e3e6df; border-radius: 6px; padding: 10px 14px; }
-  .detail-mobile-facts summary { cursor: pointer; min-height: 28px; display: list-item; font-size: 12px; }
-  .detail-mobile-facts .detail-info-panel { border: 0; background: transparent; padding: 12px 0; margin-top: 0; grid-template-columns: repeat(2,minmax(0,1fr)); }
   .synopsis-copy { -webkit-line-clamp: 3; }
   .detail-section-nav { gap: 22px; }
   .details-page .episode-section .section-heading { align-items: start; flex-direction: column; gap: 10px; }
