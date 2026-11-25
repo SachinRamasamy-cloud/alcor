@@ -1,12 +1,11 @@
 import { useEffect,useRef,useState } from 'react'
 import { Check,X,ArrowLeft,ArrowRight } from 'lucide-react'
 import { SearchField,useCatalogue } from '../features/catalogue'
-import { defaultAnswers,sameTitle,type SetupDraft,type SetupRead,type IntelligenceProfile } from '../features/profile'
+import { defaultAnswers,sameTitle,storyTraits,type SetupDraft,type SetupRead,type IntelligenceProfile } from '../features/profile'
 import type { Media } from '../shared/api/client'
 import { t,type MessageKey } from '../shared/content'
 import { Button,ErrorState } from '../shared/ui'
 
-export const storyTraits=['intelligent_protagonist','power_progression','world_building','mystery','revenge','reincarnation','political_strategy','emotional','comedy'] as const
 const contentTypes=['anime','manga','manhwa','manhua','light_novel'] as const
 function FavoritePicker({selected,onChange,busy}:{selected:Media[];onChange:(items:Media[])=>void;busy:boolean}){
   const [query,setQuery]=useState('')

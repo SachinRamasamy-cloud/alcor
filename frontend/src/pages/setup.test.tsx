@@ -20,7 +20,7 @@ it('saves verified favorite IDs and both versions while preserving existing sett
     return new Response(JSON.stringify(stored))
   }))
   setBackendReady(true);setTokenProvider(async()=>({token:'test-only',userId:'owner'}))
-  render(<QueryClientProvider client={new QueryClient({defaultOptions:{queries:{retry:false},mutations:{retry:false}}})}><MemoryRouter initialEntries={['/setup']}><Routes><Route path="setup" element={<SetupPage/>}/><Route path="profile" element={<h1>Saved profile</h1>}/></Routes></MemoryRouter></QueryClientProvider>)
+  render(<QueryClientProvider client={new QueryClient({defaultOptions:{queries:{retry:false},mutations:{retry:false}}})}><MemoryRouter initialEntries={['/setup']}><Routes><Route path="setup" element={<SetupPage/>}/><Route path="dashboard" element={<h1>Saved profile</h1>}/></Routes></MemoryRouter></QueryClientProvider>)
   await screen.findByLabelText('Display name')
   fireEvent.change(screen.getByLabelText('Display name'),{target:{value:'Reader'}})
   fireEvent.click(screen.getByRole('button',{name:'Continue'}))

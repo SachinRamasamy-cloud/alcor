@@ -4,7 +4,7 @@ import { t, type MessageKey } from '../shared/content'
 
 const groups: { title:MessageKey; className?:string; links:[string,MessageKey][] }[] = [
   { title:'footer.explore',links:[['/','nav.home'],['/anime','nav.anime'],['/manga','nav.manga'],['/search','nav.search'],['/discover','nav.discover']] },
-  { title:'footer.yourSpace',links:[['/library','nav.library'],['/wishlist','nav.wishlist'],['/collections','collections.title'],['/history','reports.history'],['/statistics','reports.statistics'],['/profile','settings.profile'],['/settings','settings.title']] },
+  { title:'footer.yourSpace',links:[['/dashboard','nav.dashboard'],['/library','nav.library'],['/wishlist','nav.wishlist'],['/collections','collections.title'],['/history','reports.history'],['/statistics','reports.statistics'],['/profile','settings.profile'],['/settings','settings.title']] },
   { title:'footer.information',className:'footer-info',links:[['/about','nav.about'],['/help','nav.help'],['/privacy','nav.privacy'],['/terms','nav.terms'],['/data-sources','nav.sources'],['/status','nav.status']] },
 ]
 

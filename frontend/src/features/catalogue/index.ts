@@ -9,7 +9,7 @@ import { aniZipEpisodes } from '../../shared/api/anizip'
 import { needsLocalFilters } from './custom-filters'
 
 export const homeOptions = { queryKey: ['public', 'anilist', 'home'], queryFn: ({signal}: {signal:AbortSignal}) => aniHome(signal), staleTime: 300000, retry: false as const }
-export const useHome = () => useQuery(homeOptions)
+export const useHome = (enabled=true) => useQuery({...homeOptions,enabled})
 export function useCatalogue(path: string, params: URLSearchParams) {
   const {userId} = useAuth()
   const {ready} = useBackend()

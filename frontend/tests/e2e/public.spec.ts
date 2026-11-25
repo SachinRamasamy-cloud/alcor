@@ -38,6 +38,18 @@ for (const width of [320, 375, 640, 768, 1024, 1280, 1440, 1600, 1920]) {
 }
 
 for(const width of [375,1440]) {
+  test(`dashboard shelves align and scroll at ${width}px`,async({page})=>{
+    await page.setViewportSize({width,height:1000})
+    await page.goto('/tests/e2e/dashboard-preview.html')
+    await expect(page.getByRole('heading',{name:'Your dashboard',exact:true})).toBeVisible()
+    await expect(page.getByRole('region',{name:'You may like',exact:true})).toBeVisible()
+    await expect(page.getByRole('region',{name:'Your favorites',exact:true})).toBeVisible()
+    const accessibility=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()
+    expect(accessibility.violations.map(v=>v.id)).toEqual([])
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
+    if(width<768)expect(await page.getByRole('region',{name:'You may like',exact:true}).evaluate(node=>node.scrollWidth>node.clientWidth)).toBeTruthy()
+    await page.screenshot({path:test.info().outputPath('dashboard.png'),fullPage:true})
+  })
   test(`three-step profile setup is usable at ${width}px`,async({page})=>{
     await page.setViewportSize({width,height:1000})
     await page.goto('/tests/e2e/setup-preview.html')

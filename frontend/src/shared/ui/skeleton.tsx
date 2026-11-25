@@ -1,18 +1,20 @@
 import { useLocation } from 'react-router-dom'
 import { t } from '../content'
 
-export type SkeletonKind = 'home' | 'catalogue' | 'details' | 'library' | 'wishlist' | 'collections' | 'collection-detail' | 'history' | 'statistics' | 'profile' | 'settings' | 'setup' | 'tracking' | 'episodes' | 'info' | 'panel'
+export type SkeletonKind = 'home' | 'catalogue' | 'details' | 'library' | 'wishlist' | 'collections' | 'collection-detail' | 'history' | 'statistics' | 'profile' | 'settings' | 'setup' | 'dashboard' | 'shelf' | 'tracking' | 'episodes' | 'info' | 'panel'
 const Block = ({ className = '' }: { className?: string }) => <div className={`skeleton-block ${className}`} />
 function Lines({ count = 3 }: { count?: number }) { return <div className="skeleton-lines">{Array.from({ length: count }, (_, i) => <Block key={i} className={i === count - 1 ? 'skeleton-short' : ''} />)}</div> }
-function Cards({ mobileScroll = false }: { mobileScroll?: boolean }) {
-  const grid = <div className="media-grid">{Array.from({ length: 12 }, (_, i) => <div key={i} className="media-card"><Block className="skeleton-poster" /><Block className="skeleton-card-save"/><div className="card-body"><Lines count={2} /><Block className="skeleton-short"/><Block className="skeleton-short"/><div className="card-genres"><Block className="skeleton-short"/></div></div></div>)}</div>
+function Cards({ mobileScroll = false,count=12 }: { mobileScroll?: boolean;count?:number }) {
+  const grid = <div className="media-grid">{Array.from({ length: count }, (_, i) => <div key={i} className="media-card"><Block className="skeleton-poster" /><Block className="skeleton-card-save"/><div className="card-body"><Lines count={2} /><Block className="skeleton-short"/><Block className="skeleton-short"/><div className="card-genres"><Block className="skeleton-short"/></div></div></div>)}</div>
   return mobileScroll ? <div className="mobile-media-rail">{grid}</div> : grid
 }
 function Detail() {
   return <div className="details-layout"><Block className="skeleton-poster detail-poster" /><div className="detail-main skeleton-detail-copy"><Block className="skeleton-short" /><Block className="skeleton-title" /><Lines count={2} /><div className="skeleton-buttons"><Block /><Block /></div><Lines count={6} /></div></div>
 }
 
-export function Loading({ variant = 'panel', page = false }: { variant?: SkeletonKind; page?: boolean }) {
+export function Loading({ variant = 'panel', page = false,count=12 }: { variant?: SkeletonKind; page?: boolean;count?:number }) {
+  if(variant==='shelf')return <div role="status" aria-busy="true" className="skeleton-region skeleton-shelf"><span className="sr-only">{t('common.loading')}</span><div aria-hidden="true"><Cards mobileScroll count={count}/></div></div>
+  if(variant==='dashboard')return <div role="status" aria-busy="true" className={`${page?'shell page-body ':''}skeleton-region skeleton-dashboard`}><span className="sr-only">{t('common.loading')}</span><div aria-hidden="true"><header className="dashboard-heading"><div><Block className="skeleton-short"/><Block className="skeleton-title"/><Lines count={2}/></div><Block className="skeleton-input skeleton-short"/></header><div className="dashboard-shortcuts">{[1,2,3].map(item=><Block key={item}/>)}</div>{[1,2].map(shelf=><section key={shelf} className="home-section"><Block className="skeleton-heading"/><div className="mobile-media-rail"><Cards/></div></section>)}</div></div>
   if(variant==='setup')return <div role="status" aria-busy="true" className={`${page?'shell page-body ':''}skeleton-region skeleton-setup`}><span className="sr-only">{t('common.loading')}</span><div className="setup-shell" aria-hidden="true"><header className="setup-heading"><Block className="skeleton-short"/><Block className="skeleton-title"/><Lines count={2}/></header><div className="setup-steps">{[1,2,3].map(step=><Block key={step} className="skeleton-input"/>)}</div><div className="setup-panel"><Block className="skeleton-heading"/>{[1,2,3].map(question=><div key={question} className="skeleton-setup-question"><Block className="skeleton-short"/><Block className="skeleton-input"/></div>)}<div className="setup-actions"><Block className="skeleton-input skeleton-short"/><Block className="skeleton-input skeleton-short"/></div></div></div></div>
   if(variant==='details'&&page)return <div role="status" aria-busy="true" className="details-page skeleton-region skeleton-details"><span className="sr-only">{t('common.loading')}</span><div aria-hidden="true"><Block className="detail-banner"/><div className="shell detail-body"><div className="detail-intro"><div className="detail-sidebar"><Block className="skeleton-poster detail-poster"/><div className="detail-save-actions"><Block className="skeleton-input"/><Block className="skeleton-input"/></div><div className="detail-info-panel"><Lines count={7}/></div></div><div className="detail-main skeleton-detail-copy"><Block className="skeleton-short"/><Block className="skeleton-title"/><Lines count={2}/><div className="skeleton-buttons"><Block/><Block/></div><Lines count={4}/><div className="episode-section"><Block className="skeleton-heading"/><Lines count={6}/></div></div></div></div></div></div>
   const cards = ['catalogue', 'library', 'wishlist', 'collection-detail'].includes(variant)
@@ -37,6 +39,6 @@ export function Loading({ variant = 'panel', page = false }: { variant?: Skeleto
 export function RouteSkeleton() {
   const path = useLocation().pathname
   const segment = path.split('/')[1]
-  const variant: SkeletonKind = path === '/' ? 'home' : /^(anime|manga)$/.test(segment) && path.split('/').length > 2 ? 'details' : ['anime', 'manga', 'discover', 'search'].includes(segment) ? 'catalogue' : segment === 'collections' && path.split('/').length > 2 ? 'collection-detail' : ['library', 'wishlist', 'collections', 'history', 'statistics', 'profile', 'settings','setup'].includes(segment) ? segment as SkeletonKind : segment === 'auth' ? 'profile' : 'info'
+  const variant: SkeletonKind = path === '/' ? 'home' : /^(anime|manga)$/.test(segment) && path.split('/').length > 2 ? 'details' : ['anime', 'manga', 'discover', 'search'].includes(segment) ? 'catalogue' : segment === 'collections' && path.split('/').length > 2 ? 'collection-detail' : ['library', 'wishlist', 'collections', 'history', 'statistics', 'profile', 'settings','setup','dashboard'].includes(segment) ? segment as SkeletonKind : segment === 'auth' ? 'profile' : 'info'
   return <Loading variant={variant} page />
 }

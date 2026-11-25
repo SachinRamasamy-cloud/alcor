@@ -12,7 +12,7 @@ import { t } from '../shared/content'
 import { Button, ErrorState, Loading, Modal, Pagination } from '../shared/ui'
 import { useBackend } from '../shared/api/backend'
 
-export async function finishSignedIn(userId:string,fallback='/library') {
+export async function finishSignedIn(userId:string,fallback='/dashboard') {
   const pending=readPending(true)
   if(pending){
     const current=(await authClient?.auth.getSession())?.data.session
@@ -72,7 +72,7 @@ export function AuthCompletePage(){
   useEffect(()=>{
     if(loading||!ready||!userId)return
     let active=true
-    if(completion.current?.user!==userId)completion.current={user:userId,promise:finishSignedIn(userId,'/library')}
+    if(completion.current?.user!==userId)completion.current={user:userId,promise:finishSignedIn(userId,'/dashboard')}
     void completion.current.promise.then(path=>{if(active)navigate(params.get('setup')==='1'?'/setup':path,{replace:true})}).catch(cause=>{if(active)setError(cause instanceof Error?cause:new Error(t('errors.auth')))})
     return()=>{active=false}
   },[userId,loading,ready,params,navigate])

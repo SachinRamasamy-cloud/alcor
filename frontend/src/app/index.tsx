@@ -1,10 +1,10 @@
 import { PreferenceEffects } from '../features/preferences'
 import { BackendProvider } from '../shared/api/backend'
 import { Component, lazy, type ReactNode } from 'react'
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate,Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { LazyMotion, MotionConfig, domAnimation } from 'motion/react'
-import { AuthProvider } from '../shared/auth'
+import { AuthProvider,useAuth } from '../shared/auth'
 import { FeedbackProvider } from '../shared/feedback'
 import { ApiError } from '../shared/api/client'
 import { ErrorState } from '../shared/ui'
@@ -18,6 +18,7 @@ const Callback = lazy(() => import('../pages/account').then(m => ({ default: m.A
 const Complete = lazy(() => import('../pages/account').then(m => ({ default: m.AuthCompletePage })))
 const Password = lazy(() => import('../pages/account').then(m => ({ default: m.PasswordPage })))
 const Setup = lazy(() => import('../pages/setup').then(m => ({ default: m.SetupPage })))
+const Dashboard = lazy(() => import('../pages/dashboard').then(m => ({ default: m.DashboardPage })))
 const Collections = lazy(() => import('../pages/collections').then(m => ({default:m.CollectionsPage})))
 const History = lazy(() => import('../pages/reports').then(m=>({default:m.HistoryPage})))
 const Statistics = lazy(() => import('../pages/reports').then(m=>({default:m.StatisticsPage})))
@@ -30,9 +31,10 @@ class Boundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   static getDerivedStateFromError() { return { failed: true } }
   render() { return this.state.failed ? <ErrorState /> : this.props.children }
 }
+function Index(){const {userId}=useAuth();return userId?<Navigate to="/dashboard" replace/>:<Home/>}
 export function App() {
   return <Boundary><QueryClientProvider client={queryClient}><LazyMotion features={domAnimation}><MotionConfig reducedMotion="user"><BrowserRouter><FeedbackProvider><BackendProvider><AuthProvider><PreferenceEffects><Routes><Route element={<Layout />}>
-    <Route index element={<Home />} />{['anime', 'manga', 'search', 'discover'].map(path => <Route key={path} path={path} element={<Catalogue />} />)}
+    <Route index element={<Index />} /><Route path="dashboard" element={<Dashboard/>}/>{['anime', 'manga', 'search', 'discover'].map(path => <Route key={path} path={path} element={<Catalogue />} />)}
     <Route path="anime/:id" element={<Details />} /><Route path="manga/:id" element={<Details />} />
     <Route path="auth/complete" element={<Complete/>}/><Route path="auth/password" element={<Password/>}/>
     <Route path="setup" element={<Setup/>}/>
