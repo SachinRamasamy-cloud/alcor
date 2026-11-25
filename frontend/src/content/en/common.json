@@ -478,7 +478,7 @@
   "library.completed": "Marked as completed.",
   "catalogue.clearSelection": "Clear selection",
   "common.done": "Done",
-  "catalogue.multiPresetLimit": "Saved presets and saved-note search currently support one format, year, season and status at a time.",
+  "catalogue.multiPresetLimit": "Presets and saved-note search support one format, year, season and status at a time. Trending and new-release-only views cannot be saved yet.",
   "browse.latest": "New releases",
   "browse.popular": "Most popular",
   "browse.trending": "Trending now",

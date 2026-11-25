@@ -35,3 +35,7 @@ Preserve the existing account boundary in the new completion UI. Scope library d
 ## A26 follow-up ? Confirmed cache publication
 
 Server-confirmed writes must update existing status-cache aliases for that account immediately, before background invalidation. This is confirmed state, not optimistic success. Preserve no-op/failure motion rules and other accounts' caches. Acceptance: hold the refresh response, verify the saved label and inactive AniList alias cache already reflect the committed result, and verify a second account stays untouched.
+
+## A28 follow-up ? Saved-filter compatibility
+
+The existing saved-filter/saved-note backend contract does not support trending order or the new released-only browsing flag. Prevent those views from being serialized/sent as saved filters; explain the limitation, preserving supported scalar and multi-genre values. Do not silently drop a filter, alter the backend discovery formulation or broaden storage contracts. Verify unsupported serialization rejection and supported query preservation.

@@ -3,6 +3,7 @@ import type { Media } from '../../shared/api/client'
 const normalized = (value:string)=>value.normalize('NFKC').trim().toLocaleLowerCase('en')
 export const multiValueFields=['format','year','season','status'] as const
 export const hasMultipleValues=(params:URLSearchParams)=>multiValueFields.some(key=>params.getAll(key).length>1)
+export const supportsSavedFilters=(params:URLSearchParams)=>!hasMultipleValues(params)&&params.getAll('genre').length<2&&params.get('released')!=='true'&&params.get('sort')!=='trending'
 export function needsLocalFilters(params:URLSearchParams) {
   return Boolean(hasMultipleValues(params)||params.getAll('genre').length>1||params.get('studio') || params.getAll('include_genres').length>1 || params.getAll('include_themes').length>1 || params.get('genre_match')==='any' || params.get('has_score')==='true' || params.get('has_image')==='true')
 }

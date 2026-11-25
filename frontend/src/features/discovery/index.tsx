@@ -1,4 +1,4 @@
-import {hasMultipleValues} from '../catalogue/custom-filters'
+import {supportsSavedFilters} from '../catalogue/custom-filters'
 import { useState } from 'react'
 import { SlidersHorizontal } from 'lucide-react'
 import { useMutation,useQuery,useQueryClient } from '@tanstack/react-query'
@@ -15,7 +15,7 @@ type Preset=components['schemas']['FilterRead']
 const arrays=['include_genres','exclude_genres','include_themes','exclude_themes']
 const numeric=['year','year_from','year_to','score_min','units_max','limit']
 export function queryFromParams(params:URLSearchParams,path:string){
-  if(hasMultipleValues(params)||params.getAll('genre').length>1)throw new Error(t('catalogue.multiPresetLimit'))
+  if(!supportsSavedFilters(params))throw new Error(t('catalogue.multiPresetLimit'))
   const query:Record<string,unknown>={}
   for(const [key,value] of params){if(key==='cursor'||key==='page')continue;if(arrays.includes(key))query[key]=params.getAll(key);else if(numeric.includes(key))query[key]=Number(value);else if(['memory','include_planned','has_score','has_image'].includes(key))query[key]=value==='true';else query[key]=value}
   if(path==='/anime'||path==='/manga')query.media_type=path.slice(1)
@@ -30,7 +30,7 @@ export function paramsFromQuery(query:Preset['query']){
 }
 export function DiscoveryControls({params,onChange,items=[]}:{params:URLSearchParams;onChange:(params:URLSearchParams)=>void;items?:Media[]}){
   const {userId,requireSignIn}=useAuth()
-  const multi=hasMultipleValues(params)||params.getAll('genre').length>1
+  const multi=!supportsSavedFilters(params)
   const {ready}=useBackend()
   const location=useLocation(),navigate=useNavigate()
   const queries=useQueryClient(),notify=useFeedback()
