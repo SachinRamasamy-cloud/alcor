@@ -140,6 +140,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/actions/{activity_id}/undo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Undo */
+        post: operations["undo_api_v1_me_actions__activity_id__undo_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/collections": {
         parameters: {
             query?: never;
@@ -229,6 +246,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** History */
+        get: operations["history_api_v1_me_history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/library": {
         parameters: {
             query?: never;
@@ -257,7 +291,8 @@ export interface paths {
         /** Set Entry */
         put: operations["set_entry_api_v1_me_library__media_id__put"];
         post?: never;
-        delete?: never;
+        /** Remove Library */
+        delete: operations["remove_library_api_v1_me_library__media_id__delete"];
         options?: never;
         head?: never;
         /** Details */
@@ -395,6 +430,23 @@ export interface paths {
         put?: never;
         /** Complete Reading-Sessions */
         post: operations["complete_reading_sessions_api_v1_me_reading_sessions__session_id__complete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/statistics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Statistics */
+        get: operations["statistics_api_v1_me_statistics_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -543,6 +595,31 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ActivityRead */
+        ActivityRead: {
+            /** Action */
+            action: string;
+            /** Can Undo */
+            can_undo: boolean;
+            /** Expected Version */
+            expected_version: number | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Media Id */
+            media_id: string | null;
+            /**
+             * Occurred At
+             * Format: date-time
+             */
+            occurred_at: string;
+            /** Title */
+            title: string | null;
+            /** Undone */
+            undone: boolean;
+        };
         /** CataloguePage */
         CataloguePage: {
             /** Data */
@@ -675,10 +752,24 @@ export interface components {
              */
             source: string;
         };
+        /** GroupCount */
+        GroupCount: {
+            /** Count */
+            count: number;
+            /** Name */
+            name: string;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** HistoryPage */
+        HistoryPage: {
+            /** Data */
+            data: components["schemas"]["ActivityRead"][];
+            /** Next Cursor */
+            next_cursor: string | null;
         };
         /** HomeResponse */
         HomeResponse: {
@@ -706,6 +797,21 @@ export interface components {
              * @default 0
              */
             position: number;
+        };
+        /** LibraryCounts */
+        LibraryCounts: {
+            /** Average Rating */
+            average_rating: number | null;
+            /** Ever Completed */
+            ever_completed: number;
+            /** Favorites */
+            favorites: number;
+            /** In Progress */
+            in_progress: number;
+            /** Planned */
+            planned: number;
+            /** Titles */
+            titles: number;
         };
         /** LibraryDetails */
         LibraryDetails: {
@@ -878,6 +984,19 @@ export interface components {
             /** Year */
             year?: number | null;
         };
+        /** ProgressCounts */
+        ProgressCounts: {
+            /** Reading Events */
+            reading_events: number;
+            /** Skipped */
+            skipped: number;
+            /** Unique Chapters */
+            unique_chapters: number;
+            /** Unique Episodes */
+            unique_episodes: number;
+            /** Watching Events */
+            watching_events: number;
+        };
         /** ProgressSummary */
         ProgressSummary: {
             /** Caught Up */
@@ -987,6 +1106,24 @@ export interface components {
              * @default false
              */
             skip_counts: boolean;
+        };
+        /** StatisticsRead */
+        StatisticsRead: {
+            /** Estimated Watch Minutes */
+            estimated_watch_minutes: number | null;
+            /** Genres */
+            genres: components["schemas"]["GroupCount"][];
+            library: components["schemas"]["LibraryCounts"];
+            progress: components["schemas"]["ProgressCounts"];
+            /** Repeat Sessions */
+            repeat_sessions: number;
+            /** Time Coverage */
+            time_coverage: string;
+        };
+        /** UndoRequest */
+        UndoRequest: {
+            /** Expected Version */
+            expected_version: number;
         };
         /** UnitDetails */
         UnitDetails: {
@@ -1290,6 +1427,41 @@ export interface operations {
             };
         };
     };
+    undo_api_v1_me_actions__activity_id__undo_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                activity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UndoRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     collections_api_v1_me_collections_get: {
         parameters: {
             query?: {
@@ -1569,6 +1741,39 @@ export interface operations {
             };
         };
     };
+    history_api_v1_me_history_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string | null;
+                media_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HistoryPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     library_api_v1_me_library_get: {
         parameters: {
             query?: {
@@ -1616,6 +1821,39 @@ export interface operations {
                 "application/json": components["schemas"]["LibraryWrite"];
             };
         };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LibraryMutation"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_library_api_v1_me_library__media_id__delete: {
+        parameters: {
+            query: {
+                expected_version: number;
+            };
+            header?: never;
+            path: {
+                media_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {
@@ -1974,6 +2212,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    statistics_api_v1_me_statistics_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StatisticsRead"];
                 };
             };
         };

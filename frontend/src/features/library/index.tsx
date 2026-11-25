@@ -24,11 +24,11 @@ export function useLibraryWrite() {
   const { userId } = useAuth()
   return useMutation({
     scope: { id: `library:${userId}` },
-    mutationFn: async ({ id, status, version, remove = false }: { id: string; status?: Entry['status']; version?: number; remove?: boolean }) => {
+    mutationFn: async ({ id, status, version, remove = false, removeLibrary = false }: { id: string; status?: Entry['status']; version?: number; remove?: boolean; removeLibrary?: boolean }) => {
       if (!userId) throw new Error(t('errors.auth'))
-      return api<Result>(remove ? `/me/wishlist/${id}?expected_version=${version}` : `/me/library/${id}`, { accountId: userId, method: remove ? 'DELETE' : 'PUT', body: remove ? undefined : JSON.stringify({ status, expected_version: version }) })
+      return api<Result>(remove ? `/me/${removeLibrary?'library':'wishlist'}/${id}?expected_version=${version}` : `/me/library/${id}`, { accountId: userId, method: remove ? 'DELETE' : 'PUT', body: remove ? undefined : JSON.stringify({ status, expected_version: version }) })
     },
-    onSuccess: result => { if (result.changed) notify(t(result.entry.deleted_at ? 'wishlist.removed' : result.entry.status === 'planned' ? 'wishlist.added' : 'library.saved')) },
+    onSuccess: (result,variables) => { if (result.changed) notify(t(result.entry.deleted_at ? (variables.removeLibrary?'library.removed':'wishlist.removed') : result.entry.status === 'planned' ? 'wishlist.added' : 'library.saved')) },
     onError: (error: Error) => notify(error.message),
     onSettled: () => { void queries.invalidateQueries({ queryKey: ['private', userId] }) },
   })

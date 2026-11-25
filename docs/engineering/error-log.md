@@ -39,3 +39,7 @@ Final checkpoint: E006–E010 and E012–E014 were resolved by the recorded pass
 - E023: Collection UI typecheck exposed an omitted OpenAPI collection-list response model. Added the explicit CollectionList response, regenerated contracts sequentially and reran typecheck/build successfully; no hand-written substitute for generated types was introduced.
 
 - E024: A per-unit query patch expected an outdated quoting style and was rejected without changing files. Used `rg` to locate the actual query, applied the bounded change and reran the database tests successfully.
+
+- E025: Python lint flagged compressed test statements with semicolons. Applied the repository formatter before lint; no assertions changed.
+- E026: Real database undo tests rejected SELECT FOR UPDATE on the append-only activity table, whose runtime role deliberately lacks UPDATE. Replaced that lock with a transaction-scoped advisory lock per user/action and a plain read; did not broaden database permissions. Original undo tests retained.
+- E027: The first repair command used a root-relative path from the backend directory, so no patch was applied and tests repeated the original failure. Corrected the working directory and applied the diagnosed repair before rerunning.

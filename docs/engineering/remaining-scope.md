@@ -25,3 +25,7 @@ Risk L2 behavior/L4 private ownership. Scope: additive migration 003, collection
 ## Personal details execution contract
 
 Risk L2/L4 ownership. Reuse existing library/session version controls. Add explicit title rating, notes, favorite, tags, wishlist priority/reason, and independent episode/chapter details. Expectations: edits do not change progress; notes never enter public metadata; stale versions fail; two-account overlay/details cannot leak; rating bounds and text/tag limits validated; no-op writes do not increment versions. Additive local migration 004 only; no new dependency or remote write.
+
+## Reporting and safe recovery contract
+
+Risk L2 reporting/L4 ownership. Add history keyset pages, recorded statistics, soft library removal and idempotent undo for metadata edits/removals/non-completing progress. Original events remain append-only. Strict original version prevents overwriting later edits. Do not offer undo for unsupported completion/release cases. Unknown duration remains null, not zero or fabricated watch time. Test actual PostgreSQL owner isolation, duplicate undo, stale undo refusal, retained history and restored progress gaps.

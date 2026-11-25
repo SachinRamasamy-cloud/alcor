@@ -18,6 +18,13 @@ router = APIRouter(prefix="/api/v1/me", tags=["library"])
 User = Annotated[UUID, Depends(current_user)]
 
 
+@router.delete("/library/{media_id}", response_model=LibraryMutation)
+async def remove_library(
+    request: Request, user: User, media_id: UUID, expected_version: int = Query(ge=1)
+):
+    return await request.app.state.library.remove_library(user, media_id, expected_version)
+
+
 @router.get("/media-status", response_model=list[LibraryEntry])
 async def overlay(
     request: Request, user: User, ids: Annotated[list[UUID], Query(min_length=1, max_length=100)]

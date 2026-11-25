@@ -24,6 +24,29 @@ class LibraryService:
     def __init__(self, database: Database, provider: MetadataProvider):
         self.database, self.provider = database, provider
 
+    async def remove_library(self, user, media_id, version):
+        async with self.database.transaction(user) as session:
+            row = await repo.lock_entry(session, user, media_id)
+            if row is None:
+                raise AppError(404, "NOT_FOUND", "This item is not available.")
+            if row["deleted_at"] is not None:
+                return LibraryMutation(
+                    entry=await repo.read_entry(session, user, media_id), changed=False
+                )
+            if row["version"] != version:
+                raise AppError(409, "CONFLICT", "Review the latest library state.")
+            await session.execute(
+                text(
+                    "UPDATE personal.library_entries SET deleted_at=now(),version=version+1,updated_at=now() WHERE user_id=:user AND media_id=:media"
+                ),
+                {"user": user, "media": media_id},
+            )
+            entry = await repo.read_entry(session, user, media_id)
+            await repo.record_activity(
+                session, user, media_id, "library.removed", dict(row), {"version": entry.version}
+            )
+        return LibraryMutation(entry=entry, changed=True)
+
     async def overlay(self, user, ids):
         async with self.database.transaction(user) as session:
             rows = (

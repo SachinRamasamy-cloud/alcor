@@ -23,3 +23,5 @@ Tracking slice (25 November): sessions, sparse episode/chapter progress, manual 
 Collections slice: private create/rename/reorder/add/remove/soft-delete, paginated collection pages and a title-page picker are implemented. Real PostgreSQL tests verify ownership and preservation of library/history when deleting a collection.
 
 Personal details slice: title and episode/chapter ratings/notes, favorites, tags and wishlist priority/reason are implemented with ownership and version checks. Unit notes remain independent of progress.
+
+Reporting/recovery slice: private history pages, saved-record statistics, soft library removal and version-aware undo for supported details/removals/non-completing progress are implemented. Original activity is retained; unknown durations are not estimated.

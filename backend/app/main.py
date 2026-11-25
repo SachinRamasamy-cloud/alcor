@@ -17,6 +17,8 @@ from app.modules.collections.routes import router as collections_router
 from app.modules.collections.service import CollectionService
 from app.modules.library.routes import router as library_router
 from app.modules.library.service import LibraryService
+from app.modules.reporting.routes import router as reporting_router
+from app.modules.reporting.service import ReportingService
 from app.modules.tracking.routes import router as tracking_router
 from app.modules.tracking.service import TrackingService
 
@@ -45,6 +47,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     api.include_router(tracking_router)
     api.state.collections = CollectionService(api.state.database, api.state.provider)
     api.include_router(collections_router)
+    api.state.reporting = ReportingService(api.state.database)
+    api.include_router(reporting_router)
     api.add_middleware(
         CORSMiddleware,
         allow_origins=settings.allowed_origins,

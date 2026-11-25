@@ -88,3 +88,9 @@ Date: 25 November 2026. Baseline `e498a42`; L2 behavior/L4 ownership. Implemente
 Verification: backend ruff and actual local PostgreSQL tests passed (26 total Python tests); OpenAPI exported before TypeScript generation. Frontend lint/build and 21 unit/component tests passed; all 8 public browser regressions passed. Tests verify private note isolation, stale versions, no-op reconciliation, rating bounds and unresolved episode notes without progress changes. Existing tests retained. Known bundle-size warning remains within the stated initial gzip budget. No new dependency, live auth or remote DB mutation.
 
 Status: implemented/locally verified on the review branch; independent security/editorial acceptance and real private browser-to-API validation remain pending. Remaining scope is tracked separately.
+
+## History, statistics and safe recovery
+
+Date: 25 November 2026. Baseline `a51cfd3`. L2 reporting/L4 private recovery. Added local migration 005, owned undo records, keyset history, library/progress statistics, soft library removal, safe metadata/removal/non-completing-progress undo, history/statistics pages and personal navigation. Undo preserves original activity and refuses later versions. Duplicate undo is idempotent. Unknown historical watching dates and incomplete duration estimates remain unspecified. Soft removal preserves session/history data and offers history recovery.
+
+Executed: local Alembic upgrade; backend formatter/lint and actual PostgreSQL tests (28 passed), sequential OpenAPI/type generation; frontend lint/build, 24 unit/component tests and 8 public browser regressions passed. Tests cover isolation, duplicate/stale undo, restored gaps, retained history, and unavailable estimates. E025-E027 record failures and repairs. The activity table remains append-only; advisory locks solved the permission failure without additional grants. Production, independent review and real private browser validation remain pending.
