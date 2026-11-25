@@ -2,11 +2,11 @@ import { PreferenceEffects } from '../features/preferences'
 import { BackendProvider } from '../shared/api/backend'
 import { Component, lazy, type ReactNode } from 'react'
 import { BrowserRouter,Route, Routes } from 'react-router-dom'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { LazyMotion, MotionConfig, domAnimation } from 'motion/react'
 import { AuthProvider,useAuth } from '../shared/auth'
 import { FeedbackProvider } from '../shared/feedback'
-import { ApiError } from '../shared/api/client'
+import {createAppQueryClient} from '../shared/api/query-client'
 import { ErrorState } from '../shared/ui'
 import { Layout } from '../widgets/layout'
 import {FlyToTargetProvider} from '../shared/motion'
@@ -28,7 +28,7 @@ const Statistics = lazy(() => import('../pages/reports').then(m=>({default:m.Sta
 const Settings = lazy(() => import('../pages/settings').then(m=>({default:m.SettingsPage})))
 const Profile = lazy(() => import('../pages/settings').then(m=>({default:m.ProfilePage})))
 const Info = lazy(() => import('../pages/public').then(m => ({ default: m.InfoPage })))
-const queryClient = new QueryClient({ defaultOptions: { queries: { refetchOnWindowFocus: false, retry: (count, error) => count < 1 && (!(error instanceof ApiError) || error.status >= 500) } } })
+const queryClient = createAppQueryClient()
 class Boundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false }
   static getDerivedStateFromError() { return { failed: true } }
