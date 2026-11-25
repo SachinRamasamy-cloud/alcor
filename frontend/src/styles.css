@@ -380,6 +380,15 @@ main:focus { outline: none; }
 .detail-body { padding-bottom: 12px; }
 .detail-intro { display: grid; grid-template-columns: 240px minmax(0,1fr); gap: 48px; align-items: start; scroll-margin-top: 105px; }
 .detail-sidebar { margin-top: -96px; position: relative; z-index: 1; min-width: 0; }
+@media(min-width:768px) {
+  .detail-sidebar {
+    position: sticky;
+    top: 96px;
+    max-height: calc(100dvh - 112px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+}
 .details-page .detail-poster { width: 100%; border: 5px solid #fff; box-shadow: 0 10px 35px #00000012; border-radius: 8px; overflow: hidden; }
 .detail-save-actions { display: grid; gap: 10px; margin-top: 20px; }
 .detail-save-actions .inline-flex, .detail-save-actions .button { width: 100%; justify-content: center; }
