@@ -7,6 +7,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.integrations.metadata.schemas import Media
 from app.modules.library.schemas import LibraryEntry
 
+ACTIVE_SESSION = """(SELECT jsonb_build_object('id',s.id,'kind',s.kind,'version',s.version)
+    FROM personal.tracking_sessions s WHERE s.user_id=e.user_id
+    AND s.media_id=e.media_id AND s.active) AS active_session"""
+
 
 def to_entry(row) -> LibraryEntry:
     values = dict(row)
@@ -110,7 +114,7 @@ async def read_entry(session: AsyncSession, user_id: UUID, media_id: UUID) -> Li
         (
             await session.execute(
                 text(
-                    "SELECT e.*, m.payload FROM personal.library_entries e JOIN catalogue.media m ON m.id=e.media_id WHERE e.user_id=:user AND e.media_id=:media"
+                    f"SELECT e.*, {ACTIVE_SESSION}, m.payload FROM personal.library_entries e JOIN catalogue.media m ON m.id=e.media_id WHERE e.user_id=:user AND e.media_id=:media"
                 ),
                 {"user": user_id, "media": media_id},
             )

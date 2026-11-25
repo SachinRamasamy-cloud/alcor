@@ -7,17 +7,9 @@ from app.core.errors import AppError
 from app.infrastructure.database import Database
 from app.integrations.metadata.provider import MetadataProvider
 from app.modules.library import repository as repo
+from app.modules.library.policy import INITIAL_STATUSES, TRANSITIONS
 from app.modules.library.schemas import LibraryMutation, LibraryPage, LibraryWrite, WishlistWrite
 from app.modules.tracking.public import ensure_initial_session
-
-TRANSITIONS = {
-    "planned": {"in_progress", "completed", "dropped", "not_interested"},
-    "in_progress": {"on_hold", "dropped", "completed"},
-    "on_hold": {"in_progress"},
-    "dropped": {"in_progress"},
-    "completed": set(),
-    "not_interested": set(),
-}
 
 
 class LibraryService:
@@ -53,9 +45,9 @@ class LibraryService:
                 (
                     await session.execute(
                         text(
-                            """SELECT e.*, m.payload || jsonb_build_object('source_ids',
+                            f"""SELECT e.*, {repo.ACTIVE_SESSION}, m.payload || jsonb_build_object('source_ids',
                             COALESCE((SELECT jsonb_object_agg(s.namespace,s.external_id)
-                            FROM catalogue.source_ids s WHERE s.media_id=m.id), '{}'::jsonb)) AS payload
+                            FROM catalogue.source_ids s WHERE s.media_id=m.id), '{{}}'::jsonb)) AS payload
                             FROM personal.library_entries e JOIN catalogue.media m ON m.id=e.media_id
                             WHERE e.user_id=:user AND e.deleted_at IS NULL AND
                             (e.media_id=ANY(CAST(:ids AS uuid[])) OR EXISTS
@@ -135,7 +127,7 @@ class LibraryService:
                 (
                     await session.execute(
                         text(
-                            "SELECT e.*,m.payload FROM personal.library_entries e JOIN catalogue.media m ON m.id=e.media_id WHERE e.user_id=:user AND e.deleted_at IS NULL AND (CAST(:status AS text) IS NULL OR e.status=:status) AND (CAST(:cursor AS uuid) IS NULL OR e.media_id>CAST(:cursor AS uuid)) ORDER BY e.media_id LIMIT :limit OFFSET :offset"
+                            f"SELECT e.*, {repo.ACTIVE_SESSION}, m.payload FROM personal.library_entries e JOIN catalogue.media m ON m.id=e.media_id WHERE e.user_id=:user AND e.deleted_at IS NULL AND (CAST(:status AS text) IS NULL OR e.status=:status) AND (CAST(:cursor AS uuid) IS NULL OR e.media_id>CAST(:cursor AS uuid)) ORDER BY e.media_id LIMIT :limit OFFSET :offset"
                         ),
                         {
                             "user": user_id,
@@ -191,7 +183,7 @@ class LibraryService:
             existing = await repo.lock_entry(session, user_id, media_id)
             created = existing is None
             if created:
-                if change.status not in {"planned", "in_progress", "completed", "not_interested"}:
+                if change.status not in INITIAL_STATUSES:
                     raise AppError(422, "INVALID_TRANSITION", "Choose a valid initial status.")
                 created = await repo.create_entry(session, user_id, media_id, change.status)
                 existing = await repo.lock_entry(session, user_id, media_id)

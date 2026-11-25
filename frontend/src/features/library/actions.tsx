@@ -15,6 +15,7 @@ import {useBackend} from '../../shared/api/backend'
 import {t} from '../../shared/content'
 import {Button,ErrorState,Loading,Modal} from '../../shared/ui'
 import {captureFlyOrigin,type FlyOrigin} from '../../shared/motion'
+import {libraryStatusLabel} from './labels'
 
 export function useSavedEntry(media:Media){
   const {userId}=useAuth(),{ready}=useBackend()
@@ -22,15 +23,22 @@ export function useSavedEntry(media:Media){
 }
 export function CardStatus({media}:{media:Media}){
   const {userId}=useAuth(),saved=useSavedEntry(media)
-  return userId&&saved.data?<div className="card-context"><span className="personal-card-status">{t(`status.${saved.data.status}`)}</span></div>:null
+  return userId&&saved.data?<div className="card-context"><span className="personal-card-status">{libraryStatusLabel(saved.data)}</span></div>:null
 }
-function Management({media,entry,close,origin}:{media:Media;entry:Entry|null;close:()=>void;origin?:FlyOrigin}){
+export function StatusActions({entry,close}:{entry:Entry;close:()=>void}){
+  const write=useLibraryWrite(),{userId}=useAuth(),account=useRef(userId)
+  useLayoutEffect(()=>{account.current=userId;return()=>{account.current=null}},[userId])
+  return <>{entry.allowed_statuses?.filter(status=>status!=='completed'&&!(status==='in_progress'&&entry.status==='planned')).map(status=><Button key={status} variant="secondary" disabled={write.isPending} onClick={()=>{const owner=userId;write.mutate({id:entry.media.id,status,version:entry.version},{onSuccess:()=>{if(account.current===owner)close()}})}}>{t(status==='in_progress'?'library.resume':`status.${status}`)}</Button>)}</>
+}
+function Management({media,entry:initialEntry,close,origin}:{media:Media;entry:Entry|null;close:()=>void;origin?:FlyOrigin}){
+  const [entry]=useState(initialEntry)
   const write=useLibraryWrite(),{userId}=useAuth(),account=useRef(userId)
   useLayoutEffect(()=>{account.current=userId;return()=>{account.current=null}},[userId])
   function change(status:Entry['status']){const owner=userId;write.mutate({id:media.id,status,version:entry?.version},{onSuccess:()=>{if(account.current===owner)close()}})}
   return <><div className="personal-dialog-actions">
     {(!entry||entry.status==='planned')&&<><SaveButton media={media} origin={origin} onSaved={close}/><Button disabled={write.isPending} onClick={()=>change('in_progress')}>{t(media.media_type==='anime'?'library.startWatching':'library.startReading')}</Button></>}
     {(!entry||['planned','in_progress','on_hold','dropped','completed'].includes(entry.status))&&<CompleteTitle media={media} entry={entry??undefined} label={t(media.media_type==='anime'?'library.markWatched':'library.markRead')} onComplete={close}/>}
+    {entry?<StatusActions entry={entry} close={close}/>:<Button variant="secondary" disabled={write.isPending} onClick={()=>change('not_interested')}>{t('status.not_interested')}</Button>}
     <Link className="button button-secondary" to={`${mediaPath(media)}#your-progress`}>{t('media.yourProgress')}</Link>
   </div><CollectionPicker media={media}/>{entry&&<PersonalDetails media={media}/>}</>
 }
@@ -46,8 +54,8 @@ function SignedInActions({media}:{media:Media}){
   const [open,setOpen]=useState(false),{ready}=useBackend(),saved=useSavedEntry(media)
   const [origin,setOrigin]=useState<FlyOrigin>()
   const [focusFallback,setFocusFallback]=useState<HTMLElement|null>(null)
-  return <><button className="card-save" aria-label={t('media.manageLabel',{title:media.title})} title={ready?saved.data?t(`status.${saved.data.status}`):t('media.cardActions'):t('backend.actionUnavailable')} aria-haspopup="dialog" disabled={!ready} onClick={event=>{setOrigin(captureFlyOrigin(event.currentTarget));setFocusFallback(event.currentTarget.closest('section')?.querySelector<HTMLElement>('h2')??document.querySelector<HTMLElement>('h1'));setOpen(true)}}><MoreHorizontal size={18}/></button>
-    <Modal open={open} onOpenChange={setOpen} title={media.title} focusFallback={focusFallback} description={saved.data?t(`status.${saved.data.status}`):t('media.cardActions')}>
+  return <><button className="card-save" aria-label={t('media.manageLabel',{title:media.title})} title={ready?saved.data?libraryStatusLabel(saved.data):t('media.cardActions'):t('backend.actionUnavailable')} aria-haspopup="dialog" disabled={!ready} onClick={event=>{setOrigin(captureFlyOrigin(event.currentTarget));setFocusFallback(event.currentTarget.closest('section')?.querySelector<HTMLElement>('h2')??document.querySelector<HTMLElement>('h1'));setOpen(true)}}><MoreHorizontal size={18}/></button>
+    <Modal open={open} onOpenChange={setOpen} title={media.title} focusFallback={focusFallback} description={saved.data?libraryStatusLabel(saved.data):t('media.cardActions')}>
       {open&&ready&&<ResolvedManagement media={media} origin={origin} close={()=>setOpen(false)}/>} {!ready&&<p role="status">{t('backend.actionUnavailable')}</p>}
     </Modal></>
 }

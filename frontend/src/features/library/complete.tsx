@@ -16,7 +16,8 @@ export function CompleteTitle({entry,media,onComplete,label}:{entry?:Entry;media
   useLayoutEffect(()=>{currentAccount.current=userId;return()=>{currentAccount.current=null}},[userId])
   const title=entry?.media??media!
   const route=title.media_type==='anime'?'watch-sessions':'reading-sessions'
-  const sessions=useQuery({queryKey:['private',userId,'tracking',title.id],enabled:Boolean(userId),queryFn:({signal})=>api<Session[]>(`/me/${route}?media_id=${title.id}`,{accountId:userId!,signal}),retry:false})
+  const legacy=entry?.active_session===undefined
+  const sessions=useQuery({queryKey:['private',userId,'tracking',title.id],enabled:Boolean(userId&&legacy),queryFn:({signal})=>api<Session[]>(`/me/${route}?media_id=${title.id}`,{accountId:userId!,signal}),retry:false})
   const [confirmation,setConfirmation]=useState<{session:Session|null;accountId:string|null;version:number|undefined}|null>(null)
   const write=useMutation({scope:{id:`library:${userId}`},onMutate:()=>({accountId:userId}),mutationFn:async()=>{
     if(!userId||confirmation?.accountId!==userId)throw new Error(t('errors.auth'))
@@ -28,9 +29,9 @@ export function CompleteTitle({entry,media,onComplete,label}:{entry?:Entry;media
     if(!saved||saved.status!=='completed')throw new Error(t('errors.saveUnverified'))
     return {entry:saved,changed:result.version!==session.version}
   },onSuccess:(value,_variables,context)=>{if(context.accountId!==currentAccount.current)return;const published=publishLibraryEntry(queries,context.accountId!,value.entry,[title.id,...(title.source_ids?.anilist?[`anilist-${title.source_ids.anilist}`]:[])]);if(value.changed&&published)notify(t('library.completed'));onComplete()},onError:(error:Error,_variables,context)=>{if(context?.accountId===currentAccount.current)notify(error.message)},onSettled:(_value,_error,_variables,context)=>{void queries.invalidateQueries({queryKey:['private',context?.accountId]})}})
-  if(sessions.error)return <ErrorState error={sessions.error} retry={()=>{void sessions.refetch()}}/>
+  if(legacy&&sessions.error)return <ErrorState error={sessions.error} retry={()=>{void sessions.refetch()}}/>
   if(confirmation)return <div className="completion-confirmation"><p>{t('tracking.completeHelp')}</p><div className="personal-dialog-actions"><Button variant="secondary" disabled={write.isPending} onClick={()=>setConfirmation(null)}>{t('common.cancel')}</Button><Button disabled={write.isPending} onClick={()=>write.mutate()}>{t('tracking.complete')}</Button></div></div>
-  const active=sessions.data?.find(item=>item.active)??null
+  const active=legacy?sessions.data?.find(item=>item.active)??null:entry?.active_session?{...entry.active_session,active:true}:null
   const allowed=!entry||entry.status==='planned'||entry.status==='in_progress'||Boolean(active)
-  return <Button variant="secondary" disabled={sessions.isPending||!allowed} onClick={()=>setConfirmation({session:active,accountId:userId,version:entry?.version})}>{label??t('tracking.complete')}</Button>
+  return <Button variant="secondary" disabled={legacy&&sessions.isPending||!allowed} onClick={()=>setConfirmation({session:active,accountId:userId,version:entry?.version})}>{label??t('tracking.complete')}</Button>
 }

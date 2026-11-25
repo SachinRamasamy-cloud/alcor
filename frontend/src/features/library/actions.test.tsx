@@ -2,7 +2,7 @@ import {afterEach,beforeEach,expect,it,vi} from 'vitest'
 import {act,cleanup,fireEvent,render,screen,waitFor} from '@testing-library/react'
 import {QueryClient,QueryClientProvider} from '@tanstack/react-query'
 import {MemoryRouter} from 'react-router-dom'
-import {CardActions,CardStatus} from './actions'
+import {CardActions,CardStatus,StatusActions} from './actions'
 import {CompleteTitle} from './complete'
 import {fromAniList} from '../../shared/api/anilist'
 import {setTokenProvider} from '../../shared/api/client'
@@ -74,4 +74,41 @@ it('publishes confirmed completion before a held refresh and does not celebrate 
   await waitFor(()=>expect(refresh).toBeTypeOf('function'))
   expect(state.notify).not.toHaveBeenCalledWith('Marked as completed.')
   if(refresh)await act(async()=>refresh(new Response(JSON.stringify([entry]))))
+})
+it('offers only server-derived ordinary transitions and sends the original version',async()=>{
+  const fetcher=vi.fn<typeof fetch>(async()=>new Response(JSON.stringify({entry:{...entry,status:'on_hold',version:8},changed:true})));vi.stubGlobal('fetch',fetcher)
+  const closed=vi.fn(),queries=new QueryClient({defaultOptions:{queries:{retry:false}}})
+  render(tree(queries,<StatusActions entry={{...entry,status:'in_progress',version:7,allowed_statuses:['completed','on_hold','dropped']}} close={closed}/>))
+  expect(screen.getAllByRole('button').map(button=>button.textContent)).toEqual(['On hold','Dropped'])
+  expect(screen.queryByRole('button',{name:'Mark as completed'})).toBeNull()
+  fireEvent.click(screen.getByRole('button',{name:'On hold'}))
+  await waitFor(()=>expect(closed).toHaveBeenCalledOnce())
+  expect(JSON.parse(fetcher.mock.calls[0][1]!.body as string)).toEqual({status:'on_hold',expected_version:7})
+})
+it('uses the owned session snapshot for completion without per-card session listing',async()=>{
+  const fetcher=vi.fn<typeof fetch>(async(url,options)=>new Response(JSON.stringify(options?.method==='POST'?{id:'active',version:13}:String(url).includes('/media-status')?[entry]:[])))
+  vi.stubGlobal('fetch',fetcher)
+  render(tree(new QueryClient({defaultOptions:{queries:{retry:false}}}),<CompleteTitle entry={{...entry,status:'in_progress',version:7,active_session:{id:'active',version:12,kind:'repeat'}}} onComplete={()=>{}}/>))
+  const complete=screen.getByRole('button',{name:'Mark as completed'});expect(complete).not.toBeDisabled()
+  fireEvent.click(complete);fireEvent.click(screen.getByRole('button',{name:'Mark as completed'}))
+  await waitFor(()=>expect(state.notify).toHaveBeenCalledWith('Marked as completed.'))
+  expect(fetcher.mock.calls.some(([url,options])=>String(url).includes('/watch-sessions?')&&options?.method!=='POST')).toBe(false)
+  const post=fetcher.mock.calls.find(([,options])=>options?.method==='POST')!
+  expect(String(post[0])).toContain('/watch-sessions/active/complete')
+  expect(JSON.parse(post[1]!.body as string)).toEqual({expected_version:12})
+})
+it('keeps a public card dialog on its captured version after background refresh',async()=>{
+  let version=7
+  const fetcher=vi.fn<typeof fetch>(async(url,options)=>new Response(JSON.stringify(options?.method==='PUT'?{error:{code:'CONFLICT'}}:String(url).includes('/media-status')?[{...entry,status:'planned',version,active_session:null,allowed_statuses:['completed','in_progress']}]:String(url).includes('/collections')?{data:[]}:[]),{status:options?.method==='PUT'?409:200}))
+  vi.stubGlobal('fetch',fetcher)
+  const queries=new QueryClient({defaultOptions:{queries:{retry:false}}});render(tree(queries))
+  fireEvent.click(screen.getByRole('button',{name:'Manage Remembered story'}))
+  await screen.findByRole('button',{name:'Mark watched'})
+  version=8;await act(async()=>{await queries.invalidateQueries({queryKey:['private','a','media-status']})})
+  expect(queries.getQueryData(['private','a','media-status','anime',media.id])).toMatchObject({version:8})
+  fireEvent.click(screen.getByRole('button',{name:'Mark watched'}));fireEvent.click(screen.getByRole('button',{name:'Mark as completed'}))
+  await waitFor(()=>expect(state.notify).toHaveBeenCalledWith(expect.stringContaining('another device')))
+  const post=fetcher.mock.calls.find(([,options])=>options?.method==='PUT')!
+  expect(JSON.parse(post[1]!.body as string)).toEqual({status:'completed',expected_version:7})
+  expect(screen.getByRole('dialog')).toBeVisible()
 })

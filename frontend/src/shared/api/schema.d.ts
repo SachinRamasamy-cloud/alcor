@@ -787,6 +787,21 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ActiveSession */
+        ActiveSession: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "initial" | "repeat";
+            /** Version */
+            version: number;
+        };
         /** ActivityRead */
         ActivityRead: {
             /** Action */
@@ -1164,6 +1179,9 @@ export interface components {
         };
         /** LibraryEntry */
         LibraryEntry: {
+            active_session?: components["schemas"]["ActiveSession"] | null;
+            /** Allowed Statuses */
+            readonly allowed_statuses: ("planned" | "in_progress" | "completed" | "on_hold" | "dropped" | "not_interested")[];
             /** Completed At */
             completed_at: string | null;
             /**

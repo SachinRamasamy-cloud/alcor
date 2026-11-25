@@ -63,6 +63,47 @@ async def test_wishlist_is_idempotent_and_start_is_atomic(database):
         )
 
 
+async def test_server_actions_and_active_sessions_are_owned_and_preserve_repeat_history(database):
+    from app.modules.tracking.schemas import SessionVersion, StartSession
+    from app.modules.tracking.service import TrackingService
+
+    owner, other = uuid4(), uuid4()
+    provider = FixtureProvider()
+    service, tracking = LibraryService(database, provider), TrackingService(database, provider)
+    media = next(item for item in await provider.catalogue() if item.media_type == "anime")
+    planned = (await service.change(owner, media.id, LibraryWrite(status="planned"))).entry
+    expected = {
+        "planned": ["completed", "dropped", "in_progress", "not_interested"],
+        "in_progress": ["completed", "dropped", "on_hold"],
+        "on_hold": ["in_progress"], "dropped": ["in_progress"],
+        "completed": [], "not_interested": [],
+    }
+    for status, actions in expected.items():
+        assert planned.model_copy(update={"status": status}).allowed_statuses == actions
+    assert planned.active_session is None
+    started = (await service.change(owner, media.id, LibraryWrite(
+        status="in_progress", expected_version=planned.version
+    ))).entry
+    assert started.active_session.kind == "initial"
+    assert (await service.overlay(owner, [media.id]))[0].active_session == started.active_session
+    assert await service.overlay(other, [media.id]) == []
+    assert (await service.list_entries(other, None, 24, None)).data == []
+    original = started.active_session
+    await tracking.update(owner, original.id, SessionVersion(expected_version=original.version), complete=True)
+    complete = (await service.overlay(owner, [media.id]))[0]
+    assert complete.status == "completed" and complete.ever_completed
+    assert complete.active_session is None and complete.allowed_statuses == []
+    repeated = await tracking.start(owner, StartSession(media_id=media.id, request_id=uuid4(), repeat=True), "anime")
+    repeat_entry = (await service.list_entries(owner, None, 24, None)).data[0]
+    assert repeat_entry.ever_completed and repeat_entry.status == "in_progress"
+    assert repeat_entry.active_session.kind == "repeat"
+    assert repeat_entry.active_session.id == repeated.id != original.id
+    sessions = await tracking.list(owner, media.id, "anime")
+    assert {row["id"] for row in sessions} == {str(original.id), str(repeated.id)}
+    removed = (await service.remove_library(owner, media.id, repeat_entry.version)).entry
+    assert removed.allowed_statuses == [] and removed.ever_completed
+
+
 async def test_real_rls_and_pooled_context_reset(database):
     service = LibraryService(database, FixtureProvider())
     first, second = uuid4(), uuid4()

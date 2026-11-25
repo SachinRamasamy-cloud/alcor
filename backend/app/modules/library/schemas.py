@@ -1,9 +1,11 @@
 from datetime import datetime
 from typing import Literal
+from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, computed_field
 
 from app.integrations.metadata.schemas import Media
+from app.modules.library.policy import TRANSITIONS
 
 LibraryStatus = Literal[
     "planned", "in_progress", "completed", "on_hold", "dropped", "not_interested"
@@ -21,6 +23,12 @@ class WishlistWrite(BaseModel):
     expected_version: int | None = Field(default=None, ge=1)
 
 
+class ActiveSession(BaseModel):
+    id: UUID
+    kind: Literal["initial", "repeat"]
+    version: int
+
+
 class LibraryEntry(BaseModel):
     media: Media
     status: LibraryStatus
@@ -36,6 +44,12 @@ class LibraryEntry(BaseModel):
     updated_at: datetime
     completed_at: datetime | None
     deleted_at: datetime | None
+    active_session: ActiveSession | None = None
+
+    @computed_field
+    @property
+    def allowed_statuses(self) -> list[LibraryStatus]:
+        return sorted(TRANSITIONS[self.status]) if self.deleted_at is None else []
 
 
 class LibraryPage(BaseModel):
