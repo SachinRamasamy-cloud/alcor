@@ -9,7 +9,13 @@ Requirements: Node 24, Python 3.12, Git and Docker Desktop with Linux containers
 5. In `backend`, run the API: `python -m uv run uvicorn app.main:app --host 127.0.0.1 --port 8000`.
 6. In `frontend`, run `npm run dev`; open `http://127.0.0.1:5173`. Vite proxies `/api` to FastAPI.
 
-Default development catalogue mode is explicitly labelled fixtures. Supabase Google sign-in requires the actual publishable key and configured exact redirect URL; a database password does not configure OAuth. The owner has deferred Google configuration.
+Public pages now fetch AniList directly in the browser. The legacy API catalogue remains a clearly labelled development fixture service, rejected in production. Supabase Google sign-in requires the actual publishable key and configured exact redirect URL; a database password does not configure OAuth. The owner has deferred Google configuration.
+
+## Browse without the backend
+
+In `frontend`, run `npm ci` once and `npm run dev`. Open `http://127.0.0.1:5173`. Home, anime/manga search and provider-reference detail links do not require FastAPI, PostgreSQL or Redis. Internet access and an available provider are still needed. The banner describes personal-service readiness; saves and tracking wait for those services and actual authentication. Nothing is saved by a dummy login.
+
+The browser queue respects provider cooldowns and spaces reads. See [browser-first architecture](../architecture/browser-first-catalogue.md) for cache, identity and source limitations. Production provider clearance remains separate from development; `VITE_ANILIST_USE_APPROVED=false` is the example default. The [three-provider addendum](../product/MULTI_PROVIDER_METADATA_PLAN.md) plans AniZip episode coverage and server-side TMDB enrichment; these adapters are not implemented yet.
 
 ## Local database migration and integration tests
 
@@ -24,6 +30,8 @@ python -m uv run pytest -q
 ```
 
 The bootstrap script targets only the fixed loopback development database. It creates a separate non-superuser, NOBYPASSRLS runtime role. Migration credentials are never a runtime fallback. Local development passwords are not production credentials. Without explicit integration opt-in, database/Redis tests are skipped; do not report them as executed. Tests leave randomly owned disposable local records; they do not target Supabase.
+
+The current head is migration 007. `/api/v1/health` checks process liveness; `/api/v1/ready` verifies PostgreSQL and Redis. Local defaults use explicit `127.0.0.1` to avoid a reproduced Windows Redis timeout through `localhost`.
 
 ## Checks
 

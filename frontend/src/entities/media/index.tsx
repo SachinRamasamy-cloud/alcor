@@ -3,6 +3,7 @@ import { m } from 'motion/react'
 import { Star } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { Media } from '../../shared/api/client'
+import { mediaPath } from '../../shared/api/anilist'
 import { t, unitCount } from '../../shared/content'
 
 export function Poster({ media, priority = false }: { media: Media; priority?: boolean }) {
@@ -10,10 +11,10 @@ export function Poster({ media, priority = false }: { media: Media; priority?: b
 }
 export function MediaCard({ media, actions }: { media: Media; actions?: ReactNode }) {
   return <article className="media-card"><m.div className="poster-wrap" whileHover={{ scale: 1.02 }} transition={{ duration: .16 }}>
-    <Link to={`/${media.media_type}/${media.id}`} aria-label={t('media.open', { title: media.title })}><Poster media={media} /></Link>
+    <Link to={mediaPath(media)} aria-label={t('media.open', { title: media.title })}><Poster media={media} /></Link>
     {actions && <div className="card-actions">{actions}</div>}
-    {media.score !== null && <span className="score-pill" aria-label={`${t('media.score')}: ${media.score}`}><Star size={11} fill="currentColor" />{media.score?.toFixed(1)}</span>}
-  </m.div><Link to={`/${media.media_type}/${media.id}`} className="card-title" title={media.title}>{media.title}</Link>
+    {media.score !== null && <span className="score-pill" aria-label={`${media.source.name} ${t('media.sourceScore')}: ${media.score}`}><Star size={11} fill="currentColor" />{media.score?.toFixed(1)}</span>}
+  </m.div><Link to={mediaPath(media)} className="card-title" title={media.title}>{media.title}</Link>
     <p className="card-meta">{[media.format, media.year].filter(Boolean).join(' · ') || unitCount(media.total_units ?? null, media.media_type)}</p>
   </article>
 }

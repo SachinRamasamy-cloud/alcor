@@ -2,6 +2,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Bookmark, Plus } from 'lucide-react'
 import type { components } from '../../shared/api/schema'
 import { api, type Media } from '../../shared/api/client'
+import { resolveMediaId } from '../../shared/api/identity'
+import { useBackend } from '../../shared/api/backend'
 import { useAuth } from '../../shared/auth'
 import { useFeedback } from '../../shared/feedback'
 import { t } from '../../shared/content'
@@ -26,7 +28,8 @@ export function useLibraryWrite() {
     scope: { id: `library:${userId}` },
     mutationFn: async ({ id, status, version, remove = false, removeLibrary = false }: { id: string; status?: Entry['status']; version?: number; remove?: boolean; removeLibrary?: boolean }) => {
       if (!userId) throw new Error(t('errors.auth'))
-      return api<Result>(remove ? `/me/${removeLibrary?'library':'wishlist'}/${id}?expected_version=${version}` : `/me/library/${id}`, { accountId: userId, method: remove ? 'DELETE' : 'PUT', body: remove ? undefined : JSON.stringify({ status, expected_version: version }) })
+      const canonical = await resolveMediaId(id, userId)
+      return api<Result>(remove ? `/me/${removeLibrary?'library':'wishlist'}/${canonical}?expected_version=${version}` : `/me/library/${canonical}`, { accountId: userId, method: remove ? 'DELETE' : 'PUT', body: remove ? undefined : JSON.stringify({ status, expected_version: version }) })
     },
     onSuccess: (result,variables) => { if (result.changed) notify(t(result.entry.deleted_at ? (variables.removeLibrary?'library.removed':'wishlist.removed') : result.entry.status === 'planned' ? 'wishlist.added' : 'library.saved')) },
     onError: (error: Error) => notify(error.message),
@@ -36,10 +39,12 @@ export function useLibraryWrite() {
 export function SaveButton({ media, kind = 'wishlist', compact = false }: { media: Media; kind?: 'wishlist' | 'library'; compact?: boolean }) {
   const { userId, requireSignIn } = useAuth()
   const write = useLibraryWrite()
+  const { ready } = useBackend()
+  const disabled = write.isPending || Boolean(userId && !ready)
   const save = () => {
     if (!userId) requireSignIn(kind, { kind, mediaId: media.id })
     else write.mutate({ id: media.id, status: kind === 'wishlist' ? 'planned' : 'in_progress' })
   }
-  if (compact) return <button className="card-save" aria-label={t('media.wishlistLabel', { title: media.title })} disabled={write.isPending} onClick={save}><Bookmark size={17} /></button>
-  return <Button variant={kind === 'wishlist' ? 'secondary' : 'primary'} disabled={write.isPending} onClick={save}>{kind === 'wishlist' ? <Bookmark size={16} /> : <Plus size={16} />}{t(kind === 'wishlist' ? 'media.addWishlist' : 'media.addLibrary')}</Button>
+  if (compact) return <button className="card-save" aria-label={t('media.wishlistLabel', { title: media.title })} title={userId && !ready ? t('backend.actionUnavailable') : undefined} disabled={disabled} onClick={save}><Bookmark size={17} /></button>
+  return <Button variant={kind === 'wishlist' ? 'secondary' : 'primary'} title={userId && !ready ? t('backend.actionUnavailable') : undefined} disabled={disabled} onClick={save}>{kind === 'wishlist' ? <Bookmark size={16} /> : <Plus size={16} />}{t(kind === 'wishlist' ? 'media.addWishlist' : 'media.addLibrary')}</Button>
 }

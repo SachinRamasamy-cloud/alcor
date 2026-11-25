@@ -19,7 +19,7 @@ export function Modal({ open, onOpenChange, title, description, children }: { op
   </Dialog.Content></Dialog.Portal></Dialog.Root>
 }
 
-export function Loading() { return <div role="status" className="py-20 text-center text-sm text-muted">{t('common.loading')}</div> }
+export { Loading, RouteSkeleton } from './skeleton'
 export function ErrorState({ error, retry }: { error?: Error | null; retry?: () => void }) {
   return <div role="alert" className="state-box"><h2>{error?.message ?? t('errors.generic')}</h2>{retry && <Button variant="secondary" onClick={retry}>{t('common.retry')}</Button>}</div>
 }

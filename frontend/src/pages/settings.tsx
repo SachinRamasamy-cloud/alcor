@@ -19,7 +19,7 @@ function PreferenceForm({saved,userId}:{saved:PreferencesRead;userId:string}){
 export function SettingsPage(){
   const {userId,requireSignIn}=useAuth()
   const prefs=usePreferences()
-  return <div className="shell page-body"><PersonalNav/><div className="page-heading"><h1>{t('settings.title')}</h1></div>{!userId?<div className="state-box"><p>{t('auth.library')}</p><Button onClick={()=>requireSignIn()}>{t('nav.signIn')}</Button></div>:prefs.isPending?<Loading/>:prefs.error?<ErrorState error={prefs.error} retry={()=>{void prefs.refetch()}}/>:<PreferenceForm key={userId} userId={userId} saved={prefs.data}/>}</div>
+  return <div className="shell page-body"><PersonalNav/><div className="page-heading"><h1>{t('settings.title')}</h1></div>{!userId?<div className="state-box"><p>{t('auth.library')}</p><Button onClick={()=>requireSignIn()}>{t('nav.signIn')}</Button></div>:prefs.isPending?<Loading variant="settings"/>:prefs.error?<ErrorState error={prefs.error} retry={()=>{void prefs.refetch()}}/>:<PreferenceForm key={userId} userId={userId} saved={prefs.data}/>}</div>
 }
 type Profile=components['schemas']['ProfileRead']
 function ProfileForm({profile,userId}:{profile:Profile;userId:string}){
@@ -31,5 +31,5 @@ function ProfileForm({profile,userId}:{profile:Profile;userId:string}){
 export function ProfilePage(){
   const {userId,requireSignIn}=useAuth()
   const profile=useQuery({queryKey:['private',userId,'profile'],enabled:Boolean(userId),queryFn:({signal})=>api<Profile>('/me',{signal,accountId:userId!})})
-  return <div className="shell page-body"><PersonalNav/><div className="page-heading"><h1>{t('settings.profile')}</h1></div>{!userId?<div className="state-box"><Button onClick={()=>requireSignIn()}>{t('nav.signIn')}</Button></div>:profile.isPending?<Loading/>:profile.error?<ErrorState error={profile.error} retry={()=>{void profile.refetch()}}/>:<ProfileForm key={userId} userId={userId} profile={profile.data}/>}</div>
+  return <div className="shell page-body"><PersonalNav/><div className="page-heading"><h1>{t('settings.profile')}</h1></div>{!userId?<div className="state-box"><Button onClick={()=>requireSignIn()}>{t('nav.signIn')}</Button></div>:profile.isPending?<Loading variant="profile"/>:profile.error?<ErrorState error={profile.error} retry={()=>{void profile.refetch()}}/>:<ProfileForm key={userId} userId={userId} profile={profile.data}/>}</div>
 }

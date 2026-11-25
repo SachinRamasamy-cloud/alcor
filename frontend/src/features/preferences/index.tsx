@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { MotionConfig } from 'motion/react'
-import { useState,type ReactNode } from 'react'
+import { useEffect,useState,type ReactNode } from 'react'
 import { api } from '../../shared/api/client'
 import type { components } from '../../shared/api/schema'
 import { useAuth } from '../../shared/auth'
+import { useBackend } from '../../shared/api/backend'
 import { t } from '../../shared/content'
 import { Button } from '../../shared/ui'
 
@@ -11,10 +12,12 @@ export type Preferences=components['schemas']['Preferences']
 export type PreferencesRead=components['schemas']['PreferencesRead']
 export function usePreferences(){
   const {userId}=useAuth()
-  return useQuery({queryKey:['private',userId,'preferences'],enabled:Boolean(userId),queryFn:({signal})=>api<PreferencesRead>('/me/preferences',{signal,accountId:userId!}),staleTime:30000})
+  const {ready}=useBackend()
+  return useQuery({queryKey:['private',userId,'preferences'],enabled:Boolean(userId&&ready),queryFn:({signal})=>api<PreferencesRead>('/me/preferences',{signal,accountId:userId!}),staleTime:30000})
 }
 export function PreferenceEffects({children}:{children:ReactNode}){
   const query=usePreferences()
+  useEffect(()=>{document.documentElement.dataset.motion=query.data?.data.motion??'system';return()=>{delete document.documentElement.dataset.motion}},[query.data?.data.motion])
   return <MotionConfig reducedMotion={query.data?.data.motion==='reduced'?'always':'user'}>{children}</MotionConfig>
 }
 export function SpoilerText({children}:{children:ReactNode}){
