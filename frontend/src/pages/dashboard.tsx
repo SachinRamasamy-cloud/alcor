@@ -12,6 +12,8 @@ import { useLibrary } from '../features/library'
 import {CardActions,CardStatus} from '../features/library/actions'
 import {useFavorites} from '../features/library/favorites'
 import { tasteItems,tasteParams } from '../features/discovery/taste'
+import {PersonalShelves} from '../features/recommendations/views'
+import {useDiscoveryMode} from '../features/catalogue/policy'
 import { MediaGrid } from '../entities/media'
 import { ContinueSections } from '../widgets/continue'
 
@@ -24,7 +26,7 @@ export function DashboardShelf({title,description,items,to,showSave=true}:{title
   if(!items.length)return null
   return <section className="home-section dashboard-shelf"><div className="section-heading"><div><h2>{title}</h2>{description&&<p>{description}</p>}</div>{to&&<Link className="subtle-link" to={to}>{t('home.all')}<ArrowRight size={14}/></Link>}</div><div className="mobile-media-rail" role="region" aria-label={title} tabIndex={0}><MediaGrid items={items} actions={showSave?media=><CardActions media={media}/>:undefined} context={media=><CardStatus media={media}/>}/></div></section>
 }
-function Suggestions({setup}:{setup:SetupRead}){
+function GeneralSuggestions({setup}:{setup:SetupRead}){
   const taste=tasteParams(setup.preferences.data)
   const query=useCatalogue('/anime',taste.params)
   const items=query.data?tasteItems(query.data.data,setup.preferences.data,setup.favorites??[]).slice(0,12):[]
@@ -34,6 +36,10 @@ function Suggestions({setup}:{setup:SetupRead}){
   if(query.error)return <section className="home-section"><h2 className="dashboard-section-title">{title}</h2><ErrorState error={query.error} retry={()=>{void query.refetch()}}/></section>
   if(!items.length)return <section className="home-section dashboard-empty"><h2>{title}</h2><p>{t('dashboard.noSuggestions')}</p><Link className="button button-secondary" to={`/anime?${taste.params}`}>{t('nav.discover')}</Link></section>
   return <DashboardShelf title={title} description={description} items={items} to={`/anime?${taste.params}`}/>
+}
+function Suggestions({setup}:{setup:SetupRead}){
+  const mode=useDiscoveryMode(new URLSearchParams())
+  return tasteParams(setup.preferences.data).personal?<PersonalShelves type="anime" mode={mode} showFavorites={false}/>:<GeneralSuggestions setup={setup}/>
 }
 function FavoritesShelf(){
   const query=useFavorites()

@@ -1,27 +1,32 @@
 import { cleanup,render,screen,within } from '@testing-library/react'
 import { QueryClient,QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
-import { afterEach,expect,it,vi } from 'vitest'
+import { afterEach,beforeEach,expect,it,vi } from 'vitest'
 import { DashboardPage } from './dashboard'
 import { defaultAnswers } from '../features/profile'
 import { fromAniList } from '../shared/api/anilist'
+import {setTokenProvider} from '../shared/api/client'
 const state=vi.hoisted(()=>({ready:true}))
 const favorite=fromAniList({id:1,type:'ANIME',title:{english:'A favorite'},genres:['Fantasy'],episodes:12,status:'FINISHED'})
 const suggestion=fromAniList({id:2,type:'ANIME',title:{english:'A fresh suggestion'},genres:['Fantasy'],episodes:12,status:'FINISHED'})
+const preferences={version:1,data:{preferred_genres:['Fantasy'],intelligence_profile:{...defaultAnswers(),favorite_anime_ids:[favorite.id],excluded_genres:['Romance']}}}
+vi.mock('../features/preferences',()=>({usePreferences:()=>({data:preferences})}))
+vi.mock('../shared/api/anilist',async original=>({...await original<typeof import('../shared/api/anilist')>(),aniCatalogue:async()=>({data:[suggestion,favorite],has_more:false})}))
 vi.mock('../shared/auth',()=>({useAuth:()=>({userId:'owner',requireSignIn:vi.fn()})}))
 vi.mock('../shared/api/backend',()=>({useBackend:()=>({ready:state.ready})}))
 vi.mock('../features/profile',async original=>({...await original<typeof import('../features/profile')>(),useSetup:()=>({data:{profile:{display_name:'Reader',version:1},preferences:{version:1,data:{preferred_genres:['Fantasy'],intelligence_profile:{...defaultAnswers(),favorite_anime_ids:[favorite.id],excluded_genres:['Romance']}}},favorites:[favorite]},isPending:false,error:null})}))
 vi.mock('../features/catalogue',()=>({useHome:()=>({data:{anime:[suggestion]},isPending:false,error:null}),useCatalogue:()=>({data:{data:[suggestion,favorite]},isPending:false,error:null})}))
 vi.mock('../features/library',()=>({SaveButton:()=> <button>Save title</button>,useLibrary:()=>({data:{total:1,data:[{media:suggestion}]},isPending:false,error:null})}))
 vi.mock('../features/library/actions',()=>({CardActions:()=> <button>Save title</button>,CardStatus:()=>null}))
-vi.mock('../features/library/favorites',()=>({useFavorites:()=>({data:{data:[favorite],total:1},isPending:false})}))
+vi.mock('../features/library/favorites',()=>({useFavorites:()=>({data:{data:[favorite],total:1,preferences_version:1,next_cursor:null},isPending:false})}))
 vi.mock('../widgets/continue',()=>({ContinueSections:()=> <h2>Continue watching</h2>}))
-afterEach(()=>{cleanup();state.ready=true})
+beforeEach(()=>{setTokenProvider(async()=>({token:'test-only',userId:'owner'}));vi.stubGlobal('fetch',vi.fn(async()=>new Response('[]')))})
+afterEach(()=>{cleanup();state.ready=true;vi.unstubAllGlobals();setTokenProvider(async()=>null)})
 function mount(){render(<QueryClientProvider client={new QueryClient()}><MemoryRouter><DashboardPage/></MemoryRouter></QueryClientProvider>)}
-it('shows suggestions with a reason, favorites, continue and wishlist without repeating favorites in suggestions',()=>{
+it('shows suggestions with a reason, favorites, continue and wishlist without repeating favorites in suggestions',async()=>{
   mount()
   expect(screen.getByRole('heading',{name:'You may like'})).toBeVisible()
-  const shelf=screen.getByRole('region',{name:'You may like'})
+  const shelf=await screen.findByRole('region',{name:'You may like'})
   expect(within(shelf).getByRole('article',{name:'A fresh suggestion'})).toBeVisible()
   expect(within(shelf).queryByRole('article',{name:'A favorite'})).not.toBeInTheDocument()
   expect(screen.getByRole('region',{name:'Your favorites'})).toBeVisible()

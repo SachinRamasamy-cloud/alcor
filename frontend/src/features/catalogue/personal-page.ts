@@ -1,6 +1,6 @@
 import { api, ApiError, type CataloguePage } from '../../shared/api/client'
 import { aniCatalogue } from '../../shared/api/anilist'
-import { matchesCustomFilters,multiValueFields } from './custom-filters'
+import { matchesCustomFilters,sourceFilterParams } from './custom-filters'
 import { sameTitle } from '../../shared/api/identity'
 
 // Scan a bounded source window, filter before constructing the displayed page,
@@ -13,10 +13,7 @@ export async function personalPage(path: string, params: URLSearchParams, userId
   if (cursor && !match || page < 1 || page > 10000 || offset > 24) throw new ApiError(422, 'INVALID_CURSOR')
   const data: CataloguePage['data'] = []
   for (let scanned = 0; scanned < 3; scanned++) {
-    const next = new URLSearchParams(params)
-    next.delete('page')
-    if(next.get('genre_match')==='any'){next.delete('include_genres');next.delete('genre')}
-    for(const key of multiValueFields)if(next.getAll(key).length>1)next.delete(key)
+    const next = sourceFilterParams(params)
     next.set('cursor', String(page))
     const result = await source(path, next, signal)
     const excluded = userId ? await exclude(result.data, params.get('mode')!, userId, signal) : []

@@ -17,6 +17,7 @@ const Browse = lazy(()=>import('../pages/browse').then(m=>({default:m.BrowsePage
 const Details = lazy(() => import('../pages/public').then(m => ({ default: m.DetailsPage })))
 const Personal = lazy(() => import('../pages/account').then(m => ({ default: m.LibraryPage })))
 const Favorites = lazy(()=>import('../pages/favorites').then(m=>({default:m.FavoritesPage})))
+const Recommendations = lazy(()=>import('../pages/recommendations').then(m=>({default:m.RecommendationsPage})))
 const Callback = lazy(() => import('../pages/account').then(m => ({ default: m.AuthCallbackPage })))
 const Complete = lazy(() => import('../pages/account').then(m => ({ default: m.AuthCompletePage })))
 const Password = lazy(() => import('../pages/account').then(m => ({ default: m.PasswordPage })))
@@ -43,6 +44,7 @@ export function App() {
     <Route path="auth/complete" element={<Complete/>}/><Route path="auth/password" element={<Password/>}/>
     <Route path="setup" element={<Setup/>}/>
     <Route path="favorites" element={<Favorites/>}/>
+    <Route path="recommendations" element={<Recommendations/>}/>
     <Route path="auth/callback" element={<Callback />} /><Route path="settings" element={<Settings />} /><Route path="profile" element={<Profile />} /><Route path="history" element={<History />} /><Route path="statistics" element={<Statistics />} /><Route path="collections" element={<Collections />} /><Route path="collections/:id" element={<Collections />} /><Route path="library" element={<Personal />} /><Route path="wishlist" element={<Personal />} /><Route path="*" element={<Info />} />
   </Route></Routes></AccountMotion></PreferenceEffects></AuthProvider></BackendProvider></FeedbackProvider></BrowserRouter></MotionConfig></LazyMotion></QueryClientProvider></Boundary>
 }

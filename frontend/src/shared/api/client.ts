@@ -19,6 +19,8 @@ const errorKeys: Record<string, MessageKey> = {
   FAVORITE_LIMIT: 'favorites.limit',
   COMPLETION_UNAVAILABLE: 'tracking.completionUnavailable',
   COMPLETION_REQUIRES_SESSION: 'tracking.completionRequiresSession',
+  RECOMMENDATIONS_UNAVAILABLE: 'recommendations.unavailable',
+  RECOMMENDATION_CONTEXT_CHANGED: 'recommendations.contextChanged',
   BACKEND_WAKING: 'backend.actionUnavailable', PROVIDER_NOT_CONFIGURED: 'catalogue.providerPending',
 }
 export class ApiError extends Error {
@@ -51,5 +53,8 @@ export async function api<T>(path: string, options: RequestInit & { accountId?: 
     const seconds=retry&&/^\d+$/.test(retry)?Number(retry):retry?Math.max(0,Math.ceil((Date.parse(retry)-Date.now())/1000)):undefined
     throw new ApiError(response.status, body.error?.code ?? 'UNKNOWN', body.error?.request_id,seconds!==undefined&&Number.isFinite(seconds)?seconds:undefined)
   }
-  return response.status === 204 ? undefined as T : response.json()
+  return response.status === 204 ? undefined as T : response.json().catch(()=>{
+    if(path.startsWith('/me'))window.dispatchEvent(new Event('alcor:backend-unavailable'))
+    throw new ApiError(503,'UPSTREAM_UNAVAILABLE')
+  })
 }

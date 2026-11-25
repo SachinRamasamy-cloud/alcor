@@ -26,6 +26,7 @@ import {selectFeatured} from '../features/catalogue/featured'
 import {DiscoveryModeControl} from '../features/catalogue/mode-control'
 import {HomeDiscovery} from '../widgets/discovery-home'
 import {popularCandidates} from '../features/catalogue/popular-cache'
+import {HomePersonalShelves,SimilarShelf} from '../features/recommendations/views'
 
 function PageTitle({ title }: { title: string }) {
   useEffect(() => { document.title = `${title} · ${t('brand')}` }, [title])
@@ -74,6 +75,7 @@ export function HomePage() {
     {visibility.refilling&&<p className="coverage-note" role="status">{t('discovery.refilling')}</p>}
     {visibility.refillError&&<ErrorState error={visibility.refillError} retry={()=>{void visibility.retryRefill()}}/>}
     {visibility.limited.length>0&&<p className="coverage-note">{t('discovery.shelfWindow')} <Link to={discoveryLink('/search',mode)}>{t('home.all')}</Link></p>}
+    <HomePersonalShelves mode={mode} enabled={Boolean(home.data.is_partial)&&!visibility.refilling}/>
     <HomeDiscovery mode={mode} position="before-popular" enabled={Boolean(home.data.is_partial)&&!visibility.refilling}/>
     <Section title="home.popularAnime" to={discoveryLink('/search?type=anime&sort=popular',mode)} items={anime} />
     <section className="home-section genre-section"><div className="section-heading"><h2>{t('home.genres')}</h2></div><div className="genre-grid">{home.data.genres.slice(0, 8).map((genre, i) => <Link key={genre} to={discoveryLink(`/anime?genre=${encodeURIComponent(genre)}`,mode)}><span className="genre-number">{String(i + 1).padStart(2, '0')}</span><span>{genre}</span><ArrowRight size={17} /></Link>)}</div></section>
@@ -116,6 +118,7 @@ export function CataloguePage() {
 }
 
 export function DetailsPage() {
+  const [params]=useSearchParams(),mode=useDiscoveryMode(params)
   const { id = '' } = useParams()
   const mediaType = useLocation().pathname.startsWith('/manga') ? 'manga' : 'anime'
   const detail = useMedia(mediaType, id)
@@ -139,7 +142,7 @@ export function DetailsPage() {
     <section id="episodes" className="episode-section"><div className="section-heading"><h2>{t(mediaType==='anime'?'media.episodes':'media.chapters')}</h2>{episodes.data?.source==='AniZip'&&<span className="episode-attribution">{t('media.episodeSource')} AniZip</span>}</div>
       {mediaType==='anime'&&episodes.isPending?<Loading variant="episodes"/>:mediaType==='anime'&&episodes.error?<ErrorState error={episodes.error} retry={()=>{void episodes.refetch()}}/>:mediaType==='anime'&&episodes.data?.data.length?<EpisodeList key={id} episodes={episodes.data.data}/>:<p className="mt-4 text-sm text-muted">{t(mediaType==='anime'?'media.episodesMissing':'media.chaptersMissing')}</p>}
     </section><section id="your-progress" className="personal-media-section"><PersonalMedia media={media}/></section>
-    </div></div><div className="source-note"><span>{t('media.source')}: {media.source.name}</span><span>{t('media.updated',{date:formatDate(media.source.retrieved_at)})}</span><a href={media.source.url} target="_blank" rel="noreferrer">{t('media.external')}<ArrowUpRight size={12}/></a></div>
+    </div></div><SimilarShelf media={media} mode={mode}/><div className="source-note"><span>{t('media.source')}: {media.source.name}</span><span>{t('media.updated',{date:formatDate(media.source.retrieved_at)})}</span><a href={media.source.url} target="_blank" rel="noreferrer">{t('media.external')}<ArrowUpRight size={12}/></a></div>
     </div></div>
 }
 

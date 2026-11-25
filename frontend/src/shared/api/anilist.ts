@@ -1,4 +1,5 @@
 import { ApiError, type CataloguePage, type HomeResponse, type Media } from './client'
+import {sameTitle} from './identity'
 
 export const ANILIST_ENDPOINT = 'https://graphql.anilist.co'
 const fields = `id idMal type title { romaji english native } synonyms description(asHtml: false)
@@ -53,8 +54,8 @@ export class AniListTransport {
         this.blockedUntil = Math.max(Date.now() + (seconds || 60000), date || 0, reset || 0)
       }
       if (!response.ok) throw new ApiError(response.status, response.status === 429 ? 'RATE_LIMITED' : 'UPSTREAM_UNAVAILABLE')
-      const body = await response.json()
-      if (body.errors?.length || !body.data) throw new ApiError(503, 'UPSTREAM_UNAVAILABLE')
+      const body = await response.json().catch(()=>{throw new ApiError(503,'UPSTREAM_UNAVAILABLE')})
+      if (!body||typeof body!=='object'||Array.isArray(body)||body.errors?.length || !body.data) throw new ApiError(503, 'UPSTREAM_UNAVAILABLE')
       return body.data as T
     })
     this.tail = job
@@ -169,6 +170,47 @@ export async function aniShelfWindow(kind:ShelfKind,page:number,signal?:AbortSig
     if(!Array.isArray(shelf?.media)||typeof shelf.pageInfo?.hasNextPage!=='boolean')throw new ApiError(503,'UPSTREAM_UNAVAILABLE')
     return [key,{items:shelf.media.filter(item=>!item.isAdult).map(fromAniList),hasMore:shelf.pageInfo.hasNextPage}]
   }))
+}
+
+export type RecommendationOrigin={anilistId:number;title:string}
+export type RecommendationItem={media:Media;origins:RecommendationOrigin[];ratings:Record<string,number|null>}
+export type RecommendationWindow={items:RecommendationItem[];hasMore:boolean;nextSeeds?:number[];seedWindows?:Record<string,RecommendationWindow>}
+export function mergeRecommendationWindows(windows:RecommendationWindow[]):RecommendationWindow{
+  const lists=windows.map(window=>window.items),items:RecommendationItem[]=[],byId=new Map<string,RecommendationItem>()
+  // Clone merged evidence: cached public single-seed responses must stay independent.
+  for(let offset=0;offset<Math.max(0,...lists.map(list=>list.length));offset++)for(const list of lists){
+    const item=list[offset];if(!item)continue
+    const known=byId.get(item.media.id)??items.find(previous=>sameTitle(previous.media,item.media))
+    if(known){for(const origin of item.origins)if(!known.origins.some(value=>value.anilistId===origin.anilistId))known.origins.push(origin);Object.assign(known.ratings,item.ratings)}
+    else{const copy={...item,origins:[...item.origins],ratings:{...item.ratings}};byId.set(item.media.id,copy);items.push(copy)}
+  }
+  return {items,hasMore:windows.some(window=>window.hasMore),...(windows.every(window=>window.nextSeeds!==undefined)?{nextSeeds:windows.flatMap(window=>window.nextSeeds!)}:{})}
+}
+export async function aniRecommendations(seeds:number[],type:'anime'|'manga',page:number,signal?:AbortSignal):Promise<RecommendationWindow>{
+  if(!seeds.length||seeds.length>3||new Set(seeds).size!==seeds.length||seeds.some(id=>!Number.isSafeInteger(id)||id<1||id>2147483647)||!Number.isSafeInteger(page)||page<1||page>10000)throw new ApiError(422,'INVALID_REQUEST')
+  const declarations=['$page: Int',...seeds.map((_,i)=>`$seed${i}: Int`)]
+  const queries=seeds.map((_,i)=>`s${i}: Media(id: $seed${i}) { id type title { english romaji native } isRecommendationBlocked recommendations(sort: [RATING_DESC, ID], page: $page, perPage: 24) { pageInfo { hasNextPage } nodes { rating mediaRecommendation { ${fields} } } } }`)
+  type SeedResult={id:number;type:string;title:AniMedia['title'];isRecommendationBlocked?:boolean;recommendations:{pageInfo:{hasNextPage:boolean};nodes:({rating:number|null;mediaRecommendation:AniMedia|null}|null)[]}|null}
+  const result=await publicQuery<Record<string,SeedResult|null>>(`query AlcorRecommendations(${declarations.join(', ')}) { ${queries.join('\n')} }`,{page,...Object.fromEntries(seeds.map((id,i)=>[`seed${i}`,id]))},signal)
+  const seedWindows:Record<string,RecommendationWindow>={}
+  for(let i=0;i<seeds.length;i++){
+    const source=result[`s${i}`]
+    if(!source||source.id!==seeds[i]||source.type!==type.toUpperCase()||source.isRecommendationBlocked||!source.recommendations)throw new ApiError(503,'RECOMMENDATIONS_UNAVAILABLE')
+    const connection=source.recommendations
+    if(!Array.isArray(connection.nodes)||connection.nodes.length>24||typeof connection.pageInfo?.hasNextPage!=='boolean')throw new ApiError(503,'UPSTREAM_UNAVAILABLE')
+    const origin={anilistId:source.id,title:[source.title?.english,source.title?.romaji,source.title?.native].find(value=>typeof value==='string'&&value.trim())??String(source.id)}
+    const items=connection.nodes.flatMap(node=>{
+      const media=node?.mediaRecommendation
+      if(!media||!Number.isSafeInteger(media.id)||media.id<1||!media.title||media.isAdult!==false||media.type!==type.toUpperCase()||source.id===media.id)return []
+      try{
+        if(typeof media.title!=='object'||Array.isArray(media.title)||Object.values(media.title).some(value=>value!=null&&typeof value!=='string')||media.genres!=null&&(!Array.isArray(media.genres)||media.genres.some(genre=>typeof genre!=='string'))||media.averageScore!=null&&(typeof media.averageScore!=='number'||!Number.isFinite(media.averageScore)||media.averageScore<0||media.averageScore>100))throw new Error('Invalid public metadata')
+        const normalized={...media,tags:media.tags?.filter(tag=>Boolean(tag)&&typeof tag.name==='string'),studios:media.studios?{nodes:(media.studios.nodes??[]).filter(studio=>Boolean(studio)&&typeof studio.name==='string')}:undefined}
+        return [{media:fromAniList(normalized),origins:[origin],ratings:{[String(source.id)]:typeof node?.rating==='number'&&Number.isFinite(node.rating)?node.rating:null}}]
+      }catch{throw new ApiError(503,'UPSTREAM_UNAVAILABLE')}
+    })
+    seedWindows[String(source.id)]={items,hasMore:connection.pageInfo.hasNextPage,nextSeeds:connection.pageInfo.hasNextPage?[source.id]:[]}
+  }
+  return {...mergeRecommendationWindows(seeds.map(id=>seedWindows[String(id)])),seedWindows}
 }
 
 export async function aniDetails(type: string, id: string, signal?: AbortSignal): Promise<Media> {

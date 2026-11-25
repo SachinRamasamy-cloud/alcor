@@ -22,6 +22,7 @@ export async function mockCatalogue(page: Page) {
     let data: unknown
     if (query.includes('AlcorHome')) data = { anime: { media: titles.filter(m => m.type === 'ANIME') }, manga: { media: titles.filter(m => m.type === 'MANGA') }, genres: ['Action', 'Adventure', 'Comedy', 'Drama', 'Fantasy', 'Mystery', 'Romance', 'Sci-Fi'] }
     else if(query.includes('AlcorBrowse'))data=Object.fromEntries(['latest','popular','trending','top','ongoing'].map(key=>[key,{media:titles.filter(item=>item.type===variables.type).slice(0,12).map(item=>key==='ongoing'?{...item,status:variables.type==='ANIME'?'NOT_YET_RELEASED':'RELEASING'}:item)}]))
+    else if(query.includes('AlcorRecommendations'))data=Object.fromEntries(Object.keys(variables).filter(key=>key.startsWith('seed')).map((key,index)=>{const seed=titles.find(item=>item.id===variables[key]);return [`s${index}`,seed?{...seed,recommendations:{pageInfo:{hasNextPage:false},nodes:[]}}:null]}))
     else if (query.includes('AlcorDetails')) data = { Media: titles.find(m => variables.id ? m.id === variables.id : m.idMal === variables.idMal) }
     else data = { Page: { pageInfo: { hasNextPage: false }, media: titles.filter(m => (!variables.type || m.type === variables.type) && (!variables.search || JSON.stringify(m.title).toLowerCase().includes(variables.search.toLowerCase()))) } }
     return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ data }) })

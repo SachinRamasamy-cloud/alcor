@@ -5,6 +5,18 @@ import type {Entry} from '.'
 import {excludesEntry,publishLibraryEntry} from './cache'
 const media=fromAniList({id:1,idMal:10,type:'ANIME',title:{english:'Remembered title'}})
 const planned={media:{...media,id:'canonical'},status:'planned',ever_completed:false,version:4,deleted_at:null} as Entry
+it('removes confirmed history from owned recommendation previews while preserving source and continuation snapshots',async()=>{
+  const queries=new QueryClient(),key=['private','a','recommendations','favorites',{mode:'new_to_me'},'']
+  const other=['private','b','recommendations','favorites',{mode:'new_to_me'},''],publicKey=['public','anilist','recommendation-edges','anime','1',1]
+  const initial={items:[{media,origins:[],ratings:{}}],next:{page:1,offset:1,seen:[]},hasMore:true,limited:false}
+  queries.setQueryData(key,initial);queries.setQueryData(other,initial);queries.setQueryData(publicKey,initial)
+  let finish!:(value:typeof initial)=>void
+  const pending=queries.fetchQuery({queryKey:key,queryFn:()=>new Promise<typeof initial>(resolve=>{finish=resolve}),staleTime:0}).catch(()=>undefined)
+  publishLibraryEntry(queries,'a',{...planned,media,status:'completed',ever_completed:true,version:5})
+  finish(initial);await pending
+  expect(queries.getQueryData(key)).toMatchObject({items:[],next:{page:1,offset:1},hasMore:true})
+  expect(queries.getQueryData(other)).toEqual(initial);expect(queries.getQueryData(publicKey)).toEqual(initial)
+})
 it('publishes committed completion across owned aliases, eligibility and list counts without changing public or foreign data',()=>{
   const queries=new QueryClient(),scope=['private','a']
   const canonical=[...scope,'media-status','anime','canonical'],alias=[...scope,'media-status','anime','anilist-1'],foreign=['private','b','media-status','anime','anilist-1']
