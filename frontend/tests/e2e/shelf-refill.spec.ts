@@ -4,16 +4,17 @@ const sections=['latest','popular','trending','top','ongoing']
 for(const width of [375,1440])test(`personal shelves replace watched titles without the misleading notice at ${width}px`,async({page})=>{
   await page.setViewportSize({width,height:1000})
   const unhandled:string[]=[],windows:number[]=[]
-  const title=(id:number)=>({id,type:'ANIME',title:{english:`Story ${id}`},status:'FINISHED',format:'TV',episodes:12,averageScore:80,genres:['Fantasy'],coverImage:{large:`https://s4.anilist.co/test/${id}.svg`}})
+  const title=(id:number)=>({id,type:'ANIME',title:{english:`Story ${id}`},description:'A verified fixture synopsis.',status:'FINISHED',format:'TV',episodes:12,averageScore:80,genres:['Fantasy'],coverImage:{large:`https://s4.anilist.co/test/${id}.svg`}})
   let release!:(()=>void)
   await page.route('https://graphql.anilist.co',async route=>{
     const {query,variables}=route.request().postDataJSON()
     expect(route.request().headers().authorization).toBeUndefined()
     if(query.includes('AlcorBrowse')){await route.fulfill({json:{data:Object.fromEntries(sections.map(key=>[key,{media:Array.from({length:12},(_,i)=>title(i+1))}]))}});return}
     if(query.includes('AlcorShelfWindow')){
-      windows.push(variables.page)
-      if(windows.length===1)await new Promise<void>(resolve=>{release=resolve})
-      const keys=query.includes('latest:')?sections:['anime','manga']
+      const main=query.includes('latest:')||query.includes('anime:')
+      if(main)windows.push(variables.page)
+      if(main&&windows.length===1)await new Promise<void>(resolve=>{release=resolve})
+      const keys=query.includes('latest:')?sections:query.includes('anime:')?['anime','manga']:query.includes('trending:')?['trending','airing','upcoming']:['airing']
       await route.fulfill({json:{data:Object.fromEntries(keys.map(key=>[key,{media:Array.from({length:24},(_,i)=>({...title((variables.page-1)*24+i+1),type:key==='manga'?'MANGA':'ANIME'})),pageInfo:{hasNextPage:true}}]))}});return
     }
     if(query.includes('AlcorHome')){await route.fulfill({json:{data:{anime:{media:Array.from({length:12},(_,i)=>title(i+1))},manga:{media:[]},genres:['Fantasy']}}});return}
@@ -28,6 +29,7 @@ for(const width of [375,1440])test(`personal shelves replace watched titles with
     if(path.endsWith('/preferences')){await route.fulfill({json:{data:{discovery_mode:'new_to_me'},version:0}});return}
     if(path.endsWith('/setup')){await route.fulfill({json:{preferences:{data:{}},favorites:[]}});return}
     if(path.endsWith('/media-status')){await route.fulfill({json:[]});return}
+    if(path.endsWith('/favorites')){await route.fulfill({json:{data:[],total:0,preferences_version:0,next_cursor:null}});return}
     if(path.endsWith('/watch-sessions')||path.endsWith('/continue-watching')||path.endsWith('/continue-reading')){await route.fulfill({json:[]});return}
     unhandled.push(path);await route.fulfill({status:404,json:{error:{code:'NOT_FOUND'}}})
   })
@@ -51,5 +53,9 @@ for(const width of [375,1440])test(`personal shelves replace watched titles with
   await page.getByRole('link',{name:'Home fixture'}).click()
   await expect(page.getByRole('heading',{name:'Story 25',level:1})).toBeVisible()
   await expect(page.getByRole('region',{name:'Popular anime'}).getByRole('article')).toHaveCount(12)
-  expect(windows).toEqual([1,2,1,2]);expect(unhandled).toEqual([])
+  await expect(page.getByRole('heading',{name:'Trending now'})).toBeVisible()
+  await expect(page.getByRole('heading',{name:'Currently airing'})).toBeVisible()
+  await expect(page.locator('.hero-actions').getByRole('button',{name:'Manage Story 25'})).toBeVisible()
+  // Home reuses equivalent fresh raw Browse popularity windows, then rechecks history.
+  expect(windows).toEqual([1,2]);expect(unhandled).toEqual([])
 })

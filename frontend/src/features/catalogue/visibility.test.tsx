@@ -10,7 +10,7 @@ import {discoveryLink,visibleTitles,useDiscoveryVisibility} from './visibility'
 import {exclusions} from './personal-page'
 
 const state=vi.hoisted(()=>({userId:'a' as string|null,ready:true}))
-const titles=[1,2,3].map(id=>fromAniList({id,type:'ANIME',title:{english:`Story ${id}`},status:'FINISHED'}))
+const titles=[1,2,3].map(id=>fromAniList({id,type:'ANIME',title:{english:`Story ${id}`},status:'FINISHED',description:'A source-backed synopsis.',coverImage:{large:`https://s4.anilist.co/test/${id}.jpg`}}))
 vi.mock('../../shared/auth',()=>({useAuth:()=>({userId:state.userId})}))
 vi.mock('../../shared/api/backend',()=>({useBackend:()=>({ready:state.ready})}))
 vi.mock('../../features/preferences',()=>({SpoilerText:({children}:{children:ReactNode})=>children,usePreferences:()=>({data:undefined})}))

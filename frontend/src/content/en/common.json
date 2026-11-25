@@ -515,6 +515,7 @@
   "browse.upcoming": "Coming soon",
   "browse.publishing": "Currently publishing",
   "browse.empty": "No titles available in this section yet.",
+  "browse.airing": "Currently airing",
   "browse.scrollBack": "Scroll back in {title}",
   "browse.scrollForward": "Scroll forward in {title}",
   "browse.animeIntro": "Find a new series, revisit a favorite, or see what is coming next.",

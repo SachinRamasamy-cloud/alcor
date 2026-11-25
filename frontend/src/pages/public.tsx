@@ -1,4 +1,5 @@
 import {SelectMenu} from '../shared/ui/select-menu'
+import {useQueryClient} from '@tanstack/react-query'
 import { DiscoveryControls } from '../features/discovery'
 import { SpoilerText } from '../features/preferences'
 import { useEffect } from 'react'
@@ -11,7 +12,7 @@ import { EpisodeList } from '../features/catalogue/episode-list'
 import { ExpandableSynopsis } from '../features/catalogue/synopsis'
 import { PersonalMedia } from '../features/catalogue/personal'
 import { mediaPath } from '../shared/api/anilist'
-import { SaveButton } from '../features/library'
+import {SaveButton} from '../features/library'
 import {CardActions,CardStatus} from '../features/library/actions'
 import { MediaGrid, Poster } from '../entities/media'
 import type { Media } from '../shared/api/client'
@@ -21,6 +22,10 @@ import { Button, ErrorState, Loading, Pagination } from '../shared/ui'
 import {discoveryLink,DiscoveryNotice} from '../features/catalogue/visibility'
 import {useDiscoveryShelves} from '../features/catalogue/shelf-refill'
 import {useDiscoveryMode} from '../features/catalogue/policy'
+import {selectFeatured} from '../features/catalogue/featured'
+import {DiscoveryModeControl} from '../features/catalogue/mode-control'
+import {HomeDiscovery} from '../widgets/discovery-home'
+import {popularCandidates} from '../features/catalogue/popular-cache'
 
 function PageTitle({ title }: { title: string }) {
   useEffect(() => { document.title = `${title} · ${t('brand')}` }, [title])
@@ -46,29 +51,34 @@ function filterLabel(key:string,value:string):string {
 }
 export function HomePage() {
   const home = useHome()
+  const queries=useQueryClient()
   const [params]=useSearchParams(),mode=useDiscoveryMode(params)
-  const visibility=useDiscoveryShelves('home',home.data?{anime:home.data.anime,manga:home.data.manga}:{},mode,home.data?.is_partial??false)
+  const visibility=useDiscoveryShelves('home',home.data?{anime:popularCandidates(queries,home.data.anime,'anime'),manga:popularCandidates(queries,home.data.manga,'manga')}:{},mode,home.data?.is_partial??false)
   if (home.isPending) return <Loading variant="home" page />
   if (home.error) return <ErrorState error={home.error} retry={() => { void home.refetch() }} />
   if(visibility.pending)return <Loading variant="home" page/>
   const anime=visibility.shelves.anime??[],manga=visibility.shelves.manga??[]
-  const featured = home.data.featured&&visibility.items.some(item=>item.id===home.data.featured?.id)?home.data.featured:anime[0]??null
+  const featured = selectFeatured([...(home.data.featured&&visibility.items.some(item=>item.id===home.data.featured?.id)?[home.data.featured]:[]),...anime])
   return <div className="shell"><PageTitle title={t('nav.home')} />
     <DiscoveryNotice unavailable={visibility.unavailable} refetch={visibility.refetch}/>
+    <DiscoveryModeControl mode={mode}/>
+    {!featured&&<h1 className="sr-only">{t('nav.home')}</h1>}
     {featured && <section data-media-source="" className="hero"><div className="hero-copy"><p className="eyebrow"><span className="tiny-rule" />{t('home.featured')}</p><h1>{featured.title}</h1>
       {featured.original_title && <p className="hero-original">{featured.original_title}</p>}
       <div className="hero-metadata"><span><Star size={14} fill="currentColor" />{featured.score?.toFixed(2) ?? t('media.notRated')}</span><span>{featured.year ?? t('media.notAvailable')}</span><span>{featured.format}</span><span>{unitCount(featured.total_units ?? null, featured.media_type)}</span></div>
       <SpoilerText><p className="hero-synopsis">{featured.synopsis}</p></SpoilerText><div className="hero-genres">{featured.genres.slice(0, 3).map(g => <Link to={discoveryLink(`/anime?genre=${encodeURIComponent(g)}`,mode)} key={g}>{g}</Link>)}</div>
-      <div className="hero-actions"><Link className="button button-primary" to={mediaPath(featured)}>{t('home.details')}<ArrowRight size={16} /></Link><SaveButton media={featured} /></div>
+      <div className="hero-actions"><Link className="button button-primary" to={mediaPath(featured)}>{t('home.details')}<ArrowRight size={16} /></Link><CardActions media={featured} presentation="hero"/></div>
       <a className="hero-source" href={featured.source.url} target="_blank" rel="noreferrer">{featured.source.name}<ArrowUpRight size={11} /></a>
     </div><div className="hero-art"><m.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .25 }} className="hero-poster"><Poster media={featured} priority /></m.div><span className="hero-art-label">{featured.original_title ?? featured.title}</span></div></section>}
     <ContinueSections />
     {visibility.refilling&&<p className="coverage-note" role="status">{t('discovery.refilling')}</p>}
     {visibility.refillError&&<ErrorState error={visibility.refillError} retry={()=>{void visibility.retryRefill()}}/>}
     {visibility.limited.length>0&&<p className="coverage-note">{t('discovery.shelfWindow')} <Link to={discoveryLink('/search',mode)}>{t('home.all')}</Link></p>}
+    <HomeDiscovery mode={mode} position="before-popular" enabled={Boolean(home.data.is_partial)&&!visibility.refilling}/>
     <Section title="home.popularAnime" to={discoveryLink('/search?type=anime&sort=popular',mode)} items={anime} />
     <section className="home-section genre-section"><div className="section-heading"><h2>{t('home.genres')}</h2></div><div className="genre-grid">{home.data.genres.slice(0, 8).map((genre, i) => <Link key={genre} to={discoveryLink(`/anime?genre=${encodeURIComponent(genre)}`,mode)}><span className="genre-number">{String(i + 1).padStart(2, '0')}</span><span>{genre}</span><ArrowRight size={17} /></Link>)}</div></section>
     <Section title="home.popularManga" to={discoveryLink('/search?type=manga&sort=popular',mode)} items={manga} />
+    <HomeDiscovery mode={mode} position="after-manga" enabled={Boolean(home.data.is_partial)&&!visibility.refilling}/>
   </div>
 }
 

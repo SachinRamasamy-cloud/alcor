@@ -26,6 +26,7 @@ it('shows general shelves for guests and preserves existing filtered links',()=>
 it('uses explicit profile choices for You may like and links the same filters to full search',()=>{
   state.personal=true;render(<MemoryRouter initialEntries={['/anime']}><BrowsePage/></MemoryRouter>,{wrapper})
   const rail=screen.getByRole('region',{name:'You may like'})
+  expect(screen.getByRole('heading',{name:'Trending now'})).toBeVisible()
   expect(within(rail).getByRole('article',{name:'A new adventure'})).toBeVisible()
   expect(state.request).toHaveBeenCalledWith('/anime',expect.stringContaining('include_genres=Fantasy'))
   const section=rail.closest('section')!

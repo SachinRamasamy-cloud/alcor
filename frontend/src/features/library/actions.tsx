@@ -52,16 +52,16 @@ function ResolvedManagement({media,close,origin}:{media:Media;close:()=>void;ori
   if(resolved.error||saved.error)return <ErrorState error={resolved.error??saved.error} retry={()=>{void resolved.refetch();void saved.refetch()}}/>
   return <Management media={resolved.data} entry={saved.data??null} origin={origin} close={close}/>
 }
-function SignedInActions({media}:{media:Media}){
+function SignedInActions({media,presentation='card'}:{media:Media;presentation?:'card'|'hero'}){
   const [open,setOpen]=useState(false),{ready}=useBackend(),saved=useSavedEntry(media)
   const [origin,setOrigin]=useState<FlyOrigin>()
   const [focusFallback,setFocusFallback]=useState<HTMLElement|null>(null)
-  return <><button className="card-save" aria-label={t('media.manageLabel',{title:media.title})} title={ready?saved.data?libraryStatusLabel(saved.data):t('media.cardActions'):t('backend.actionUnavailable')} aria-haspopup="dialog" disabled={!ready} onClick={event=>{setOrigin(captureFlyOrigin(event.currentTarget));setFocusFallback(event.currentTarget.closest('section')?.querySelector<HTMLElement>('h2')??document.querySelector<HTMLElement>('h1'));setOpen(true)}}><MoreHorizontal size={18}/></button>
+  return <><button className={presentation==='hero'?'button button-secondary':'card-save'} aria-label={t('media.manageLabel',{title:media.title})} title={ready?saved.data?libraryStatusLabel(saved.data):t('media.cardActions'):t('backend.actionUnavailable')} aria-haspopup="dialog" disabled={!ready} onClick={event=>{setOrigin(captureFlyOrigin(event.currentTarget));setFocusFallback(event.currentTarget.closest('section')?.querySelector<HTMLElement>('h2')??document.querySelector<HTMLElement>('h1'));setOpen(true)}}><MoreHorizontal size={18}/>{presentation==='hero'&&t('media.cardActions')}</button>
     <Modal open={open} onOpenChange={setOpen} title={media.title} focusFallback={focusFallback} description={saved.data?libraryStatusLabel(saved.data):t('media.cardActions')}>
       {open&&ready&&<ResolvedManagement media={media} origin={origin} close={()=>setOpen(false)}/>} {!ready&&<p role="status">{t('backend.actionUnavailable')}</p>}
     </Modal></>
 }
-export function CardActions({media}:{media:Media}){
+export function CardActions({media,presentation='card'}:{media:Media;presentation?:'card'|'hero'}){
   const {userId}=useAuth()
-  return userId?<SignedInActions key={`${userId}:${media.id}`} media={media}/>:<SaveButton media={media} compact/>
+  return userId?<SignedInActions key={`${userId}:${media.id}`} media={media} presentation={presentation}/>:<SaveButton media={media} compact={presentation==='card'}/>
 }

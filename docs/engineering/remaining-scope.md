@@ -51,3 +51,5 @@ F04-F07 update: ordinary server-derived actions, active-session labels, unified 
 ## Remaining-plan continuation
 
 Authority: [remaining plan](../product/ALCOR_FOUNDATION_REMAINING_PLAN.md); existing branch and F01-F07 preserved. REM-01/R07-R08 completion safeguards are owner-approved and locally verified with focused regressions; actual runtime remains on an older schema because an owner-approved reload was blocked by tool policy. REM-02 presentation is owner-approved but not yet implemented at this record. REM-03 onward, full integrated validation and external/human/release gates remain open. No completed Foundation or production-ready claim.
+
+REM-02a: hero qualification/shared management, surface mode controls, independent Trending position, member general Home/Airing shelves and cache/refill polish are implemented with focused local evidence. REM-02 remaining discovery filters/presets/diversity and REM-03 feeds are in progress, not stage-complete. Owner-approved REM-03 contract is in remaining-contracts.md. Runtime/provider/human/release blockers remain as recorded.

@@ -3,6 +3,20 @@ import { aniHome,aniBrowse,aniCatalogue,browseSections, AniListTransport, fromAn
 
 afterEach(() => {vi.useRealTimers();vi.unstubAllEnvs();vi.unstubAllGlobals()})
 describe('public AniList transport', () => {
+  it('retrieves distinct member discovery sources and omits unused variables for subset refills',async()=>{
+    vi.resetModules()
+    const {aniShelfWindow}=await import('./anilist')
+    const fetcher=vi.fn<typeof fetch>(async(_url,options)=>{
+      const body=JSON.parse(String(options?.body))
+      expect(body.query).not.toContain('$tomorrow')
+      expect(body.query).not.toContain('latest:')
+      expect(body.query).toContain('status: RELEASING')
+      return new Response(JSON.stringify({data:{airing:{media:[],pageInfo:{hasNextPage:false}}}}))
+    });vi.stubGlobal('fetch',fetcher)
+    expect(await aniShelfWindow('home-discovery',2,undefined,['airing'])).toEqual({airing:{items:[],hasMore:false}})
+    await expect(aniShelfWindow('home-discovery',1,undefined,['unknown'])).rejects.toMatchObject({code:'INVALID_REQUEST'})
+    expect(fetcher).toHaveBeenCalledOnce()
+  })
   it('batches bounded refill windows with source continuation and unchanged shelf filters',async()=>{
     vi.resetModules()
     const {aniShelfWindow}=await import('./anilist')

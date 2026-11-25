@@ -25,6 +25,15 @@ it('explains why an ongoing title cannot be finally completed and sends no write
   expect(screen.getByText(/This title is still releasing/)).toBeVisible()
   expect(fetcher).not.toHaveBeenCalled()
 })
+it('uses the same management dialog from the existing labelled hero action slot',async()=>{
+  vi.stubGlobal('fetch',vi.fn<typeof fetch>(async url=>new Response(JSON.stringify(String(url).includes('/collections')?{data:[]}:[]))))
+  render(tree(new QueryClient({defaultOptions:{queries:{retry:false}}}),<CardActions media={media} presentation="hero"/>))
+  const trigger=screen.getByRole('button',{name:'Manage Remembered story'})
+  expect(trigger).toHaveClass('button-secondary');expect(trigger).not.toHaveClass('card-save')
+  fireEvent.click(trigger)
+  expect(await screen.findByRole('button',{name:'Mark watched'})).toBeVisible()
+  expect(screen.getByRole('dialog',{name:'Remembered story'})).toBeVisible()
+})
 it('asserts historical completion directly from a card without creating wishlist or unit marks',async()=>{
   let recorded=false
   const fetcher=vi.fn<typeof fetch>(async(url,options)=>{

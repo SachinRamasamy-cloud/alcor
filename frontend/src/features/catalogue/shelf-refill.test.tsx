@@ -13,6 +13,14 @@ vi.mock('../../shared/api/backend',()=>({useBackend:()=>({ready:state.ready})}))
 const media=(id:number)=>fromAniList({id,type:'ANIME',title:{english:`Story ${id}`}})
 const titles=(start:number,count:number)=>Array.from({length:count},(_,index)=>media(start+index))
 const signal=()=>new AbortController().signal
+it('does not request exhausted or already-filled shelves again within the same scan',async()=>{
+  const source=vi.fn(async(page:number,keys?:string[]):Promise<ShelfWindow>=>{if(keys)expect(keys).toEqual(['trending']);return page===1?{
+    popular:{items:[],hasMore:false},trending:{items:titles(1,1),hasMore:true},top:{items:titles(30,12),hasMore:true},
+  }:{trending:{items:titles(2,12),hasMore:false}}})
+  const result=await refillShelves('anime',{popular:[],trending:[],top:[]},'new_to_me','a',signal(),source,async()=>[])
+  expect(source.mock.calls).toEqual([[1],[2,['trending']]])
+  expect(result.exhausted).toEqual(['popular']);expect(result.pools.top).toHaveLength(12)
+})
 afterEach(()=>{cleanup();vi.unstubAllGlobals();setTokenProvider(async()=>null);state.owner='a';state.ready=true})
 
 it('refills watched first pages in source order, keeps overflow, and stops once filled',async()=>{
