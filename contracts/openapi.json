@@ -1470,6 +1470,18 @@
             ],
             "title": "Completed At"
           },
+          "completion_recorded_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completion Recorded At"
+          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -1539,6 +1551,17 @@
               }
             ],
             "title": "Reason"
+          },
+          "recorded_units": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recorded Units"
           },
           "status": {
             "enum": [
@@ -1630,6 +1653,16 @@
             "title": "Page",
             "type": "integer"
           },
+          "query_context": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LibraryQueryContext"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "total": {
             "title": "Total",
             "type": "integer"
@@ -1646,6 +1679,64 @@
           "total"
         ],
         "title": "LibraryPage",
+        "type": "object"
+      },
+      "LibraryQueryContext": {
+        "properties": {
+          "media_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "anime",
+                  "manga"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Media Type"
+          },
+          "q": {
+            "default": "",
+            "title": "Q",
+            "type": "string"
+          },
+          "sort": {
+            "default": "id",
+            "enum": [
+              "id",
+              "title",
+              "saved",
+              "completion_recorded",
+              "rating",
+              "recorded_units"
+            ],
+            "title": "Sort",
+            "type": "string"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "planned",
+                  "in_progress",
+                  "completed",
+                  "on_hold",
+                  "dropped",
+                  "not_interested"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "title": "LibraryQueryContext",
         "type": "object"
       },
       "LibraryWrite": {
@@ -5985,6 +6076,52 @@
               ],
               "title": "Page"
             }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "default": "",
+              "maxLength": 200,
+              "title": "Q",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "media_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^(anime|manga)$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Media Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "default": "id",
+              "enum": [
+                "id",
+                "title",
+                "saved",
+                "completion_recorded",
+                "rating",
+                "recorded_units"
+              ],
+              "title": "Sort",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -7546,6 +7683,52 @@
                 }
               ],
               "title": "Page"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "default": "",
+              "maxLength": 200,
+              "title": "Q",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "media_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^(anime|manga)$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Media Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "default": "id",
+              "enum": [
+                "id",
+                "title",
+                "saved",
+                "completion_recorded",
+                "rating",
+                "recorded_units"
+              ],
+              "title": "Sort",
+              "type": "string"
             }
           }
         ],

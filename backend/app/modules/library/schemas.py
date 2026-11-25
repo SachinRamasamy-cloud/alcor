@@ -10,6 +10,7 @@ from app.modules.library.policy import TRANSITIONS, completion_unavailable
 LibraryStatus = Literal[
     "planned", "in_progress", "completed", "on_hold", "dropped", "not_interested"
 ]
+LibrarySort = Literal["id", "title", "saved", "completion_recorded", "rating", "recorded_units"]
 
 
 class LibraryWrite(BaseModel):
@@ -45,6 +46,8 @@ class LibraryEntry(BaseModel):
     completed_at: datetime | None
     deleted_at: datetime | None
     active_session: ActiveSession | None = None
+    completion_recorded_at: datetime | None = None
+    recorded_units: int | None = None
 
     @computed_field
     @property
@@ -55,12 +58,20 @@ class LibraryEntry(BaseModel):
         return sorted(statuses)
 
 
+class LibraryQueryContext(BaseModel):
+    q: str = ""
+    media_type: Literal["anime", "manga"] | None = None
+    status: LibraryStatus | None = None
+    sort: LibrarySort = "id"
+
+
 class LibraryPage(BaseModel):
     data: list[LibraryEntry]
     next_cursor: str | None
     total: int
     page: int = 1
     total_pages: int = 1
+    query_context: LibraryQueryContext | None = None
 
 
 class LibraryMutation(BaseModel):

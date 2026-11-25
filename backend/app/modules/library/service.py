@@ -1,4 +1,3 @@
-import base64
 from uuid import UUID
 
 from sqlalchemy import text
@@ -6,9 +5,10 @@ from sqlalchemy import text
 from app.core.errors import AppError
 from app.infrastructure.database import Database
 from app.integrations.metadata.provider import MetadataProvider
+from app.modules.library import query as library_query
 from app.modules.library import repository as repo
 from app.modules.library.policy import INITIAL_STATUSES, TRANSITIONS, require_completion
-from app.modules.library.schemas import LibraryMutation, LibraryPage, LibraryWrite, WishlistWrite
+from app.modules.library.schemas import LibraryMutation, LibraryWrite, WishlistWrite
 from app.modules.preferences import public as preferences
 from app.modules.tracking.public import ensure_initial_session
 
@@ -82,8 +82,11 @@ class LibraryService:
             row = await repo.lock_entry(session, user, media_id)
             if row is None or row["deleted_at"] is not None:
                 raise AppError(404, "NOT_FOUND", "This item is not available.")
-            before = {**dict(row), "favorite": media_id in favorites,
-                      "setup_favorite": media_id in preferences.setup_ids(preference.data)}
+            before = {
+                **dict(row),
+                "favorite": media_id in favorites,
+                "setup_favorite": media_id in preferences.setup_ids(preference.data),
+            }
             changed = any(before[key] != value for key, value in values.items())
             if not changed:
                 result = LibraryMutation(
@@ -95,7 +98,12 @@ class LibraryService:
                 favorite_result = None
                 if "favorite" in values and values["favorite"] != before["favorite"]:
                     favorite_result = await preferences.set_choice(
-                        session, user, media_id, values["favorite"], skip_library={media_id}, record=False
+                        session,
+                        user,
+                        media_id,
+                        values["favorite"],
+                        skip_library={media_id},
+                        record=False,
                     )
                 allowed = {"rating", "notes", "favorite", "tags", "priority", "reason"}
                 assignments = ",".join(f"{key}=:{key}" for key in values if key in allowed)
@@ -127,53 +135,14 @@ class LibraryService:
         limit: int,
         cursor: str | None,
         page: int | None = None,
+        *,
+        q: str = "",
+        media_type: str | None = None,
+        sort: str = "id",
     ):
-        if page is not None and cursor:
-            raise AppError(422, "INVALID_REQUEST", "Choose a page or cursor, not both.")
-        last = None
-        if cursor:
-            try:
-                last = UUID(base64.urlsafe_b64decode(cursor + "=" * (-len(cursor) % 4)).decode())
-            except (ValueError, UnicodeDecodeError) as exc:
-                raise AppError(422, "INVALID_CURSOR", "Reset the filters and try again.") from exc
-        async with self.database.transaction(user_id) as session:
-            rows = (
-                (
-                    await session.execute(
-                        text(
-                            f"SELECT e.*, {repo.ACTIVE_SESSION}, {repo.EFFECTIVE_FAVORITE}, m.payload FROM personal.library_entries e JOIN catalogue.media m ON m.id=e.media_id {repo.PREFERENCE_JOIN} WHERE e.user_id=:user AND e.deleted_at IS NULL AND (CAST(:status AS text) IS NULL OR e.status=:status) AND (CAST(:cursor AS uuid) IS NULL OR e.media_id>CAST(:cursor AS uuid)) ORDER BY e.media_id LIMIT :limit OFFSET :offset"
-                        ),
-                        {
-                            "user": user_id,
-                            "status": status,
-                            "cursor": last,
-                            "limit": limit + 1,
-                            "offset": ((page or 1) - 1) * limit,
-                        },
-                    )
-                )
-                .mappings()
-                .all()
-            )
-            total = await session.scalar(
-                text(
-                    "SELECT count(*) FROM personal.library_entries WHERE user_id=:user AND deleted_at IS NULL AND (CAST(:status AS text) IS NULL OR status=:status)"
-                ),
-                {"user": user_id, "status": status},
-            )
-            entries = [repo.to_entry(row) for row in rows[:limit]]
-            next_cursor = (
-                base64.urlsafe_b64encode(str(entries[-1].media.id).encode()).decode().rstrip("=")
-                if len(rows) > limit
-                else None
-            )
-            return LibraryPage(
-                data=entries,
-                total=total,
-                next_cursor=next_cursor,
-                page=page or 1,
-                total_pages=max(1, (total + limit - 1) // limit),
-            )
+        return await library_query.read_page(
+            self.database, user_id, status, limit, cursor, page, q, media_type, sort
+        )
 
     async def change(
         self,
@@ -209,11 +178,18 @@ class LibraryService:
                 existing["priority"] == wishlist.priority and existing["reason"] == wishlist.reason
             )
             if change.status == "completed":
-                active = await session.scalar(text(
-                    "SELECT id FROM personal.tracking_sessions WHERE user_id=:user AND media_id=:media AND active"
-                ), {"user": user_id, "media": media_id})
+                active = await session.scalar(
+                    text(
+                        "SELECT id FROM personal.tracking_sessions WHERE user_id=:user AND media_id=:media AND active"
+                    ),
+                    {"user": user_id, "media": media_id},
+                )
                 if active:
-                    raise AppError(409, "COMPLETION_REQUIRES_SESSION", "Complete the active session using its current version.")
+                    raise AppError(
+                        409,
+                        "COMPLETION_REQUIRES_SESSION",
+                        "Complete the active session using its current version.",
+                    )
             if same_status and same_wishlist and not created:
                 return LibraryMutation(
                     entry=await repo.read_entry(session, user_id, media_id), changed=False

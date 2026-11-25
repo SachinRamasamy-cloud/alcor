@@ -4,6 +4,7 @@ import type {CataloguePage} from '../../shared/api/client'
 import {sameTitle} from '../../shared/api/identity'
 import type {ShelfPools} from '../catalogue/shelf-refill'
 import type {FeedPage} from '../recommendations/feed'
+import {hasLibraryFilters,type LibraryReadFilters} from './query'
 type Entry=components['schemas']['LibraryEntry']
 type PreferencesRead=components['schemas']['PreferencesRead']
 type LibraryPage=components['schemas']['LibraryPage']
@@ -51,6 +52,7 @@ export function publishLibraryEntry(queries:QueryClient,owner:string,serverEntry
     }:previous)
   }
   for(const query of listQueries){
+    if(hasLibraryFilters((query.queryKey[6]??{}) as LibraryReadFilters)){void queries.invalidateQueries({queryKey:query.queryKey,exact:true});continue}
     const status=query.queryKey[2]==='wishlist'?'planned':String(query.queryKey[4]??'')
     const belongs=(item:Entry|undefined|null)=>Boolean(item&&!item.deleted_at&&(!status||item.status===status))
     queries.setQueryData<LibraryPage>(query.queryKey,page=>{

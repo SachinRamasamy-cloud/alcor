@@ -21,6 +21,7 @@ const errorKeys: Record<string, MessageKey> = {
   COMPLETION_REQUIRES_SESSION: 'tracking.completionRequiresSession',
   RECOMMENDATIONS_UNAVAILABLE: 'recommendations.unavailable',
   RECOMMENDATION_CONTEXT_CHANGED: 'recommendations.contextChanged',
+  LIBRARY_QUERY_UNAVAILABLE: 'library.queryUnavailable',
   BACKEND_WAKING: 'backend.actionUnavailable', PROVIDER_NOT_CONFIGURED: 'catalogue.providerPending',
 }
 export class ApiError extends Error {

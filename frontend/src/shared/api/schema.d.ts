@@ -1378,6 +1378,8 @@ export interface components {
             readonly allowed_statuses: ("planned" | "in_progress" | "completed" | "on_hold" | "dropped" | "not_interested")[];
             /** Completed At */
             completed_at: string | null;
+            /** Completion Recorded At */
+            completion_recorded_at?: string | null;
             /**
              * Created At
              * Format: date-time
@@ -1401,6 +1403,8 @@ export interface components {
             rating: number | null;
             /** Reason */
             reason: string | null;
+            /** Recorded Units */
+            recorded_units?: number | null;
             /**
              * Status
              * @enum {string}
@@ -1433,6 +1437,7 @@ export interface components {
              * @default 1
              */
             page: number;
+            query_context?: components["schemas"]["LibraryQueryContext"] | null;
             /** Total */
             total: number;
             /**
@@ -1440,6 +1445,24 @@ export interface components {
              * @default 1
              */
             total_pages: number;
+        };
+        /** LibraryQueryContext */
+        LibraryQueryContext: {
+            /** Media Type */
+            media_type?: ("anime" | "manga") | null;
+            /**
+             * Q
+             * @default
+             */
+            q: string;
+            /**
+             * Sort
+             * @default id
+             * @enum {string}
+             */
+            sort: "id" | "title" | "saved" | "completion_recorded" | "rating" | "recorded_units";
+            /** Status */
+            status?: ("planned" | "in_progress" | "completed" | "on_hold" | "dropped" | "not_interested") | null;
         };
         /** LibraryWrite */
         LibraryWrite: {
@@ -2925,6 +2948,9 @@ export interface operations {
                 limit?: number;
                 cursor?: string | null;
                 page?: number | null;
+                q?: string;
+                media_type?: string | null;
+                sort?: "id" | "title" | "saved" | "completion_recorded" | "rating" | "recorded_units";
             };
             header?: never;
             path?: never;
@@ -3953,6 +3979,9 @@ export interface operations {
                 limit?: number;
                 cursor?: string | null;
                 page?: number | null;
+                q?: string;
+                media_type?: string | null;
+                sort?: "id" | "title" | "saved" | "completion_recorded" | "rating" | "recorded_units";
             };
             header?: never;
             path?: never;

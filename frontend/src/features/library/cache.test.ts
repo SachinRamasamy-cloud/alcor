@@ -5,6 +5,13 @@ import type {Entry} from '.'
 import {excludesEntry,publishLibraryEntry} from './cache'
 const media=fromAniList({id:1,idMal:10,type:'ANIME',title:{english:'Remembered title'}})
 const planned={media:{...media,id:'canonical'},status:'planned',ever_completed:false,version:4,deleted_at:null} as Entry
+it('invalidates filtered/sorted saved pages without guessing their membership, order or count',()=>{
+  const queries=new QueryClient(),key=['private','a','library','','',1,{q:'different title',sort:'rating',media_type:'anime'}]
+  const page={data:[],total:0,page:1,total_pages:1};queries.setQueryData(key,page)
+  publishLibraryEntry(queries,'a',planned)
+  expect(queries.getQueryData(key)).toEqual(page)
+  expect(queries.getQueryState(key)?.isInvalidated).toBe(true)
+})
 it('removes confirmed history from owned recommendation previews while preserving source and continuation snapshots',async()=>{
   const queries=new QueryClient(),key=['private','a','recommendations','favorites',{mode:'new_to_me'},'']
   const other=['private','b','recommendations','favorites',{mode:'new_to_me'},''],publicKey=['public','anilist','recommendation-edges','anime','1',1]

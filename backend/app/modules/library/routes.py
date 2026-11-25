@@ -10,6 +10,7 @@ from app.modules.library.schemas import (
     LibraryEntry,
     LibraryMutation,
     LibraryPage,
+    LibrarySort,
     LibraryStatus,
     LibraryWrite,
     WishlistWrite,
@@ -28,11 +29,13 @@ async def remove_library(
 
 @router.get("/media-status", response_model=list[LibraryEntry])
 async def overlay(
-    request: Request, user: User,
+    request: Request,
+    user: User,
     ids: Annotated[list[UUID] | None, Query(max_length=100)] = None,
     anilist_ids: Annotated[list[PositiveInt] | None, Query(max_length=100)] = None,
 ):
     from app.core.errors import AppError
+
     if not (ids or anilist_ids) or len(ids or []) + len(anilist_ids or []) > 100:
         raise AppError(422, "INVALID_REQUEST", "Choose between 1 and 100 titles.")
     return await request.app.state.library.overlay(user, ids or [], anilist_ids or [])
@@ -51,8 +54,13 @@ async def library(
     limit: int = Query(24, ge=1, le=100),
     cursor: str | None = Query(None, max_length=512),
     page: int | None = Query(None, ge=1, le=10000),
+    q: str = Query("", max_length=200),
+    media_type: str | None = Query(None, pattern="^(anime|manga)$"),
+    sort: LibrarySort = "id",
 ):
-    return await request.app.state.library.list_entries(user, status, limit, cursor, page)
+    return await request.app.state.library.list_entries(
+        user, status, limit, cursor, page, q=q, media_type=media_type, sort=sort
+    )
 
 
 @router.get("/wishlist", response_model=LibraryPage)
@@ -62,8 +70,13 @@ async def wishlist(
     limit: int = Query(24, ge=1, le=100),
     cursor: str | None = Query(None, max_length=512),
     page: int | None = Query(None, ge=1, le=10000),
+    q: str = Query("", max_length=200),
+    media_type: str | None = Query(None, pattern="^(anime|manga)$"),
+    sort: LibrarySort = "id",
 ):
-    return await request.app.state.library.list_entries(user, "planned", limit, cursor, page)
+    return await request.app.state.library.list_entries(
+        user, "planned", limit, cursor, page, q=q, media_type=media_type, sort=sort
+    )
 
 
 @router.put("/library/{media_id}", response_model=LibraryMutation)

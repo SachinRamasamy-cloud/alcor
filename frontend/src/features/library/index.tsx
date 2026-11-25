@@ -12,19 +12,17 @@ import { t } from '../../shared/content'
 import { Button } from '../../shared/ui'
 import {captureFlyOrigin,flyToTarget,type FlyOrigin} from '../../shared/motion'
 import {publishLibraryEntry} from './cache'
+import {readLibraryPage,type LibraryReadFilters} from './query'
 
 export type Entry = components['schemas']['LibraryEntry']
 export { PersonalDetails } from './details'
 export type LibraryPageData = components['schemas']['LibraryPage']
 type Result = components['schemas']['LibraryMutation']
-export function useLibrary(wishlist: boolean, cursor = '', status = '', page = 1) {
+export function useLibrary(wishlist: boolean, cursor = '', status = '', page = 1,filters:LibraryReadFilters={}) {
   const { userId } = useAuth()
   const {ready}=useBackend()
-  const params = new URLSearchParams()
-  if (cursor) params.set('cursor', cursor)
-  else params.set('page',String(page))
-  if (status && !wishlist) params.set('status', status)
-  return useQuery({ queryKey: ['private', userId, wishlist ? 'wishlist' : 'library', cursor, status, page], enabled: Boolean(userId&&ready), queryFn: ({ signal }) => api<LibraryPageData>(`/me/${wishlist ? 'wishlist' : 'library'}?${params}`, { signal, accountId: userId! }), staleTime: 30000 })
+  const context={q:filters.q?.trim()??'',media_type:filters.media_type??'',sort:filters.sort??'id'}
+  return useQuery({ queryKey: ['private', userId, wishlist ? 'wishlist' : 'library', cursor, status, page,context], enabled: Boolean(userId&&ready), queryFn: ({ signal }) => readLibraryPage(wishlist,cursor,status,page,context,userId!,signal), staleTime: 30000,retry:false })
 }
 export function useLibraryWrite() {
   const queries = useQueryClient()

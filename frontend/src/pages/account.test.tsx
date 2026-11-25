@@ -20,6 +20,19 @@ function mount(child = <LibraryPage />) {
 beforeEach(() => { history.replaceState(null, '', '/wishlist'); state.userId = 'account-a'; vi.clearAllMocks(); setTokenProvider(async () => state.userId ? { token: 'test-only', userId: state.userId } : null) })
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 describe('library integration', () => {
+  it('keeps search/type/status when changing sort and resets page continuation',async()=>{
+    history.replaceState(null,'','/library?q=amber&media_type=anime&status=planned&page=3')
+    const request=vi.fn<typeof fetch>(async url=>{
+      const params=new URL(String(url),'http://fixture').searchParams
+      return new Response(JSON.stringify({data:[],total:0,page:Number(params.get('page')??1),total_pages:1,query_context:{q:params.get('q')??'',media_type:params.get('media_type'),status:params.get('status'),sort:params.get('sort')??'id'}}))
+    });vi.stubGlobal('fetch',request);mount()
+    await waitFor(()=>expect(screen.getByRole('searchbox',{name:'Search saved titles and aliases'})).toHaveValue('amber'))
+    fireEvent.keyDown(screen.getByRole('button',{name:'Sort saved titles'}),{key:'ArrowDown'})
+    fireEvent.click(await screen.findByRole('menuitemradio',{name:'Title (A–Z)'}))
+    const params=new URL(location.href).searchParams
+    expect(Object.fromEntries(params)).toEqual({q:'amber',media_type:'anime',status:'planned',sort:'title'})
+    await waitFor(()=>expect(request.mock.calls.some(([url])=>String(url).includes('sort=title'))).toBe(true))
+  })
   it('publishes confirmed saved state to cached aliases before a slow background refresh',async()=>{
     let reads=0,refresh!:(response:Response)=>void
     const confirmed={...entry,media:{...media,source_ids:{anilist:'123'}}}
