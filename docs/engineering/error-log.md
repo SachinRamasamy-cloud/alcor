@@ -1,5 +1,6 @@
 # Error log
 
+
 Actual incidents only. No credentials, tokens, personal notes or raw sensitive payloads. Dates use Asia/Calcutta. A resolved development failure does not imply production validation.
 
 | ID / date | Symptom | Cause | Correction | Verification / status |
@@ -19,6 +20,8 @@ Actual incidents only. No credentials, tokens, personal notes or raw sensitive p
 | E013 / 2026-11-24 | Axe reported insufficient genre-number contrast at multiple widths | #777 on white narrowly missed AA for small text | Use the darker shared muted color #626262 | Original zero-violation assertions retained for rerun |
 | E014 / 2026-11-24 | Real PostgreSQL concurrent wishlist test hit a secondary unique constraint | Targeting only the catalogue primary key did not cover simultaneous conflicts on external identity | Handle all insert uniqueness conflicts, then explicitly verify the canonical identity; keep the original concurrent test | 3 integration tests and final 17-test suite passed; resolved |
 | E015 / 2026-11-24 | Draft frontend auth patch was rejected | Patch attempted delete/add operations for the same file in one patch | No part of that patch was applied; frontend account work remains pending when owner requested stop | Existing unconfigured sign-in UI retained; documented in handover |
+
+| E016 / 2026-11-25 | ESLint scan raced Playwright removing generated test-results | Generated browser output was not excluded from lint traversal | Excluded test-results/playwright-report; source test files remain checked | Lint and all 7 browser checks passed; resolved |
 
 Final checkpoint: E006–E010 and E012–E014 were resolved by the recorded passing checks. E011 remains an environment limitation. E002 remains a missing optional CLI; ordinary Git push succeeded. No error or warning is evidence of production acceptance.
 
