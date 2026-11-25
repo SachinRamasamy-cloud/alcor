@@ -126,6 +126,12 @@ test('footer has the generated brand, complete navigation and owner links',async
   await expect(footer.getByText('Discover the unseen.',{exact:true})).toBeVisible()
   await expect(footer.getByRole('link',{name:'GitHub',exact:true})).toHaveAttribute('href','https://github.com/SachinRamasamy-cloud/alcor')
   await expect(footer.getByRole('link',{name:'LinkedIn',exact:true})).toHaveAttribute('href','https://www.linkedin.com/in/m-sachin-ramasamy-5146092b5/')
+  for(const service of ['GitHub','LinkedIn']) {
+    const icon=footer.getByRole('link',{name:service,exact:true}).locator('img.social-icon')
+    await expect(icon).toBeVisible()
+    await expect(icon).toHaveAttribute('alt','')
+    await expect.poll(()=>icon.evaluate((img:HTMLImageElement)=>img.naturalWidth)).toBeGreaterThan(0)
+  }
   for(const path of ['/anime','/manga','/search','/discover','/library','/wishlist','/collections','/history','/statistics','/profile','/settings','/about','/help','/privacy','/terms','/data-sources','/status'])await expect(footer.locator(`a[href="${path}"]`)).toBeVisible()
   const mark=page.locator('.site-header .brand-mark')
   await expect(mark).toBeVisible()

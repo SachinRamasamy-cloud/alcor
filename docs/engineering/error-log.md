@@ -78,3 +78,7 @@ Final checkpoint: E006–E010 and E012–E014 were resolved by the recorded pass
 - E052: Screenshot inspection exposed episode key `2` preceding preserved key `001` because JavaScript enumerates integer object keys first. Sort numeric display labels while retaining exact source keys and distinct records. Added parser and browser first-episode regressions; all 54 unit/component and 25 browser tests passed afterward.
 
 - E053: A documentation patch assumed an incorrect provider-report heading and was rejected without changing files. Removed the unnecessary heading edit and appended the bounded evidence directly; implementation and test state were unaffected.
+
+- E054: Web retrieval could not display the SVG social icons because its renderer rejects `image/svg+xml`. Direct HTTPS reads from the same pinned official source returned 200; saved those assets with their licence. No application failure or additional package dependency.
+
+- E055: An empty documentation patch used a nonexistent heading anchor and was rejected without edits. Appended the intended acceptance note at the file end instead; source and test results were unaffected.

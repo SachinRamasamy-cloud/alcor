@@ -18,6 +18,10 @@ Baseline inspected: README-only repository at `12b945b`. Both plans and the full
 
 ## Execution and stop conditions
 
+### A12 - Social icons and complete responsive media cards
+
+25 November 2026; owner requests GitHub/LinkedIn icons and more complete, interactive cards adapted to screen size. Baseline `ed78a71`, clean tree. Risk L1 icons/layout, L2 card interaction. Scope: existing footer, reusable MediaCard/Poster, card styles/skeleton, localized copy and affected browser/component checks. Use local licensed SVG social icons because the installed Lucide package lacks brand exports; no package dependency, API, recommendation, private-state or authentication changes. Cards keep full-color 2:3 posters, original titles, attributed scores and account actions supplied as slots. Add known episode/chapter count, genre labels, equal-height body/action areas, visible touch/keyboard controls and failed-image fallback. Use 2/3/4/6 columns so a normal 24-item page fills rows; a genuinely shorter final source page remains shorter rather than inventing records. Acceptance: source details/save navigation, missing-image and absent-score behavior, intact social names/links, no extra provider requests for hover, and responsive no-overflow/equal-card checks including 1600/1920px. Preserve reduced motion and original no-guest-write assertions. Human review/release remains pending.
+
 ### A09 - Three-provider plan addendum
 
 Owner supplied a new AniList/AniZip/TMDB architecture and requested further planning. Scope: versioned plan, bounded public feasibility reads and ADR; no AniZip/TMDB runtime adapter or new credential requirement in the existing build. Evidence: AniZip mappings response fields/CORS/cache headers, primary Fribb mapping documentation and official TMDB references. Exact episode contracts and outstanding provider conditions remain next-stage prerequisites. Risk L2 planning with L4 credential/identity constraints identified. Original plans remain unchanged.

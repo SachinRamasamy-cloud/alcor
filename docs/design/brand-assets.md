@@ -11,3 +11,5 @@ Use case: logo-brand. Asset type: finished square transparent logo mark for ALCO
 ## Footer content
 
 Explore, personal navigation and information links use existing routes. GitHub points to the owner's repository. LinkedIn uses the exact profile supplied by the owner. Creator credit uses Sachin Ramasamy, consistent with the supplied repository/profile identifiers. Provider attribution describes implemented catalogue data only; no recommendation or full-coverage capability is invented.
+
+GitHub and LinkedIn link icons use the Lucide 0.468.0 SVGs, copied from the official `lucide-icons/lucide` repository into `frontend/public/icons/`. The installed current Lucide package does not export these brand icons. Their distributed licence is retained alongside them as `LICENSE.lucide.txt`; no icon package was added. Source URLs: https://raw.githubusercontent.com/lucide-icons/lucide/0.468.0/icons/github.svg and https://raw.githubusercontent.com/lucide-icons/lucide/0.468.0/icons/linkedin.svg. Decorative icon images do not change the links' accessible names.
