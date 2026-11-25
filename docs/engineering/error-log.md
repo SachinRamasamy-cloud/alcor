@@ -31,3 +31,6 @@ Final checkpoint: E006–E010 and E012–E014 were resolved by the recorded pass
 - E018: Source inspection found that an account-scoped request could acquire a different account's token while queued. Added expected-account validation before fetch and a regression proving no request is sent after an account switch. Verified in the 16-test frontend suite.
 
 - E019: Browser regression reproduced a 503 episode fetch falling through to the missing-metadata branch, without contextual error or Retry. Added loading/error branches ahead of successful episode rendering. The original failing assertion is retained; verification recorded in acceptance evidence.
+
+- E020: Tracking UI count test found question marks instead of separators. Windows shell piping replaced non-ASCII characters in generated copy. Corrected the registry using explicit Unicode escapes; the original text assertion is retained.
+- E021: A test patch was rejected after its expected context had been reformatted. No files were changed; reread the formatted context and reapplied the bounded patch.

@@ -55,6 +55,12 @@ async def test_wishlist_is_idempotent_and_start_is_atomic(database):
     assert (await unavailable.list_entries(user, None, 24, None)).total == 1
     async with database.transaction(user) as session:
         assert await session.scalar(text("SELECT count(*) FROM personal.activity")) == 2
+        assert (
+            await session.scalar(
+                text("SELECT count(*) FROM personal.tracking_sessions WHERE active")
+            )
+            == 1
+        )
 
 
 async def test_real_rls_and_pooled_context_reset(database):

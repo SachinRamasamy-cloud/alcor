@@ -412,6 +412,57 @@
         "title": "LibraryWrite",
         "type": "object"
       },
+      "ManualTargets": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_version": {
+            "minimum": 1.0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "manual_labels": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 2000,
+            "title": "Manual Labels",
+            "type": "array"
+          },
+          "media_id": {
+            "format": "uuid",
+            "title": "Media Id",
+            "type": "string"
+          },
+          "repeat": {
+            "default": false,
+            "title": "Repeat",
+            "type": "boolean"
+          },
+          "request_id": {
+            "format": "uuid",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "session_id": {
+            "format": "uuid",
+            "title": "Session Id",
+            "type": "string"
+          },
+          "skip_counts": {
+            "default": false,
+            "title": "Skip Counts",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "media_id",
+          "request_id",
+          "session_id",
+          "expected_version"
+        ],
+        "title": "ManualTargets",
+        "type": "object"
+      },
       "Media": {
         "properties": {
           "aliases": {
@@ -594,6 +645,195 @@
         "title": "Media",
         "type": "object"
       },
+      "ProgressSummary": {
+        "properties": {
+          "caught_up": {
+            "title": "Caught Up",
+            "type": "boolean"
+          },
+          "completed": {
+            "title": "Completed",
+            "type": "boolean"
+          },
+          "done": {
+            "title": "Done",
+            "type": "integer"
+          },
+          "next_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Key"
+          },
+          "remaining": {
+            "title": "Remaining",
+            "type": "integer"
+          },
+          "resolved": {
+            "title": "Resolved",
+            "type": "integer"
+          },
+          "skipped": {
+            "title": "Skipped",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "done",
+          "skipped",
+          "resolved",
+          "remaining",
+          "next_key",
+          "caught_up",
+          "completed"
+        ],
+        "title": "ProgressSummary",
+        "type": "object"
+      },
+      "ProgressWrite": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_version": {
+            "minimum": 1.0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "keys": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Keys",
+            "type": "array"
+          },
+          "state": {
+            "enum": [
+              "watched",
+              "read",
+              "skipped",
+              "unresolved"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expected_version",
+          "keys",
+          "state"
+        ],
+        "title": "ProgressWrite",
+        "type": "object"
+      },
+      "SessionRead": {
+        "properties": {
+          "active": {
+            "title": "Active",
+            "type": "boolean"
+          },
+          "coverage_complete": {
+            "title": "Coverage Complete",
+            "type": "boolean"
+          },
+          "final_total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Final Total"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "initial",
+              "repeat"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "media": {
+            "$ref": "#/components/schemas/Media"
+          },
+          "next_offset": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Offset"
+          },
+          "skip_counts": {
+            "title": "Skip Counts",
+            "type": "boolean"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/ProgressSummary"
+          },
+          "units": {
+            "items": {
+              "$ref": "#/components/schemas/UnitRead"
+            },
+            "title": "Units",
+            "type": "array"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "media",
+          "kind",
+          "active",
+          "version",
+          "skip_counts",
+          "coverage_complete",
+          "final_total",
+          "summary",
+          "units",
+          "next_offset",
+          "updated_at"
+        ],
+        "title": "SessionRead",
+        "type": "object"
+      },
+      "SessionVersion": {
+        "properties": {
+          "expected_version": {
+            "minimum": 1.0,
+            "title": "Expected Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "expected_version"
+        ],
+        "title": "SessionVersion",
+        "type": "object"
+      },
       "Source": {
         "properties": {
           "is_fixture": {
@@ -621,6 +861,118 @@
           "retrieved_at"
         ],
         "title": "Source",
+        "type": "object"
+      },
+      "StartSession": {
+        "additionalProperties": false,
+        "properties": {
+          "manual_labels": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 2000,
+            "title": "Manual Labels",
+            "type": "array"
+          },
+          "media_id": {
+            "format": "uuid",
+            "title": "Media Id",
+            "type": "string"
+          },
+          "repeat": {
+            "default": false,
+            "title": "Repeat",
+            "type": "boolean"
+          },
+          "request_id": {
+            "format": "uuid",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "skip_counts": {
+            "default": false,
+            "title": "Skip Counts",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "media_id",
+          "request_id"
+        ],
+        "title": "StartSession",
+        "type": "object"
+      },
+      "UnitRead": {
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "order": {
+            "title": "Order",
+            "type": "integer"
+          },
+          "provenance": {
+            "enum": [
+              "manual",
+              "provider"
+            ],
+            "title": "Provenance",
+            "type": "string"
+          },
+          "released": {
+            "title": "Released",
+            "type": "boolean"
+          },
+          "released_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Released At"
+          },
+          "state": {
+            "enum": [
+              "watched",
+              "read",
+              "skipped",
+              "unresolved"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "order",
+          "released",
+          "title",
+          "released_at",
+          "provenance",
+          "state"
+        ],
+        "title": "UnitRead",
         "type": "object"
       },
       "ValidationError": {
@@ -1193,6 +1545,58 @@
         ]
       }
     },
+    "/api/v1/me/continue-reading": {
+      "get": {
+        "operationId": "continue_manga_api_v1_me_continue_reading_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "title": "Response Continue Manga Api V1 Me Continue Reading Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Continue Manga",
+        "tags": [
+          "tracking"
+        ]
+      }
+    },
+    "/api/v1/me/continue-watching": {
+      "get": {
+        "operationId": "continue_anime_api_v1_me_continue_watching_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "title": "Response Continue Anime Api V1 Me Continue Watching Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Continue Anime",
+        "tags": [
+          "tracking"
+        ]
+      }
+    },
     "/api/v1/me/library": {
       "get": {
         "operationId": "library_api_v1_me_library_get",
@@ -1329,6 +1733,622 @@
         "summary": "Set Entry",
         "tags": [
           "library"
+        ]
+      }
+    },
+    "/api/v1/me/media/{media_id}/manual-chapters": {
+      "post": {
+        "operationId": "manual_chapters_api_v1_me_media__media_id__manual_chapters_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "media_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Media Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManualTargets"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Manual Chapters",
+        "tags": [
+          "tracking"
+        ]
+      }
+    },
+    "/api/v1/me/media/{media_id}/manual-episodes": {
+      "post": {
+        "operationId": "manual_episodes_api_v1_me_media__media_id__manual_episodes_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "media_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Media Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManualTargets"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Manual Episodes",
+        "tags": [
+          "tracking"
+        ]
+      }
+    },
+    "/api/v1/me/reading-sessions": {
+      "get": {
+        "operationId": "list_reading_sessions_api_v1_me_reading_sessions_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "media_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Media Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "title": "Response List Reading Sessions Api V1 Me Reading Sessions Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Reading-Sessions",
+        "tags": [
+          "tracking"
+        ]
+      },
+      "post": {
+        "operationId": "start_reading_sessions_api_v1_me_reading_sessions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartSession"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start Reading-Sessions",
+        "tags": [
+          "tracking"
+        ]
+      }
+    },
+    "/api/v1/me/reading-sessions/{session_id}/chapters": {
+      "get": {
+        "operationId": "read_reading_sessions_api_v1_me_reading_sessions__session_id__chapters_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "maximum": 2000,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Reading-Sessions",
+        "tags": [
+          "tracking"
+        ]
+      }
+    },
+    "/api/v1/me/reading-sessions/{session_id}/chapters/bulk": {
+      "post": {
+        "operationId": "update_reading_sessions_api_v1_me_reading_sessions__session_id__chapters_bulk_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProgressWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Reading-Sessions",
+        "tags": [
+          "tracking"
+        ]
+      }
+    },
+    "/api/v1/me/reading-sessions/{session_id}/complete": {
+      "post": {
+        "operationId": "complete_reading_sessions_api_v1_me_reading_sessions__session_id__complete_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionVersion"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Complete Reading-Sessions",
+        "tags": [
+          "tracking"
+        ]
+      }
+    },
+    "/api/v1/me/watch-sessions": {
+      "get": {
+        "operationId": "list_watch_sessions_api_v1_me_watch_sessions_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "media_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Media Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "title": "Response List Watch Sessions Api V1 Me Watch Sessions Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Watch-Sessions",
+        "tags": [
+          "tracking"
+        ]
+      },
+      "post": {
+        "operationId": "start_watch_sessions_api_v1_me_watch_sessions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartSession"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start Watch-Sessions",
+        "tags": [
+          "tracking"
+        ]
+      }
+    },
+    "/api/v1/me/watch-sessions/{session_id}/complete": {
+      "post": {
+        "operationId": "complete_watch_sessions_api_v1_me_watch_sessions__session_id__complete_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionVersion"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Complete Watch-Sessions",
+        "tags": [
+          "tracking"
+        ]
+      }
+    },
+    "/api/v1/me/watch-sessions/{session_id}/episodes": {
+      "get": {
+        "operationId": "read_watch_sessions_api_v1_me_watch_sessions__session_id__episodes_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "maximum": 2000,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Watch-Sessions",
+        "tags": [
+          "tracking"
+        ]
+      }
+    },
+    "/api/v1/me/watch-sessions/{session_id}/episodes/bulk": {
+      "post": {
+        "operationId": "update_watch_sessions_api_v1_me_watch_sessions__session_id__episodes_bulk_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProgressWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Watch-Sessions",
+        "tags": [
+          "tracking"
         ]
       }
     },

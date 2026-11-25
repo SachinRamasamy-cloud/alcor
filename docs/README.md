@@ -15,3 +15,5 @@
 
 Feature documentation and operating instructions are added with their implementation. Empty future modules are not scaffolded.
 
+
+[Remaining scope](engineering/remaining-scope.md) tracks the owner's reduced scope and the unfinished work.

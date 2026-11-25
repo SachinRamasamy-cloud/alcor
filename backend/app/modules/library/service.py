@@ -8,6 +8,7 @@ from app.infrastructure.database import Database
 from app.integrations.metadata.provider import MetadataProvider
 from app.modules.library import repository as repo
 from app.modules.library.schemas import LibraryMutation, LibraryPage, LibraryWrite, WishlistWrite
+from app.modules.tracking.public import ensure_initial_session
 
 TRANSITIONS = {
     "planned": {"in_progress", "completed", "dropped", "not_interested"},
@@ -117,6 +118,8 @@ class LibraryService:
                     "media": media_id,
                 },
             )
+            if change.status == "in_progress":
+                await ensure_initial_session(session, user_id, media_id)
             entry = await repo.read_entry(session, user_id, media_id)
             await repo.record_activity(
                 session,

@@ -60,3 +60,15 @@ The owner requested a stop because the device battery was low. Remaining source,
 - Fix: handle pending/error states before the successful missing-coverage branch. Retry refetches only the episode query. No provider, API or schema changes.
 - Verification: frontend `npm run lint` and `npm run build` passed; `npm run test:e2e` passed all 8 tests with the original failure assertion preserved. The preceding account frontend suite passed 16 unit/component tests. Diff whitespace check passed. Vite's known size warning remains documented in E017.
 - Status: implementation/local verification complete on the review branch. Human review and production acceptance pending. This fix does not supply missing episode metadata.
+
+## A04-A - Exact tracking vertical slice
+
+Date: 25 November 2026. Baseline `459a036`. Risk L2 behavior/L4 ownership boundaries. Scope and independent expected results are recorded in remaining-scope.md. Owner explicitly excludes Google configuration, import and export from the remaining build.
+
+Implemented: additive local migration 002; owned sessions and sparse progress; manual string/decimal targets; versioned bounded bulk marks/unmark; explicit completion assertions; immutable prior session history during repeats; 100-target response pages; continue queues; atomic library start integration; shared frontend tracker on title details. Manual targets have unknown dates/final total and cannot auto-complete. Source metadata determines coverage separately. One activity event records each changed bulk action. No-op writes preserve versions and do not announce success.
+
+Commands executed: local `docker compose -f compose.dev.yml up -d --wait`; backend `uv run alembic upgrade head` with the local migration URL, `uv run ruff check . --fix`, `uv run ruff format app tests`, `ALCOR_RUN_INTEGRATION=1 uv run pytest -q`, sequential OpenAPI export; frontend `npm run contracts`, `npm run lint`, `npm run test`, `npm run build`, `npm run test:e2e`; whitespace check before commit. Python commands used `python -m uv` on this host.
+
+Results: 23 Python tests passed, including actual PostgreSQL owner isolation/composite-reference rejection, retry identity, stale versions, exact 9/1/2/next-9 example, decimal/bonus chapter identity, manual append, pagination and repeat preservation. Frontend: 18 unit/component tests passed; 8 existing public browser regressions passed. Continue queue uses a bounded two-query batch. Build passed, known uncompressed bundle-size warning retained; initial entry remains about 200 KB gzip. E020 documents corrected copy encoding; E021 documents a rejected patch with no partial mutation.
+
+Status: this vertical slice is implemented/locally verified on the review branch. No remote migrations or real Google login executed. Human security/editorial review and production acceptance remain pending. Per-item ratings/notes, undo/corrections, release-driven target reconciliation, long-series performance, real authenticated browser workflows and other remaining-scope items are not claimed complete by this record.

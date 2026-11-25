@@ -1,0 +1,19 @@
+# Remaining implementation scope
+
+Authority: owner instruction, 25 November 2026: defer Google login, import and export; complete the other planned work. Preserve the original plans as requirements. This is a delivery checklist, not a completion claim.
+
+| Workstream | Required remaining behavior | State |
+| --- | --- | --- |
+| Exact tracking | Sparse episode/chapter marks, manual targets, bulk ranges, gap/skip counts, sessions, rewatch/reread, continue, completion and history | Ready; first implementation slice |
+| Personal organization | Status corrections/recovery, wishlist priority/reason/count/undo, bulk actions, collections, ratings, notes, favorites, preferences | Pending |
+| Discovery | Exclusions before pagination, advanced filters/presets, memory search, random, deterministic recommendations, hidden gems, relations and missing sequels | Pending |
+| Release monitoring | Calendar, follows, durable jobs/outbox/scheduler, deduplicated in-app notifications, announcements and operational notices | Pending |
+| Provider/cache | Validated adapter, canonical persistence, safe URLs/schema bounds, shared cache/singleflight, distributed inbound/outbound budgets and degraded behavior | Pending; production rights remain a human gate |
+| Reporting/account | History/statistics, profile/settings, privacy controls and safe account deletion | Pending |
+| Polish/operations | Success-only motion, responsive/accessibility checks, performance, secrets/dependency scans, reproducible containers, CI/contracts, monitoring, backup/restore and rollback | Partial; remaining checks pending |
+| Deferred | Google configuration/live Google validation, user import and user export | Explicitly excluded by owner |
+| Conditional extensions | Offline/PWA, push/email, streaming availability, extra providers/languages | Only where supported and independently reviewable; no invented capabilities |
+
+## A04 execution contract
+
+Risk: L2 tracking behavior; L4 private ownership/DB boundaries. Baseline `459a036`. Scope: tracking module, additive migration, library public integration, generated contracts, tracking UI and tests. No auth bypass, remote production migrations, new scientific formulas or unapproved dependencies. Use the supplied §4.2 numerical example as the independent oracle. Required tests: 9 watched/1 skipped/2 remaining/next 9; unknown final never auto-completes; reliable ongoing coverage yields caught-up; skips obey explicit policy; decimal/bonus chapter keys stay distinct; stale writes fail; real PostgreSQL ownership and composite references reject foreign sessions; repeat preserves original records and ever-completed evidence. Source-derived release metadata stays separate from manual targets. Writes commit before success; bulk change produces one activity event. Reuse existing auth, transaction, API error and content primitives. Human acceptance and production release remain pending.

@@ -25,8 +25,8 @@ Tenrai endpoint reachability was tested, but provider selection, usage rights, a
 
 1. Read the full protocol and current source before further changes. Inspect the pushed branch and review the API checkpoint against the work orders.
 2. Review the implemented account frontend and configurable PKCE flow. Add real staged OAuth and signed private browser-to-API validation when the owner enables Google. Unit/component tests cover pending-action rejection, replay deduplication, session cleanup and account-bound requests.
-3. Implement P4 exact sessions/progress and its required gap/skip/rewatch/chapter tests. No episode/chapter tracking implementation exists yet.
-4. Implement import preview/idempotent commit, complete export/restore and recovery. Do not fabricate dates or overwrite richer history.
+3. Continue the remaining scope in remaining-scope.md. The first exact tracking slice is implemented: sessions, sparse progress, manual targets, repeat preservation and continue queues. Add remaining correction/reconciliation and per-unit details with their own acceptance evidence.
+4. Google login configuration, import and export are deferred by the owner. Continue independent recovery, organization, reporting and discovery features.
 5. Continue P5/P6 discovery, organization, release monitoring and notifications only after prerequisites are ready. Unsupported controls remain omitted.
 6. Complete provider rights, independent engineering/security/editorial review, staging, backup/restore, performance and production operations gates before release.
 
