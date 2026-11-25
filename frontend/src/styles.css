@@ -31,6 +31,11 @@ main:focus { outline: none; }
 .desktop-nav a.active { color: #171717; }
 .desktop-nav a.active:after { content: ''; position: absolute; bottom: -1px; height: 2px; background: #171717; width: 100%; }
 .header-actions { margin-left: auto; display: flex; align-items: center; gap: 9px; }
+.fly-target { position: relative; display: inline-flex; align-items: center; justify-content: center; }
+.wishlist-count, .fly-delta { position: absolute; top: -10px; right: -12px; display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: #171717; border: 1px solid #fff; color: #fff; font-size: 9px; font-weight: 600; line-height: 16px; font-variant-numeric: tabular-nums; pointer-events: none; }
+.fly-delta { top: -16px; right: -16px; min-width: 24px; height: 20px; font-size: 10px; }
+.fly-target[data-celebrating] .wishlist-count { visibility: hidden; }
+.fly-poster { pointer-events: none; box-shadow: 0 8px 24px #0002; }
 .icon-button { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 0; background: none; border-radius: 6px; }
 .icon-button:hover { background: #f5f5f5; }
 .button { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 9px; border-radius: 6px; font-size: 13px; font-weight: 500; padding: 0 18px; border: 1px solid transparent; white-space: nowrap; }

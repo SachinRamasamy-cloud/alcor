@@ -12,6 +12,8 @@ import { t } from '../shared/content'
 import { Button, ErrorState, Loading, Modal, Pagination } from '../shared/ui'
 import { useBackend } from '../shared/api/backend'
 import { MoreHorizontal } from 'lucide-react'
+import {flyToTarget} from '../shared/motion'
+import type {components} from '../shared/api/schema'
 
 export async function finishSignedIn(userId:string,fallback='/dashboard') {
   const pending=readPending(true)
@@ -19,7 +21,8 @@ export async function finishSignedIn(userId:string,fallback='/dashboard') {
     const current=(await authClient?.auth.getSession())?.data.session
     if(current?.user.id!==userId)throw new Error(t('errors.auth'))
     const canonical=await resolveMediaId(pending.mediaId,userId)
-    await api(`/me/library/${canonical}`,{accountId:userId,method:'PUT',headers:{'Idempotency-Key':pending.nonce},body:JSON.stringify({status:pending.kind==='wishlist'?'planned':'in_progress'})})
+    const saved=await api<components['schemas']['LibraryMutation']>(`/me/library/${canonical}`,{accountId:userId,method:'PUT',headers:{'Idempotency-Key':pending.nonce},body:JSON.stringify({status:pending.kind==='wishlist'?'planned':'in_progress'})})
+    if(saved.changed)flyToTarget({scopeKey:userId,target:pending.kind,image:saved.entry.media.image_url})
   }
   return pending?.returnPath??fallback
 }

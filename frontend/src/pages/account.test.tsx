@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter } from 'react-router-dom'
 import { LibraryPage } from './account'
@@ -56,11 +56,44 @@ describe('library integration', () => {
     expect(state.signIn).toHaveBeenCalledWith('wishlist', { kind: 'wishlist', mediaId: media.id })
     expect(fetcher).not.toHaveBeenCalled()
   })
+  it('emits wishlist motion only after a changed server response',async()=>{
+    let complete!:(response:Response)=>void
+    vi.stubGlobal('fetch',vi.fn(()=>new Promise<Response>(resolve=>{complete=resolve})))
+    const effect=vi.fn();window.addEventListener('alcor:confirmed-save-motion',effect)
+    try{
+      mount(<SaveButton media={media} compact/>)
+      fireEvent.click(screen.getByRole('button',{name:'Add Test title to wishlist'}))
+      await waitFor(()=>expect(fetch).toHaveBeenCalledOnce())
+      expect(effect).not.toHaveBeenCalled()
+      await act(async()=>complete(new Response(JSON.stringify({entry,changed:true}))))
+      await waitFor(()=>expect(effect).toHaveBeenCalledOnce())
+      expect((effect.mock.calls[0][0] as CustomEvent).detail).toMatchObject({scopeKey:'account-a',target:'wishlist'})
+    }finally{window.removeEventListener('alcor:confirmed-save-motion',effect)}
+  })
+  it('does not celebrate a previous account response after account switching',async()=>{
+    let complete!:(response:Response)=>void
+    vi.stubGlobal('fetch',vi.fn(()=>new Promise<Response>(resolve=>{complete=resolve})))
+    const effect=vi.fn();window.addEventListener('alcor:confirmed-save-motion',effect)
+    try{
+      const queries=new QueryClient()
+      const tree=<QueryClientProvider client={queries}><BrowserRouter><SaveButton media={media}/></BrowserRouter></QueryClientProvider>
+      const view=render(tree)
+      fireEvent.click(screen.getByRole('button',{name:'Add to wishlist'}))
+      await waitFor(()=>expect(fetch).toHaveBeenCalledOnce())
+      state.userId='account-b'
+      view.rerender(<QueryClientProvider client={queries}><BrowserRouter><SaveButton media={media}/></BrowserRouter></QueryClientProvider>)
+      await act(async()=>complete(new Response(JSON.stringify({entry,changed:true}))))
+      await waitFor(()=>expect(screen.getByRole('button',{name:'Add to wishlist'})).not.toBeDisabled())
+      expect(effect).not.toHaveBeenCalled();expect(state.notify).not.toHaveBeenCalledWith('Added to wishlist.')
+    }finally{window.removeEventListener('alcor:confirmed-save-motion',effect)}
+  })
   it.each([false, true])('does not announce a save for no-op or failed write (failure=%s)', async failure => {
+    const effect=vi.fn();window.addEventListener('alcor:confirmed-save-motion',effect)
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(failure ? { error: { code: 'CONFLICT' } } : { entry, changed: false }), { status: failure ? 409 : 200 })))
     mount(<SaveButton media={media} />)
     fireEvent.click(screen.getByRole('button', { name: 'Add to wishlist' }))
     await waitFor(() => expect(screen.getByRole('button', { name: 'Add to wishlist' })).not.toBeDisabled())
     expect(state.notify).not.toHaveBeenCalledWith('Added to wishlist.')
+    expect(effect).not.toHaveBeenCalled();window.removeEventListener('alcor:confirmed-save-motion',effect)
   })
 })

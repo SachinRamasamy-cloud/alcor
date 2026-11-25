@@ -8,7 +8,7 @@ beforeEach(() => {
   vi.clearAllMocks(); sessionStorage.clear()
   mocks.exchange.mockResolvedValue({ data: { session: { user: { id: 'a' } } } })
   mocks.getSession.mockResolvedValue({ data: { session: { user: { id: 'a' } } } })
-  mocks.api.mockResolvedValue({ changed: true })
+  mocks.api.mockResolvedValue({ changed: true,entry:{media:{image_url:null}} })
 })
 it('exchanges and resumes exactly once for repeated callback execution', async () => {
   savePending('wishlist', '76aaad3c-0eb9-5e5c-a47c-d190a2b1300f', '/anime')

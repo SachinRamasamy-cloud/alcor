@@ -5,6 +5,75 @@ import { mockCatalogue, snapshots, titles } from './catalogue-fixture'
 test.beforeEach(async ({page}) => { await mockCatalogue(page) })
 
 for(const width of [375,1440]){
+  test(`confirmed wishlist save flies to the header and shows +1 at ${width}px`,async({page})=>{
+    await page.setViewportSize({width,height:1000});await page.emulateMedia({reducedMotion:'no-preference'})
+    await page.goto('/tests/e2e/motion-preview.html')
+    const card=page.locator('.media-card');await card.hover()
+    await card.getByRole('button',{name:'Add Motion title to wishlist'}).click()
+    await expect(page.locator('[data-fly-poster]')).toHaveCount(0)
+    const source=await card.locator('img.poster').boundingBox()
+    const pulses=page.evaluate(async()=>{
+      const button=document.querySelector('.card-save')!,target=document.querySelector('[data-fly-target="wishlist"]')!
+      const scale=(node:Element)=>{const style=getComputedStyle(node);return style.scale!=='none'?Number.parseFloat(style.scale):style.transform==='none'?1:new DOMMatrixReadOnly(style.transform).a}
+      let sourcePulse=false,targetPulse=false
+      const until=performance.now()+1000
+      while(performance.now()<until){sourcePulse ||= Math.abs(scale(button)-1)>.01;targetPulse ||= Math.abs(scale(target)-1)>.01;await new Promise(requestAnimationFrame)}
+      return{sourcePulse,targetPulse}
+    })
+    await page.getByRole('button',{name:'Confirm save',exact:true}).click()
+    const clone=page.locator('[data-fly-poster]');await expect(clone).toBeAttached()
+    expect(await clone.getAttribute('aria-hidden')).toBe('true')
+    expect(await clone.evaluate(node=>getComputedStyle(node).pointerEvents)).toBe('none')
+    const start=await clone.boundingBox();expect(Math.abs(start!.width-source!.width)).toBeLessThan(30)
+    await page.screenshot({path:test.info().outputPath('wishlist-flight.png')})
+    await expect(page.locator('[data-fly-target="wishlist"] .fly-delta')).toHaveText('+1')
+    expect(await pulses).toEqual({sourcePulse:true,targetPulse:true})
+    await expect(clone).toHaveCount(0)
+    await expect(page.locator('.wishlist-count')).toHaveText('3')
+    await expect(page.locator('.fly-delta')).toHaveCount(0,{timeout:2500})
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
+  })
+}
+
+test('reduced motion uses a static +1 without a flying poster',async({page})=>{
+  await page.emulateMedia({reducedMotion:'reduce'});await page.goto('/tests/e2e/motion-preview.html')
+  await page.locator('.media-card').hover();await page.getByRole('button',{name:'Add Motion title to wishlist'}).click()
+  await page.getByRole('button',{name:'Confirm save',exact:true}).click()
+  await expect(page.locator('.fly-delta')).toHaveText('+1');await expect(page.locator('[data-fly-poster]')).toHaveCount(0)
+})
+
+test('missing artwork or source degrades to header feedback and hidden targets do not fly',async({page})=>{
+  await page.emulateMedia({reducedMotion:'no-preference'});await page.goto('/tests/e2e/motion-preview.html')
+  await page.locator('.media-card').hover();await page.getByRole('button',{name:'Add Motion title to wishlist'}).click()
+  await page.getByRole('button',{name:'Toggle artwork'}).click();await page.getByRole('button',{name:'Confirm save',exact:true}).click()
+  await expect(page.locator('.fly-delta')).toBeVisible();await expect(page.locator('[data-fly-poster]')).toHaveCount(0)
+  await page.getByRole('button',{name:'Toggle artwork'}).click();await page.getByRole('button',{name:'Unmount source'}).click();await page.getByRole('button',{name:'Confirm save',exact:true}).click()
+  await expect(page.locator('.fly-delta')).toBeVisible();await expect(page.locator('[data-fly-poster]')).toHaveCount(0)
+  await page.getByRole('button',{name:'Toggle target'}).click();await page.getByRole('button',{name:'Confirm save',exact:true}).click()
+  await expect(page.locator('.fly-delta')).toHaveCount(0);await expect(page.locator('[data-fly-poster]')).toHaveCount(0)
+})
+
+for(const action of ['Navigate','Switch account']){
+  test(`${action} cancels active wishlist motion`,async({page})=>{
+    await page.emulateMedia({reducedMotion:'no-preference'});await page.goto('/tests/e2e/motion-preview.html')
+    await page.locator('.media-card').hover();await page.getByRole('button',{name:'Add Motion title to wishlist'}).click()
+    await page.getByRole('button',{name:'Confirm save',exact:true}).click();await expect(page.locator('[data-fly-poster]')).toBeAttached()
+    await page.getByRole('button',{name:action,exact:true}).click()
+    await expect(page.locator('[data-fly-poster]')).toHaveCount(0);await expect(page.locator('.fly-delta')).toHaveCount(0)
+  })
+}
+
+test('resize cancels active motion without changing the confirmed count',async({page})=>{
+  await page.emulateMedia({reducedMotion:'no-preference'});await page.goto('/tests/e2e/motion-preview.html')
+  await page.locator('.media-card').hover();await page.getByRole('button',{name:'Add Motion title to wishlist'}).click()
+  await page.getByRole('button',{name:'Confirm save',exact:true}).click();await expect(page.locator('[data-fly-poster]')).toBeAttached()
+  await page.setViewportSize({width:900,height:900})
+  await expect(page.locator('[data-fly-poster]')).toHaveCount(0);await expect(page.locator('.fly-delta')).toHaveCount(0)
+  await expect(page.locator('.wishlist-count')).toHaveText('3')
+  await expect.poll(()=>page.locator('.card-save').evaluate(node=>{const style=getComputedStyle(node);return style.scale!=='none'?Number.parseFloat(style.scale):style.transform==='none'?1:new DOMMatrixReadOnly(style.transform).a})).toBe(1)
+})
+
+for(const width of [375,1440]){
   test(`personal cards retain the locked design at ${width}px`,async({page})=>{
     await page.setViewportSize({width,height:1000})
     await page.goto('/tests/e2e/personal-preview.html')

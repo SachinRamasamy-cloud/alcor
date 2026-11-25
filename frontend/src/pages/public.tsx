@@ -44,7 +44,7 @@ export function HomePage() {
   if (home.error) return <ErrorState error={home.error} retry={() => { void home.refetch() }} />
   const featured = home.data.featured
   return <div className="shell"><PageTitle title={t('nav.home')} />
-    {featured && <section className="hero"><div className="hero-copy"><p className="eyebrow"><span className="tiny-rule" />{t('home.featured')}</p><h1>{featured.title}</h1>
+    {featured && <section data-media-source="" className="hero"><div className="hero-copy"><p className="eyebrow"><span className="tiny-rule" />{t('home.featured')}</p><h1>{featured.title}</h1>
       {featured.original_title && <p className="hero-original">{featured.original_title}</p>}
       <div className="hero-metadata"><span><Star size={14} fill="currentColor" />{featured.score?.toFixed(2) ?? t('media.notRated')}</span><span>{featured.year ?? t('media.notAvailable')}</span><span>{featured.format}</span><span>{unitCount(featured.total_units ?? null, featured.media_type)}</span></div>
       <SpoilerText><p className="hero-synopsis">{featured.synopsis}</p></SpoilerText><div className="hero-genres">{featured.genres.slice(0, 3).map(g => <Link to={`/anime?genre=${encodeURIComponent(g)}`} key={g}>{g}</Link>)}</div>
@@ -97,7 +97,7 @@ export function DetailsPage() {
   const facts=<dl className="detail-info-panel"><div><dt>{t('catalogue.format')}</dt><dd>{media.format??t('media.notAvailable')}</dd></div><div><dt>{t('media.status')}</dt><dd>{status}</dd></div><div><dt>{t('catalogue.year')}</dt><dd>{media.year??t('media.notAvailable')}</dd></div><div><dt>{t(mediaType==='anime'?'media.episodes':'media.chapters')}</dt><dd>{media.total_units??t('media.notAvailable')}</dd></div><div><dt>{t('media.studio')}</dt><dd>{media.studios?.join(', ')||t('media.notAvailable')}</dd></div></dl>
   return <div className="details-page"><PageTitle title={media.title}/>
     <div className={`detail-banner${media.banner_url?' has-image':''}`} style={media.banner_url?{backgroundImage:`url("${media.banner_url}")`}:undefined}><div className="detail-banner-shade"/><div className="shell detail-banner-inner"><Link className="detail-back" to={`/${mediaType}`}>{t('common.back')}</Link></div></div>
-    <div className="shell detail-body"><div className="detail-intro" id="overview"><aside className="detail-sidebar"><div className="detail-poster"><Poster media={media} priority/></div><div className="detail-save-actions"><SaveButton media={media} kind="library"/><SaveButton media={media}/></div>
+    <div className="shell detail-body"><div data-media-source="" className="detail-intro" id="overview"><aside className="detail-sidebar"><div className="detail-poster"><Poster media={media} priority/></div><div className="detail-save-actions"><SaveButton media={media} kind="library"/><SaveButton media={media}/></div>
       {facts}
     </aside><div className="detail-main"><p className="eyebrow">{media.format}{media.year&&` / ${media.year}`}</p><h1>{media.title}</h1>{media.original_title&&<p className="detail-original">{media.original_title}</p>}
       <div className="detail-highlights"><span className="detail-score"><Star size={16} fill="currentColor"/>{media.score?.toFixed(1)??t('media.notRated')}<small>{media.source.name} {t('media.sourceScore')}</small></span><span>{status}</span><span>{unitCount(media.total_units??null,media.media_type)}</span></div>
