@@ -1,0 +1,25 @@
+import {test,expect} from '@playwright/test'
+import AxeBuilder from '@axe-core/playwright'
+import {mockCatalogue} from './catalogue-fixture'
+test.beforeEach(async({page})=>mockCatalogue(page))
+for(const width of [375,1440])test(`custom filters retain multiple selections and alignment at ${width}px`,async({page})=>{
+  await page.setViewportSize({width,height:1000});await page.goto('/search?type=anime')
+  const format=page.getByRole('button',{name:'Format',exact:true})
+  await format.click()
+  await page.getByRole('menuitemcheckbox',{name:'TV',exact:true}).click()
+  await page.getByRole('menuitemcheckbox',{name:'Movie',exact:true}).click()
+  await expect(page.getByRole('menuitemcheckbox',{name:'TV',exact:true})).toHaveAttribute('aria-checked','true')
+  await expect(page.getByRole('menuitemcheckbox',{name:'Movie',exact:true})).toHaveAttribute('aria-checked','true')
+  expect(new URL(page.url()).searchParams.getAll('format')).toEqual(['TV','Movie'])
+  await page.keyboard.press('Escape');await expect(format).toBeFocused()
+  await format.press('Enter');await page.getByRole('menuitem',{name:'Clear selection'}).click()
+  expect(new URL(page.url()).searchParams.getAll('format')).toEqual([])
+  await page.keyboard.press('Escape')
+  const controls=await page.locator('.select-trigger').evaluateAll(nodes=>nodes.map(node=>node.getBoundingClientRect().height))
+  expect(controls).toHaveLength(6);expect(Math.max(...controls)-Math.min(...controls)).toBeLessThan(1)
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
+  await format.click()
+  const issues=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()
+  expect(issues.violations.map(issue=>({id:issue.id,nodes:issue.nodes.map(node=>({target:node.target,summary:node.failureSummary}))}))).toEqual([])
+  await page.screenshot({path:test.info().outputPath('custom-filters.png'),fullPage:true})
+})

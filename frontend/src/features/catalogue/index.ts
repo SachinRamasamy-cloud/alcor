@@ -1,12 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
-import { api, type Media, type EpisodePage } from '../../shared/api/client'
+import { api, ApiError, type Media, type EpisodePage } from '../../shared/api/client'
 import { aniCatalogue, aniDetails, aniHome } from '../../shared/api/anilist'
 import { useAuth } from '../../shared/auth'
 import { useBackend } from '../../shared/api/backend'
 import { personalPage } from './personal-page'
 export { SearchField } from './search-field'
 import { aniZipEpisodes } from '../../shared/api/anizip'
-import { needsLocalFilters } from './custom-filters'
+import { needsLocalFilters,hasMultipleValues } from './custom-filters'
 
 export const homeOptions = { queryKey: ['public', 'anilist', 'home'], queryFn: ({signal}: {signal:AbortSignal}) => aniHome(signal), staleTime: 300000, retry: false as const }
 export const useHome = (enabled=true) => useQuery({...homeOptions,enabled})
@@ -18,6 +18,7 @@ export function useCatalogue(path: string, params: URLSearchParams) {
   const personal = memory || Boolean(userId && ready && ['hide_watched', 'new_to_me'].includes(mode ?? ''))
   return useQuery({ queryKey: personal ? ['private', userId, 'anilist-catalogue', path, params.toString()] : ['public', 'anilist', path, params.toString()], queryFn: async ({signal}) => {
     if (memory) {
+      if(hasMultipleValues(params)||params.getAll('genre').length>1)throw new ApiError(422,'UNSUPPORTED_FILTER')
       const query = new URLSearchParams(params)
       if(path==='/anime'||path==='/manga') query.set('media_type',path.slice(1))
       return api<import('../../shared/api/client').CataloguePage>(`/me/discover?${query}`,{signal,accountId:userId??'signed-out'})

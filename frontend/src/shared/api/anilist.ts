@@ -2,7 +2,7 @@ import { ApiError, type CataloguePage, type HomeResponse, type Media } from './c
 
 export const ANILIST_ENDPOINT = 'https://graphql.anilist.co'
 const fields = `id idMal type title { romaji english native } synonyms description(asHtml: false)
-  coverImage { large } bannerImage format status season seasonYear startDate { year } episodes chapters
+  coverImage { large } bannerImage format countryOfOrigin status season seasonYear startDate { year } episodes chapters
   averageScore popularity genres tags { name isAdult isGeneralSpoiler isMediaSpoiler }
   studios(isMain: true) { nodes { name } } siteUrl isAdult`
 
@@ -10,7 +10,7 @@ export type AniMedia = {
   id: number; idMal?: number | null; type: 'ANIME' | 'MANGA'
   title: { romaji?: string | null; english?: string | null; native?: string | null }
   synonyms?: string[]; description?: string | null; coverImage?: { large?: string | null }
-  bannerImage?: string | null; format?: string | null; status?: string | null; season?: string | null
+  bannerImage?: string | null; format?: string | null; countryOfOrigin?:string|null; status?: string | null; season?: string | null
   seasonYear?: number | null; startDate?: { year?: number | null }
   episodes?: number | null; chapters?: number | null; averageScore?: number | null
   popularity?: number | null; genres?: string[]; tags?: { name: string; isAdult?: boolean; isGeneralSpoiler?: boolean; isMediaSpoiler?: boolean }[]
@@ -105,7 +105,7 @@ export function fromAniList(item: AniMedia): Media {
     title: item.title.english || item.title.romaji || item.title.native || String(item.id),
     original_title: item.title.native, aliases: [item.title.romaji, ...(item.synonyms ?? [])].filter((s): s is string => Boolean(s)),
     synopsis: plainText(item.description), image_url: safeImage, banner_url: item.bannerImage && /^https:\/\/s4\.anilist\.co\//.test(item.bannerImage)?item.bannerImage:null,
-    format: item.format === 'NOVEL' ? 'Light Novel' : item.format === 'MANGA' ? 'Manga' : item.format === 'MOVIE' ? 'Movie' : item.format === 'SPECIAL' ? 'Special' : item.format,
+    format: item.format === 'NOVEL' ? 'Light Novel' : item.format === 'MANGA' ? item.countryOfOrigin==='KR'?'Manhwa':item.countryOfOrigin==='CN'?'Manhua':'Manga' : item.format === 'MOVIE' ? 'Movie' : item.format === 'SPECIAL' ? 'Special' : item.format,
     status: item.status, season: item.season?.toLowerCase() as Media['season'], year: item.seasonYear ?? item.startDate?.year,
     score: item.averageScore == null ? null : item.averageScore / 10,
     // AniList popularity is list membership count, not a vote count or MAL rank.

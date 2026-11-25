@@ -1,3 +1,4 @@
+import {SelectMenu} from '../shared/ui/select-menu'
 import { DiscoveryControls } from '../features/discovery'
 import { SpoilerText } from '../features/preferences'
 import { useEffect } from 'react'
@@ -68,12 +69,15 @@ export function CataloguePage() {
   const genres = useGenres()
   const pagination = useCataloguePagination(catalogue.data?.next_cursor, catalogue.data?.has_more ?? false)
   function change(key: string, value: string) { setParams(previous => { const next = new URLSearchParams(previous); if (value) next.set(key, value); else next.delete(key); if (key !== 'cursor') {next.delete('cursor');next.delete('page')}; return next }) }
-  const filters = <div className="filters-controls"><label>{t('catalogue.genre')}<select value={params.get('genre') ?? ''} onChange={e => change('genre', e.target.value)}><option value="">{t('catalogue.allGenres')}</option>{genres.data?.map(g => <option key={g} value={g}>{g}</option>)}</select></label>
-    <label>{t('catalogue.format')}<select value={params.get('format') ?? ''} onChange={e => change('format', e.target.value)}><option value="">{t('catalogue.allFormats')}</option>{(type === 'manga' ? ['Manga', 'Manhwa', 'Manhua', 'Light Novel'] : type === 'anime' ? ['TV', 'Movie', 'OVA', 'ONA', 'Special'] : ['TV', 'Movie', 'Manga', 'Light Novel']).map(f => <option key={f}>{f}</option>)}</select></label>
-    <label>{t('catalogue.year')}<select value={params.get('year')??''} onChange={e=>change('year',e.target.value)}><option value="">{t('catalogue.anyYear')}</option>{Array.from({length:new Date().getFullYear()-1898},(_,i)=>new Date().getFullYear()+1-i).map(year=><option key={year} value={year}>{year}</option>)}</select></label>
-    <label>{t('discovery.season')}<select value={params.get('season')??''} onChange={e=>change('season',e.target.value)}><option value="">{t('discovery.anySeason')}</option>{(['winter','spring','summer','fall'] as const).map(season=><option key={season} value={season}>{t(`discovery.${season}`)}</option>)}</select></label>
-    <label>{t('media.status')}<select value={params.get('status')??''} onChange={e=>change('status',e.target.value)}><option value="">{t('catalogue.anyStatus')}</option>{(['FINISHED','RELEASING','NOT_YET_RELEASED','HIATUS','CANCELLED'] as const).map(status=><option key={status} value={status}>{t(`release.${status}`)}</option>)}</select></label>
-    <label>{t('catalogue.sort')}<select value={params.get('sort') ?? 'popular'} onChange={e => change('sort', e.target.value)}>{(['popular', 'score', 'title', 'year'] as const).map(s => <option value={s} key={s}>{t(`catalogue.${s}`)}</option>)}</select></label>
+  function select(key:string,values:string[]){setParams(previous=>{const next=new URLSearchParams(previous);next.delete(key);if(key==='include_genres')next.delete('genre');values.forEach(value=>next.append(key,value));next.delete('page');next.delete('cursor');return next})}
+  const options=(values:string[])=>values.map(value=>({value,label:value}))
+  const filters = <div className="filters-controls">
+    <SelectMenu label={t('catalogue.genre')} placeholder={t('catalogue.allGenres')} options={options(genres.data??[])} values={[...params.getAll('include_genres'),...params.getAll('genre')]} onChange={values=>select('include_genres',values)}/>
+    <SelectMenu label={t('catalogue.format')} placeholder={t('catalogue.allFormats')} options={options(type==='manga'?['Manga','Manhwa','Manhua','Light Novel']:type==='anime'?['TV','Movie','OVA','ONA','Special']:['TV','Movie','Manga','Manhwa','Manhua','Light Novel'])} values={params.getAll('format')} onChange={values=>select('format',values)}/>
+    <SelectMenu label={t('catalogue.year')} placeholder={t('catalogue.anyYear')} options={options(Array.from({length:new Date().getFullYear()-1898},(_,i)=>String(new Date().getFullYear()+1-i)))} values={params.getAll('year')} onChange={values=>select('year',values)}/>
+    <SelectMenu label={t('discovery.season')} placeholder={t('discovery.anySeason')} options={(['winter','spring','summer','fall'] as const).map(value=>({value,label:t(`discovery.${value}`)}))} values={params.getAll('season')} onChange={values=>select('season',values)}/>
+    <SelectMenu label={t('media.status')} placeholder={t('catalogue.anyStatus')} options={(['FINISHED','RELEASING','NOT_YET_RELEASED','HIATUS','CANCELLED'] as const).map(value=>({value,label:t(`release.${value}`)}))} values={params.getAll('status')} onChange={values=>select('status',values)}/>
+    <SelectMenu label={t('catalogue.sort')} placeholder={t('catalogue.popular')} options={(['popular','score','title','year'] as const).map(value=>({value,label:t(`catalogue.${value}`)}))} values={[params.get('sort')??'popular']} multiple={false} onChange={values=>select('sort',values)}/>
     </div>
   return <div className="shell page-body catalogue-page"><PageTitle title={t(titleKey)} /><div className="page-heading"><h1>{t(titleKey)}</h1></div>
     <div className="search-panel"><div className="search-and-filters"><SearchField key={location.pathname} value={params.get('q')??''} onCommit={value=>change('q',value)} busy={catalogue.isFetching}/></div>

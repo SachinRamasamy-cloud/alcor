@@ -475,5 +475,8 @@
   "media.inWishlist": "In wishlist",
   "media.inLibrary": "In your library",
   "media.retryStatus": "Retry saved status",
-  "library.completed": "Marked as completed."
+  "library.completed": "Marked as completed.",
+  "catalogue.clearSelection": "Clear selection",
+  "common.done": "Done",
+  "catalogue.multiPresetLimit": "Saved presets and saved-note search currently support one format, year, season and status at a time."
 }

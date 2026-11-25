@@ -1,6 +1,6 @@
 import { api, ApiError, type CataloguePage } from '../../shared/api/client'
 import { aniCatalogue } from '../../shared/api/anilist'
-import { matchesCustomFilters } from './custom-filters'
+import { matchesCustomFilters,multiValueFields } from './custom-filters'
 
 // Scan a bounded source window, filter before constructing the displayed page,
 // and preserve the exact unread source offset rather than dropping eligible items.
@@ -14,7 +14,8 @@ export async function personalPage(path: string, params: URLSearchParams, userId
   for (let scanned = 0; scanned < 3; scanned++) {
     const next = new URLSearchParams(params)
     next.delete('page')
-    if(next.get('genre_match')==='any')next.delete('include_genres')
+    if(next.get('genre_match')==='any'){next.delete('include_genres');next.delete('genre')}
+    for(const key of multiValueFields)if(next.getAll(key).length>1)next.delete(key)
     next.set('cursor', String(page))
     const result = await source(path, next, signal)
     const excluded = userId ? await exclude(result.data, params.get('mode')!, userId, signal) : []

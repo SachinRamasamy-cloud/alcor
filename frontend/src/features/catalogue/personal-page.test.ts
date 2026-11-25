@@ -19,3 +19,12 @@ it('excludes completed titles before assembling the final page and retains overf
   expect(second.data.map(m=>m.id)).toEqual(items.slice(54).map(m=>m.id))
   expect(second.has_more).toBe(false)
 })
+it('removes scalar upstream restrictions for OR selection before paginating matched titles',async()=>{
+  const params=new URLSearchParams('format=TV&format=Movie&year=2020&year=2024')
+  const result=await personalPage('/anime',params,null,undefined,async(_path,upstream)=>{
+    expect(upstream.has('format')).toBe(false);expect(upstream.has('year')).toBe(false)
+    return {page:1,data:[{...items[0],format:'TV',year:2024},{...items[1],format:'OVA',year:2024},{...items[2],format:'Movie',year:2020}],has_more:false,next_cursor:null,source:'AniList',is_partial:true,is_stale:false}
+  })
+  expect(result.data.map(item=>item.id)).toEqual(['anilist-1','anilist-3'])
+  expect(result.total_pages).toBeNull();expect(result.has_more).toBe(false)
+})
