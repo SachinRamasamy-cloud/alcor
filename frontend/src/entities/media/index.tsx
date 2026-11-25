@@ -16,7 +16,7 @@ export function MediaCard({ media, actions, context }: { media: Media; actions?:
   const titleId=useId()
   return <article data-media-source="" className="media-card" aria-labelledby={titleId}><m.div className="poster-wrap" whileHover={{ scale: 1.02 }} transition={{ duration: .16 }}>
     <Link to={mediaPath(media)} aria-label={t('media.open', { title: media.title })}><Poster media={media} /></Link>
-    {media.score != null && <span className="score-pill" aria-label={`${media.source.name} ${t('media.sourceScore')}: ${media.score}`}><Star size={12} fill="currentColor" />{media.score.toFixed(1)}</span>}
+    {media.score != null && <span className="score-pill" aria-label={`${t('media.sourceScore')}: ${media.score}`}><Star size={12} fill="currentColor" />{media.score.toFixed(1)}</span>}
   </m.div><div className="card-body"><Link id={titleId} to={mediaPath(media)} className="card-title" title={media.title}>{media.title}</Link>
     <p className="card-meta">{[media.format, media.year].filter(Boolean).join(' · ') || t('media.notAvailable')}</p>
     <p className="card-unit-count">{unitCount(media.total_units??null,media.media_type)}</p>

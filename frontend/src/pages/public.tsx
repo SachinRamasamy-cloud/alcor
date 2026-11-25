@@ -69,7 +69,7 @@ export function HomePage() {
       <div className="hero-metadata"><span><Star size={14} fill="currentColor" />{featured.score?.toFixed(2) ?? t('media.notRated')}</span><span>{featured.year ?? t('media.notAvailable')}</span><span>{featured.format}</span><span>{unitCount(featured.total_units ?? null, featured.media_type)}</span></div>
       <SpoilerText><p className="hero-synopsis">{featured.synopsis}</p></SpoilerText><div className="hero-genres">{featured.genres.slice(0, 3).map(g => <Link to={discoveryLink(`/anime?genre=${encodeURIComponent(g)}`,mode)} key={g}>{g}</Link>)}</div>
       <div className="hero-actions"><Link className="button button-primary" to={mediaPath(featured)}>{t('home.details')}<ArrowRight size={16} /></Link><CardActions media={featured} presentation="hero"/></div>
-      <a className="hero-source" href={featured.source.url} target="_blank" rel="noreferrer">{featured.source.name}<ArrowUpRight size={11} /></a>
+      <a className="hero-source" href={featured.source.url} target="_blank" rel="noreferrer">{t('media.external')}<ArrowUpRight size={11} /></a>
     </div><div className="hero-art"><m.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .25 }} className="hero-poster"><Poster media={featured} priority /></m.div><span className="hero-art-label">{featured.original_title ?? featured.title}</span></div></section>}
     <ContinueSections />
     {visibility.refilling&&<p className="coverage-note" role="status">{t('discovery.refilling')}</p>}
@@ -134,7 +134,7 @@ export function DetailsPage() {
     <div className="shell detail-body"><div data-media-source="" className="detail-intro" id="overview"><aside className="detail-sidebar"><div className="detail-poster"><Poster media={media} priority/></div><div className="detail-save-actions"><SaveButton media={media} kind="library"/><SaveButton media={media}/></div>
       {facts}
     </aside><div className="detail-main"><p className="eyebrow">{media.format}{media.year&&` / ${media.year}`}</p><h1>{media.title}</h1>{media.original_title&&<p className="detail-original">{media.original_title}</p>}
-      <div className="detail-highlights"><span className="detail-score"><Star size={16} fill="currentColor"/>{media.score?.toFixed(1)??t('media.notRated')}<small>{media.source.name} {t('media.sourceScore')}</small></span><span>{status}</span><span>{unitCount(media.total_units??null,media.media_type)}</span></div>
+      <div className="detail-highlights"><span className="detail-score"><Star size={16} fill="currentColor"/>{media.score?.toFixed(1)??t('media.notRated')}<small>{t('media.sourceScore')}</small></span><span>{status}</span><span>{unitCount(media.total_units??null,media.media_type)}</span></div>
       <section className="synopsis-section"><h2>{t('media.synopsis')}</h2><SpoilerText><ExpandableSynopsis text={media.synopsis??t('media.noSynopsis')}/></SpoilerText></section>
       <div className="hero-genres">{media.genres.map(genre=><Link key={genre} to={`/${mediaType}?genre=${encodeURIComponent(genre)}`}>{genre}</Link>)}</div>
       <details className="detail-mobile-facts"><summary>{t('media.relatedInfo')}</summary>{facts}</details>
@@ -142,7 +142,7 @@ export function DetailsPage() {
     <section id="episodes" className="episode-section"><div className="section-heading"><h2>{t(mediaType==='anime'?'media.episodes':'media.chapters')}</h2>{episodes.data?.source==='AniZip'&&<span className="episode-attribution">{t('media.episodeSource')} AniZip</span>}</div>
       {mediaType==='anime'&&episodes.isPending?<Loading variant="episodes"/>:mediaType==='anime'&&episodes.error?<ErrorState error={episodes.error} retry={()=>{void episodes.refetch()}}/>:mediaType==='anime'&&episodes.data?.data.length?<EpisodeList key={id} episodes={episodes.data.data}/>:<p className="mt-4 text-sm text-muted">{t(mediaType==='anime'?'media.episodesMissing':'media.chaptersMissing')}</p>}
     </section><SimilarShelf media={media} mode={mode}/><section id="your-progress" className="personal-media-section"><PersonalMedia media={media}/></section>
-    </div></div><div className="source-note"><span>{t('media.source')}: {media.source.name}</span><span>{t('media.updated',{date:formatDate(media.source.retrieved_at)})}</span><a href={media.source.url} target="_blank" rel="noreferrer">{t('media.external')}<ArrowUpRight size={12}/></a></div>
+    </div></div><div className="source-note"><span>{t('media.updated',{date:formatDate(media.source.retrieved_at)})}</span><a href={media.source.url} target="_blank" rel="noreferrer">{t('media.external')}<ArrowUpRight size={12}/></a></div>
     </div></div>
 }
 

@@ -1,5 +1,5 @@
-import {useEffect,useState} from 'react'
-import {useQueries,useQueryClient} from '@tanstack/react-query'
+import {useEffect} from 'react'
+import {useQueryClient} from '@tanstack/react-query'
 import {Link} from 'react-router-dom'
 import {useAuth} from '../../shared/auth'
 import {useBackend} from '../../shared/api/backend'
@@ -7,7 +7,7 @@ import type {Media} from '../../shared/api/client'
 import type {RecommendationItem} from '../../shared/api/anilist'
 import {sameTitle} from '../../shared/api/identity'
 import {t} from '../../shared/content'
-import {Button,ErrorState,Loading} from '../../shared/ui'
+import {ErrorState,Loading} from '../../shared/ui'
 import {CardStatus} from '../library/actions'
 import {useFavorites} from '../library/favorites'
 import {usePreferences,type Preferences} from '../preferences'
@@ -15,7 +15,7 @@ import {tasteParams} from '../discovery/taste'
 import {BrowseShelf} from '../catalogue/shelf'
 import {DiscoveryNotice} from '../catalogue/visibility'
 import type {DiscoveryMode} from '../catalogue/policy'
-import {useRecommendationFeed,type RecommendationPage} from './hooks'
+import {useRecommendationFeed} from './hooks'
 import {recommendationLink,type FeedKind} from './feed'
 
 export function recommendationFilters(preferences:Preferences,type:'anime'|'manga',mode:DiscoveryMode,kind:FeedKind){
@@ -92,21 +92,14 @@ export function HomePersonalShelves({mode,enabled}:{mode:DiscoveryMode;enabled:b
   return userId&&enabled?<HomePersonal key={userId} mode={mode}/>:null
 }
 function SimilarCarousel({media,mode,filters,knownFavorites,version,favoriteVersion,title}:{media:Media;mode:DiscoveryMode;filters:URLSearchParams;knownFavorites:Media[];version:number;favoriteVersion:number;title:string}){
-  const [tokens,setTokens]=useState(['']),queries=useQueryClient()
-  const query=useRecommendationFeed({kind:'similar',type:media.media_type,mode,filters,seeds:[media],knownFavorites,preferenceVersion:version,favoriteVersion,token:tokens[tokens.length-1]})
-  const history=useQueries({queries:tokens.slice(0,-1).map(token=>({queryKey:[...query.queryKey.slice(0,-1),token],enabled:false,select:(data:RecommendationPage)=>data}))})
-  const items:RecommendationItem[]=[]
-  for(const page of [...history.map(previous=>previous.data),query.data])for(const item of page?.items??[])if(!items.some(previous=>sameTitle(previous.media,item.media)))items.push(item)
-  const latest=query.data??history[history.length-1]?.data
-  function restart(){const first=[...query.queryKey.slice(0,-1),''];setTokens(['']);void queries.resetQueries({queryKey:first,exact:true})}
+  const query=useRecommendationFeed({kind:'similar',type:media.media_type,mode,filters,seeds:[media],knownFavorites,preferenceVersion:version,favoriteVersion})
   if(query.personalUnavailable)return <section className="home-section details-similar"><h2>{title}</h2><DiscoveryNotice unavailable refetch={query.refetch}/></section>
-  if(query.error)return <section className="home-section details-similar"><h2>{title}</h2><ErrorState error={query.error} retry={()=>{void query.refetch()}}/><Button variant="secondary" onClick={restart}>{t('recommendations.restart')}</Button></section>
-  if(!items.length&&query.isPending)return <section className="home-section details-similar"><h2>{title}</h2><Loading variant="shelf"/></section>
+  if(query.error)return <section className="home-section details-similar"><h2>{title}</h2><ErrorState error={query.error} retry={()=>{void query.refetch()}}/></section>
+  if(query.isPending)return <section className="home-section details-similar"><h2>{title}</h2><Loading variant="shelf"/></section>
+  const items=query.data.items
   const to=recommendationLink('similar',media.media_type,mode,{filters,seeds:[`anilist-${media.source_ids?.anilist}`],version})
   return <div className="details-similar"><BrowseShelf title={title} items={items.map(item=>item.media)} to={to} recommendationContext="similar" emptyMessage={t('recommendations.empty')}
     context={candidate=><RecommendationContext item={items.find(item=>sameTitle(item.media,candidate))!} kind="similar" filters={filters}/>}/>
-    {(latest?.hasMore||tokens.length>1)&&<div className="similar-load-more"><Button variant="secondary" disabled={query.isFetching||!query.data?.nextCursor} aria-busy={query.isFetching} onClick={()=>{const next=query.data?.nextCursor;if(next&&!tokens.includes(next))setTokens(previous=>[...previous,next])}}>{t(query.isFetching?'recommendations.loadingMore':latest?.hasMore?'recommendations.loadMore':'recommendations.noMoreSimilar')}</Button></div>}
-    {query.isPending&&items.length>0&&<p className="coverage-note" role="status">{t('recommendations.loadingMore')}</p>}
   </div>
 }
 export function SimilarShelf({media,mode}:{media:Media;mode:DiscoveryMode}){
