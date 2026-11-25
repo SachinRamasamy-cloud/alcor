@@ -1,0 +1,25 @@
+﻿# Favourite recommendation filters
+
+Task REC-FILTERS-20261126; L2 ordinary UI/feed integration. Owner requests filters on Based on your favourites because its suggestions feel fixed. Source inspection confirms shared shelves and the full results page default to the first three verified favourites. Authority: explicit owner UI request plus approved REM-03 source/filter/URL contracts. Reuse the unchanged full protocol already read this session; reconsulted autonomy boundaries. No public API, scientific model, provider pacing, dependency or persisted preference change.
+
+Contract: add a compact Based on selector (current three-favourite mix, or one verified favourite in the current bounded window) and multi-genre filter to shared favourite shelves and the full favourites feed. Explicit Next favourites/First favourites browse existing 24-item owned cursor windows; no eager complete-list read or automatic rotation. Selecting a source or genres resets result continuation; View all captures the same seed/filter/version/window context. Full-page controls use the existing seed/include_genres/genre_match/version/favorites_cursor parameters with browser Back support. Genres mean any selected genre; all existing strict exclusions, mode/history/dismissal/known-favourite checks apply before feed pagination. Reset clears only these view selections, preserving saved preferences. Removed/unavailable favourite identities cannot remain active sources. Source reasons remain literal observed edges. Personal selection resets on owner/type changes; existing owner/version cache scopes remain authoritative.
+
+Scope: reusable recommendation filter controls; shared favourite view integration; full-feed controls; additive optional shelf control/status slots; scoped responsive CSS and translations. Hero public fetch and all other shelves retain current policies. No private writes, auth bypass, migrations, deployment or protected-test changes.
+
+Inspect -> specify -> implement -> focused static/source/diff review and isolated fixture-based UI inspection where practical. User explicitly requests no tests/builds; do not run test suites or asset builds. Record executed evidence and limitations. Runtime owner acceptance, independent review and release remain pending.
+
+## Implementation and evidence
+
+Implemented a shared Based on/Genre toolbar on favourite preview shelves and the full favourites results page. Mix retains the existing first-three default for the current window; any verified favourite in that window can be selected individually. Next/First favourites explicitly navigate existing owned windows, including recovery from a failed later-window read. Local preview state is keyed by owner/type; full-page selections use existing URL fields. New query contexts reset continuation and keep View all/reason provenance consistent. The optional BrowseShelf controls/status slots keep filter controls available during source loading/errors without changing other shelf callers. No saved state is written.
+
+Executed `npx tsc --noEmit --pretty false` and affected-file ESLint (filters.tsx, views.tsx, catalogue/shelf.tsx, pages/recommendations.tsx): passed. Installed PostCSS parsing of src/styles.css and JSON parsing of src/content/en/common.json through Node literal stdin: passed. `git diff --check`: passed. Reviewed removal/version reconciliation, owner/type state isolation, unchanged exclusions, at-most-three public seeds, explicit 24-favourite windows and URL continuation reset.
+
+Executed `node C:/Users/sacs7/.codex/tmp/alcor-filters-inspect.mjs` as an isolated headless UI walkthrough against the existing Vite server, with synthetic AuthContext/25-favourite/preferences/provider fixtures. All API/provider requests were intercepted; no real identity/session, live provider request or private write occurred. No production bypass or fixture was added to application source. Confirmed:
+
+- Default mix uses seeds 1/2/3; choosing favourite 4 changes to only its two recommendations, excluding the synthetic watched candidate.
+- Romance yields one item; Romance plus Fantasy yields both items. View all retains canonical seed 4, both genres, genre_match=any, mode and captured version.
+- Full-page selection of favourite 5 changes results; Reset returns to the current mix; browser Back restores favourite 5 and genres.
+- Next favourites reaches favourite 25 through limit=24/cursor; First returns to the initial window while retaining the current genre filter. Source batches were [1,2,3], [4], [5], [25]; existing pacing/cache reuse remained active.
+- At 390px viewport width, document width is 390px and both controls are 358px wide inside the page. Inspected the mobile screenshot. Final walkthrough reported no page errors.
+
+No test suite, build, migration, deployment or production-provider validation was run. Empty/error and removal/account-change handling were source-reviewed; no new adversarial runtime coverage is claimed. Human review, owner's live-profile acceptance and release remain pending. Prior protected tests were not edited.

@@ -577,5 +577,9 @@
   "hero.tagline": "Remember what you've watched. Discover what you've missed.",
   "hero.description": "Your personal discovery engine for anime, manga, manhwa, manhua and light novels. Build your library, rediscover forgotten stories and find new content that matches your interests.",
   "hero.explore": "Start exploring",
-  "hero.loading": "Loading anime…"
+  "hero.loading": "Loading anime…",
+  "recommendations.filters": "Favourite recommendation filters",
+  "recommendations.basedOn": "Based on",
+  "recommendations.mixFavorites": "Mix favourites",
+  "recommendations.firstFavorites": "First favourites"
 }

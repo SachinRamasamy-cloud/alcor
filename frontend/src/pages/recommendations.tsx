@@ -10,6 +10,7 @@ import {useFavorites,type FavoritesPageData} from '../features/library/favorites
 import {CardActions} from '../features/library/actions'
 import {useRecommendationFeed} from '../features/recommendations/hooks'
 import {RecommendationContext,recommendationFilters} from '../features/recommendations/views'
+import {FavoriteFeedFilters} from '../features/recommendations/filters'
 import type {FeedKind} from '../features/recommendations/feed'
 import {useDiscoveryMode,type DiscoveryMode} from '../features/catalogue/policy'
 import {DiscoveryNotice} from '../features/catalogue/visibility'
@@ -58,6 +59,20 @@ export function RecommendationsPage(){
     if(refreshContext){const next=new URLSearchParams({kind,type,mode});if(kind==='similar')requested.forEach(seed=>next.append('seed',seed));return next}
     const next=new URLSearchParams(previous);next.delete('cursor');next.delete('page');return next
   })}
+  function changeFilters(change:(next:URLSearchParams)=>void){setParams(previous=>{
+    const next=new URLSearchParams(previous);change(next);next.delete('cursor');next.delete('page')
+    if(preferences.data)next.set('version',String(preferences.data.version))
+    return next
+  })}
+  function favoriteWindow(cursor:string){changeFilters(next=>{next.delete('seed');if(cursor)next.set('favorites_cursor',cursor);else next.delete('favorites_cursor')})}
+  const canonical=preferences.data?.data.favorite_media_ids
+  const pool=[...new Map([...(favorites.data?.data??[]),...(selected.data?.data??[])].filter(media=>media.media_type===type&&media.source_ids?.anilist&&(canonical==null||canonical.includes(media.id))).map(media=>[media.id,media])).values()]
+  const controls=kind==='favorites'&&userId&&ready&&preferences.data&&favorites.data&&preferenceRevision===favoriteRevision?<FavoriteFeedFilters
+    pool={pool} source={requested.length===1?requested[0]:''} genres={[...new Set([...params.getAll('include_genres'),...params.getAll('genre')])]}
+    onSource={source=>changeFilters(next=>{next.delete('seed');if(source)next.append('seed',source)})}
+    onGenres={genres=>changeFilters(next=>{next.delete('genre');next.delete('include_genres');next.set('genre_match','any');genres.forEach(genre=>next.append('include_genres',genre))})}
+    onNext={favorites.data.next_cursor?()=>favoriteWindow(favorites.data!.next_cursor!):undefined} onFirst={favoriteCursor?()=>favoriteWindow(''):undefined}
+    onReset={()=>changeFilters(next=>{for(const key of ['seed','genre','include_genres','genre_match'])next.delete(key)})}/>:null
   let body
   if(!validKind||!validType||!validSeeds||requestedVersion!==null&&!/^\d+$/.test(requestedVersion))body=<ErrorState error={new ApiError(422,'INVALID_REQUEST')}/>
   else if(!userId&&kind!=='similar')body=<Button onClick={()=>requireSignIn()}>{t('nav.signIn')}</Button>
@@ -78,5 +93,5 @@ export function RecommendationsPage(){
     else if(kind==='taste'&&preferences.data&&!tasteParams(preferences.data.data,type,mode).personal)body=<p className="coverage-note">{t('recommendations.noTaste')}</p>
     else body=<FeedResults kind={kind} type={type} mode={mode} filters={filters} seeds={seeds} knownFavorites={known} version={version} favoriteVersion={selected.data?.preferences_version??favorites.data?.preferences_version??0} favoriteCursor={favoriteCursor} restart={()=>restart()}/>
   }
-  return <div className="shell page-body"><div className="page-heading"><h1>{title}</h1></div>{body}</div>
+  return <div className="shell page-body"><div className="page-heading"><h1>{title}</h1></div>{controls}{body}{kind==='favorites'&&userId&&favoriteCursor&&!controls&&favorites.error&&<Button variant="secondary" onClick={()=>favoriteWindow('')}>{t('recommendations.firstFavorites')}</Button>}</div>
 }
