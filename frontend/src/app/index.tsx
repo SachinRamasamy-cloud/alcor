@@ -28,9 +28,9 @@ class Boundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   render() { return this.state.failed ? <ErrorState /> : this.props.children }
 }
 export function App() {
-  return <Boundary><QueryClientProvider client={queryClient}><LazyMotion features={domAnimation}><MotionConfig reducedMotion="user"><BrowserRouter><FeedbackProvider><AuthProvider><BackendProvider><PreferenceEffects><Routes><Route element={<Layout />}>
+  return <Boundary><QueryClientProvider client={queryClient}><LazyMotion features={domAnimation}><MotionConfig reducedMotion="user"><BrowserRouter><FeedbackProvider><BackendProvider><AuthProvider><PreferenceEffects><Routes><Route element={<Layout />}>
     <Route index element={<Home />} />{['anime', 'manga', 'search', 'discover'].map(path => <Route key={path} path={path} element={<Catalogue />} />)}
     <Route path="anime/:id" element={<Details />} /><Route path="manga/:id" element={<Details />} />
     <Route path="auth/callback" element={<Callback />} /><Route path="settings" element={<Settings />} /><Route path="profile" element={<Profile />} /><Route path="history" element={<History />} /><Route path="statistics" element={<Statistics />} /><Route path="collections" element={<Collections />} /><Route path="collections/:id" element={<Collections />} /><Route path="library" element={<Personal />} /><Route path="wishlist" element={<Personal />} /><Route path="*" element={<Info />} />
-  </Route></Routes></PreferenceEffects></BackendProvider></AuthProvider></FeedbackProvider></BrowserRouter></MotionConfig></LazyMotion></QueryClientProvider></Boundary>
+  </Route></Routes></PreferenceEffects></AuthProvider></BackendProvider></FeedbackProvider></BrowserRouter></MotionConfig></LazyMotion></QueryClientProvider></Boundary>
 }

@@ -37,6 +37,43 @@ for (const width of [320, 375, 640, 768, 1024, 1280, 1440, 1600, 1920]) {
   })
 }
 
+for(const width of [375,1440]) {
+  test(`sign-in keeps Google visible during backend startup at ${width}px`,async({page})=>{
+    const gate={onDemand:false,release:undefined as undefined|(()=>void)}
+    await page.route('**/api/v1/ready',async route=>{
+      if(!gate.onDemand)return route.fulfill({status:503,contentType:'application/json',body:'{}'})
+      await new Promise<void>(resolve=>{gate.release=resolve})
+      return route.fulfill({contentType:'application/json',body:'{"status":"ready"}'})
+    })
+    await page.setViewportSize({width,height:900})
+    await page.goto('/')
+    await expect(page.locator('.media-card')).toHaveCount(18)
+    await expect(page.locator('.auth-startup')).toHaveCount(0)
+    gate.onDemand=true
+    const trigger=page.getByRole('button',{name:'Sign in',exact:true})
+    await trigger.click()
+    const dialog=page.getByRole('dialog')
+    const google=dialog.getByRole('button',{name:'Continue with Google',exact:true})
+    await expect(google).toBeVisible()
+    await expect(google).toBeDisabled()
+    await expect(dialog.getByRole('status')).toContainText('Getting sign-in ready')
+    await expect.poll(()=>Boolean(gate.release)).toBeTruthy()
+    const accessibility=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()
+    expect(accessibility.violations.map(v=>v.id)).toEqual([])
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
+    await dialog.screenshot({path:test.info().outputPath('sign-in-starting.png')})
+    gate.release!()
+    await expect(dialog.locator('.auth-startup')).toHaveCount(0)
+    await expect(google).toBeVisible()
+    if(await dialog.getByText("Google sign-in hasn't been enabled yet.",{exact:true}).count())await expect(google).toBeDisabled()
+    else await expect(google).toBeEnabled()
+    await dialog.screenshot({path:test.info().outputPath('sign-in-options.png')})
+    await page.keyboard.press('Escape')
+    await expect(dialog).toHaveCount(0)
+    await expect(trigger).toBeFocused()
+  })
+}
+
 test('cards show complete metadata, hover or focus actions and balanced rows at wide widths',async({page})=>{
   await page.setViewportSize({width:1920,height:1000})
   await page.route('https://graphql.anilist.co',route=>{

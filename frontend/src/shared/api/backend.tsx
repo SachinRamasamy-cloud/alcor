@@ -1,13 +1,11 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { setBackendReady } from './client'
 import { t } from '../content'
 import { Button } from '../ui'
 import { useAuth } from '../auth'
-
-type BackendState = { ready: boolean; phase: 'ready' | 'waking' | 'offline'; retry: () => void }
-const Context = createContext<BackendState>({ ready: true, phase: 'ready', retry: () => {} })
-export const useBackend = () => useContext(Context)
+import { BackendContext, useBackend, type BackendState } from './backend-state'
+export { useBackend } from './backend-state'
 
 export function BackendProvider({ children }: { children: ReactNode }) {
   const [phase, setPhase] = useState<BackendState['phase']>('waking')
@@ -39,8 +37,8 @@ export function BackendProvider({ children }: { children: ReactNode }) {
     window.addEventListener('alcor:backend-unavailable', lost)
     return () => { active = false; controller.abort(); clearTimeout(timer); window.removeEventListener('alcor:backend-unavailable', lost) }
   }, [attempt, queries])
-  const retry = () => { setPhase('waking'); setAttempt(value => value + 1) }
-  return <Context.Provider value={{ ready: phase === 'ready', phase, retry }}>{children}</Context.Provider>
+  const retry = useCallback(() => { setPhase('waking'); setAttempt(value => value + 1) }, [])
+  return <BackendContext.Provider value={{ ready: phase === 'ready', phase, retry }}>{children}</BackendContext.Provider>
 }
 
 export function BackendNotice() {

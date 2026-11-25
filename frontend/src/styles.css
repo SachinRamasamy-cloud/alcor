@@ -87,6 +87,16 @@ main:focus { outline: none; }
 .card-save { display: grid; place-items: center; background: #fff; color: #171717; width: 44px; height: 44px; border: 1px solid #e5e5e5; border-radius: 50%; box-shadow: 0 2px 8px #0002; }
 .card-save:not(:disabled):hover { background: #171717; color: #fff; border-color: #fff; }
 .card-save:focus-visible { outline: 2px solid #fff; outline-offset: 2px; box-shadow: 0 0 0 5px #171717; }
+.auth-provider-options > span, .auth-provider-button { width: 100%; }
+.auth-provider-button { position: relative; min-height: 52px; }
+.auth-provider-mark { position: absolute; left: 16px; font-size: 20px; font-weight: 600; }
+.auth-setup-note { margin-top: 14px; font-size: 12px; line-height: 1.7; color: #626262; }
+.auth-startup { margin-top: 16px; padding: 16px; border: 1px solid #e5e5e5; border-radius: 8px; font-size: 13px; line-height: 1.7; }
+.auth-startup-preview { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.auth-startup-preview .auth-startup-icon { width: 44px; height: 44px; flex: 0 0 44px; border-radius: 50%; }
+.auth-startup-preview .skeleton-lines { flex: 1; }
+.auth-startup-note { margin-top: 5px; color: #626262; font-size: 12px; }
+.auth-startup > span { margin-top: 12px; }
 .skeleton-block.skeleton-card-save { position: absolute; top: 10px; right: 10px; width: 44px; height: 44px; border-radius: 50%; }
 .genre-section { padding-block: 40px 8px; }
 .genre-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
