@@ -1,7 +1,7 @@
 import { PreferenceEffects } from '../features/preferences'
 import { BackendProvider } from '../shared/api/backend'
 import { Component, lazy, type ReactNode } from 'react'
-import { BrowserRouter, Navigate,Route, Routes } from 'react-router-dom'
+import { BrowserRouter,Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { LazyMotion, MotionConfig, domAnimation } from 'motion/react'
 import { AuthProvider,useAuth } from '../shared/auth'
@@ -33,7 +33,7 @@ class Boundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   static getDerivedStateFromError() { return { failed: true } }
   render() { return this.state.failed ? <ErrorState /> : this.props.children }
 }
-function Index(){const {userId}=useAuth();return userId?<Navigate to="/dashboard" replace/>:<Home/>}
+function Index(){return <Home/>}
 function AccountMotion({children}:{children:ReactNode}){const{userId}=useAuth();return <FlyToTargetProvider scopeKey={userId??'guest'}>{children}</FlyToTargetProvider>}
 export function App() {
   return <Boundary><QueryClientProvider client={queryClient}><LazyMotion features={domAnimation}><MotionConfig reducedMotion="user"><BrowserRouter><FeedbackProvider><BackendProvider><AuthProvider><PreferenceEffects><AccountMotion><Routes><Route element={<Layout />}>

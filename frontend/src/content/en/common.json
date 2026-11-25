@@ -497,5 +497,7 @@
   "catalogue.mediaType": "Media type",
   "catalogue.allMedia": "All titles",
   "catalogue.trending": "Trending",
-  "catalogue.released": "Released titles"
+  "catalogue.released": "Released titles",
+  "nav.account": "Account menu",
+  "nav.yourAccount": "Your account"
 }

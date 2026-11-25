@@ -5,7 +5,7 @@ import { RouteSkeleton } from './skeleton'
 
 afterEach(cleanup)
 it.each([
-  ['/', 'home'], ['/anime', 'catalogue'], ['/manga/anilist-1', 'details'],
+  ['/', 'home'], ['/anime', 'browse'], ['/search?type=anime','catalogue'], ['/manga/anilist-1', 'details'],
   ['/library', 'library'], ['/wishlist', 'wishlist'], ['/collections', 'collections'],
   ['/history', 'history'], ['/statistics', 'statistics'], ['/profile', 'profile'], ['/settings', 'settings'],
 ])('keeps %s loading content in its page layout', (path, kind) => {
