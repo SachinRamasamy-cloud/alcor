@@ -1,9 +1,10 @@
+from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from app.integrations.metadata.schemas import CataloguePage, CatalogueQuery
+from app.integrations.metadata.schemas import CataloguePage, CatalogueQuery, Media
 from app.modules.library.schemas import LibraryStatus
 
 
@@ -41,3 +42,38 @@ class FilterRead(BaseModel):
     name: str
     query: PersonalQuery
     version: int
+
+
+FeedbackContext = Literal["favorites", "taste", "similar", "management"]
+
+
+class FeedbackWrite(BaseModel):
+    dismissed: bool
+    expected_version: int = Field(ge=0)
+    context: FeedbackContext
+
+
+class FeedbackRead(BaseModel):
+    media_id: UUID | None
+    dismissed: bool
+    version: int
+    updated_at: datetime | None = None
+    context: FeedbackContext | None = None
+
+
+class FeedbackMutation(FeedbackRead):
+    changed: bool
+
+
+class FeedbackItem(FeedbackRead):
+    media: Media
+
+
+class FeedbackPage(BaseModel):
+    data: list[FeedbackItem]
+    total: int
+    next_cursor: str | None
+
+
+class CandidateFeedback(FeedbackRead):
+    anilist_id: int

@@ -47,10 +47,11 @@ function FeedShelf({kind,type,mode,filters,seeds=[],knownFavorites=[],version,fa
   if(query.isPending)return <section className="home-section"><h2>{title}</h2><Loading variant="shelf"/></section>
   if(query.error)return <section className="home-section"><h2>{title}</h2><ErrorState error={query.error} retry={()=>{void query.refetch()}}/></section>
   const items=query.data.items.slice(0,12),to=recommendationLink(kind,type,mode,{filters,seeds:seeds.map(seed=>kind==='similar'?`anilist-${seed.source_ids?.anilist}`:seed.id),version,favoriteCursor})
-  return <><BrowseShelf title={title} description={description} items={items.map(item=>item.media)} to={to} emptyMessage={t('recommendations.empty')}
+  return <><BrowseShelf title={title} description={description} items={items.map(item=>item.media)} to={to} emptyMessage={t('recommendations.empty')} recommendationContext={kind}
     context={media=><RecommendationContext item={items.find(item=>sameTitle(item.media,media))!} kind={kind} filters={filters}/>}/>
     {query.data.limited&&<p className="coverage-note">{t('recommendations.limited')}</p>}</>
 }
+export function DismissedLink(){const {userId}=useAuth();return userId?<Link className="subtle-link" to="/recommendations/dismissed">{t('recommendations.dismissedTitle')}</Link>:null}
 function PersonalFeeds({type,mode,showFavorites=true,showTaste=true,enabled=true}:{type:'anime'|'manga';mode:DiscoveryMode;showFavorites?:boolean;showTaste?:boolean;enabled?:boolean}){
   const {userId}=useAuth(),{ready}=useBackend(),queries=useQueryClient(),preferences=usePreferences()
   const [window,setWindow]=useState({cursor:'',offset:0,version:0})

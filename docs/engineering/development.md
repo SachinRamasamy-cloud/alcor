@@ -44,7 +44,7 @@ python -m uv run pytest -q
 
 The bootstrap script targets only the fixed loopback development database. It creates a separate non-superuser, NOBYPASSRLS runtime role. Migration credentials are never a runtime fallback. Local development passwords are not production credentials. Without explicit integration opt-in, database/Redis tests are skipped; do not report them as executed. Tests leave randomly owned disposable local records; they do not target Supabase.
 
-The current head is migration 007. `/api/v1/health` checks process liveness; `/api/v1/ready` verifies PostgreSQL and Redis. Local defaults use explicit `127.0.0.1` to avoid a reproduced Windows Redis timeout through `localhost`.
+The current local head is migration 008 (versioned recommendation feedback). Remote environments require their own approved migration/release process. `/api/v1/health` checks process liveness; `/api/v1/ready` verifies PostgreSQL and Redis. Local defaults use explicit `127.0.0.1` to avoid a reproduced Windows Redis timeout through `localhost`.
 
 If the signed-in bookmark stays disabled, compare `http://127.0.0.1:8000/api/v1/ready` with `http://127.0.0.1:5173/api/v1/ready`. Both must return JSON containing `status: ready`. An HTML/200 response from port 5173 means the frontend is serving its page instead of proxying the API; the button remains gated correctly. Restart the ALCOR frontend from its `frontend` directory, then refresh the page. A separate app may occupy `localhost:5173` over IPv6; use the explicit ALCOR address above. Do not disable the readiness/authentication guard to make the control clickable.
 

@@ -32,12 +32,12 @@ export async function personalPage(path: string, params: URLSearchParams, userId
   return { page:Number(params.get('page'))||1, data, has_more: true, next_cursor: `f:${page}:0`, source: 'AniList', is_partial: true, is_stale: false }
 }
 
-export async function exclusions(items: CataloguePage['data'], mode: string, userId: string, signal?: AbortSignal) {
+export async function exclusions(items: CataloguePage['data'], mode: string, userId: string, signal?: AbortSignal,recommendation=false) {
   if (!items.length) return []
   const excluded:number[]=[]
   for(let offset=0;offset<items.length;offset+=100){
     const batch=items.slice(offset,offset+100)
-    excluded.push(...await api<number[]>('/me/discovery-exclusions', { signal, accountId: userId, method: 'POST', body: JSON.stringify({ mode, candidates: batch.map(m => ({ anilist_id: Number(m.source_ids?.anilist), mal_id: m.source_ids?.mal ? Number(m.source_ids.mal) : null, media_type: m.media_type })) }) }))
+    excluded.push(...await api<number[]>('/me/discovery-exclusions', { signal, accountId: userId, method: 'POST', body: JSON.stringify({ mode,...(recommendation?{recommendation:true}:{}), candidates: batch.map(m => ({ anilist_id: Number(m.source_ids?.anilist), mal_id: m.source_ids?.mal ? Number(m.source_ids.mal) : null, media_type: m.media_type })) }) }))
   }
   return [...new Set(excluded)]
 }

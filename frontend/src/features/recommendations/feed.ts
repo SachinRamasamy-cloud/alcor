@@ -21,9 +21,9 @@ export function matchesFeed(media:Media,params:URLSearchParams){
     &&(!filter.has('score_min')||media.score!=null&&media.score>=Number(filter.get('score_min')))
 }
 
-export async function loadFeed({source,filters,mode,owner,signal,cursor,knownFavorites=[],exclude=exclusions}:{
+export async function loadFeed({source,filters,mode,owner,signal,cursor,knownFavorites=[],exclude=exclusions,recommendation=false}:{
   source:(page:number,activeSeeds?:number[])=>Promise<RecommendationWindow>;filters:URLSearchParams;mode:DiscoveryMode;owner:string|null;signal:AbortSignal;
-  cursor?:FeedCursor;knownFavorites?:Media[];exclude?:typeof exclusions;
+  cursor?:FeedCursor;knownFavorites?:Media[];exclude?:typeof exclusions;recommendation?:boolean;
 }):Promise<FeedPage>{
   let page=cursor?.page??1,offset=cursor?.offset??0
   if(!Number.isSafeInteger(page)||page<1||page>10000||!Number.isSafeInteger(offset)||offset<0||offset>72)throw new ApiError(422,'INVALID_CURSOR')
@@ -35,7 +35,7 @@ export async function loadFeed({source,filters,mode,owner,signal,cursor,knownFav
     signal.throwIfAborted()
     if(!Array.isArray(window.items)||window.items.length>72)throw new ApiError(503,'UPSTREAM_UNAVAILABLE')
     if(offset>window.items.length)throw new ApiError(422,'INVALID_CURSOR')
-    const excluded=owner&&mode!=='all'?await exclude(window.items.map(item=>item.media),mode,owner,signal):[]
+    const excluded=owner&&(mode!=='all'||recommendation)?await exclude(window.items.map(item=>item.media),mode,owner,signal,recommendation):[]
     signal.throwIfAborted()
     for(let index=offset;index<window.items.length;index++){
       const item=window.items[index],identities=aliases(item.media)

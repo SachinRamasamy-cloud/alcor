@@ -17,7 +17,7 @@ export function useRecommendationFeed({kind,type,mode,filters,seeds=[],knownFavo
   const normalized=new URLSearchParams(filters);normalized.sort()
   const context={kind,type,mode,filters:normalized.toString(),seeds:seeds.map(seed=>seed.id),preferenceVersion,favoriteVersion,favoriteCursor}
   const fingerprint=JSON.stringify(context),scope=userId?['private',userId]:['public','guest']
-  const personal=Boolean(userId&&mode!=='all'),available=(!personal||ready)&&(kind==='similar'||Boolean(userId&&ready))
+  const available=userId?ready:kind==='similar'
   const query=useQuery({queryKey:[...scope,'recommendations',kind,context,token],enabled:enabled&&available,
     queryFn:async({signal}):Promise<RecommendationPage>=>{
       if(!available)throw new ApiError(503,'BACKEND_WAKING')
@@ -42,7 +42,7 @@ export function useRecommendationFeed({kind,type,mode,filters,seeds=[],knownFavo
         }
         return mergeRecommendationWindows(ids.map(id=>queries.getQueryData<RecommendationWindow>(key(id))!))
       }
-      const result=await loadFeed({source,filters:normalized,mode,owner:userId,signal,cursor:continuation?.cursor,knownFavorites:[...knownFavorites,...seeds]})
+      const result=await loadFeed({source,filters:normalized,mode,owner:userId,signal,cursor:continuation?.cursor,knownFavorites:[...knownFavorites,...seeds],recommendation:true})
       signal.throwIfAborted()
       const nextCursor=result.next?crypto.randomUUID():null
       if(nextCursor)queries.setQueryData<Continuation>([...scope,'recommendation-cursors',nextCursor],{context:fingerprint,cursor:result.next!})

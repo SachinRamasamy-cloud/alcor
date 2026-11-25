@@ -17,6 +17,9 @@ import {Button,ErrorState,Loading,Modal} from '../../shared/ui'
 import {captureFlyOrigin,type FlyOrigin} from '../../shared/motion'
 import {libraryStatusLabel} from './labels'
 import {FavoriteButton} from './favorites'
+import {RecommendationFeedbackAction,type FeedbackContext} from '../recommendations/feedback'
+
+type RecommendationAction={recommendationContext?:FeedbackContext;feedbackVersion?:number}
 
 export function useSavedEntry(media:Media){
   const {userId}=useAuth(),{ready}=useBackend()
@@ -31,7 +34,7 @@ export function StatusActions({entry,close}:{entry:Entry;close:()=>void}){
   useLayoutEffect(()=>{account.current=userId;return()=>{account.current=null}},[userId])
   return <>{entry.allowed_statuses?.filter(status=>status!=='completed'&&!(status==='in_progress'&&entry.status==='planned')).map(status=><Button key={status} variant="secondary" disabled={write.isPending} onClick={()=>{const owner=userId;write.mutate({id:entry.media.id,status,version:entry.version},{onSuccess:()=>{if(account.current===owner)close()}})}}>{t(status==='in_progress'?'library.resume':`status.${status}`)}</Button>)}</>
 }
-function Management({media,entry:initialEntry,close,origin}:{media:Media;entry:Entry|null;close:()=>void;origin?:FlyOrigin}){
+function Management({media,entry:initialEntry,close,origin,recommendationContext,feedbackVersion}:{media:Media;entry:Entry|null;close:()=>void;origin?:FlyOrigin}&RecommendationAction){
   const [entry]=useState(initialEntry)
   const write=useLibraryWrite(),{userId}=useAuth(),account=useRef(userId)
   useLayoutEffect(()=>{account.current=userId;return()=>{account.current=null}},[userId])
@@ -41,27 +44,28 @@ function Management({media,entry:initialEntry,close,origin}:{media:Media;entry:E
     {(!entry||['planned','in_progress','on_hold','dropped','completed'].includes(entry.status))&&<CompleteTitle media={media} entry={entry??undefined} label={t(media.media_type==='anime'?'library.markWatched':'library.markRead')} onComplete={close}/>}
     {entry?<StatusActions entry={entry} close={close}/>:<Button variant="secondary" disabled={write.isPending} onClick={()=>change('not_interested')}>{t('status.not_interested')}</Button>}
     <FavoriteButton media={media}/>
+    {recommendationContext&&<RecommendationFeedbackAction media={media} context={recommendationContext} version={feedbackVersion} onDone={close}/>}
     <Link className="button button-secondary" to={`${mediaPath(media)}#your-progress`}>{t('media.yourProgress')}</Link>
   </div><CollectionPicker media={media}/>{entry&&<PersonalDetails media={media} showFavorite={false}/>}</>
 }
-function ResolvedManagement({media,close,origin}:{media:Media;close:()=>void;origin?:FlyOrigin}){
+function ResolvedManagement({media,close,origin,...recommendation}:{media:Media;close:()=>void;origin?:FlyOrigin}&RecommendationAction){
   const {userId}=useAuth()
   const saved=useSavedEntry(media)
   const resolved=useQuery({queryKey:['private',userId,'source-identity',media.id],enabled:!saved.isPending&&!saved.error,queryFn:()=>saved.data?Promise.resolve(saved.data.media):resolveMedia(media,userId!),retry:false,staleTime:Infinity})
   if(resolved.isPending||saved.isPending)return <Loading/>
   if(resolved.error||saved.error)return <ErrorState error={resolved.error??saved.error} retry={()=>{void resolved.refetch();void saved.refetch()}}/>
-  return <Management media={resolved.data} entry={saved.data??null} origin={origin} close={close}/>
+  return <Management media={resolved.data} entry={saved.data??null} origin={origin} close={close} {...recommendation}/>
 }
-function SignedInActions({media,presentation='card'}:{media:Media;presentation?:'card'|'hero'}){
+function SignedInActions({media,presentation='card',...recommendation}:{media:Media;presentation?:'card'|'hero'}&RecommendationAction){
   const [open,setOpen]=useState(false),{ready}=useBackend(),saved=useSavedEntry(media)
   const [origin,setOrigin]=useState<FlyOrigin>()
   const [focusFallback,setFocusFallback]=useState<HTMLElement|null>(null)
   return <><button className={presentation==='hero'?'button button-secondary':'card-save'} aria-label={t('media.manageLabel',{title:media.title})} title={ready?saved.data?libraryStatusLabel(saved.data):t('media.cardActions'):t('backend.actionUnavailable')} aria-haspopup="dialog" disabled={!ready} onClick={event=>{setOrigin(captureFlyOrigin(event.currentTarget));setFocusFallback(event.currentTarget.closest('section')?.querySelector<HTMLElement>('h2')??document.querySelector<HTMLElement>('h1'));setOpen(true)}}><MoreHorizontal size={18}/>{presentation==='hero'&&t('media.cardActions')}</button>
     <Modal open={open} onOpenChange={setOpen} title={media.title} focusFallback={focusFallback} description={saved.data?libraryStatusLabel(saved.data):t('media.cardActions')}>
-      {open&&ready&&<ResolvedManagement media={media} origin={origin} close={()=>setOpen(false)}/>} {!ready&&<p role="status">{t('backend.actionUnavailable')}</p>}
+      {open&&ready&&<ResolvedManagement media={media} origin={origin} close={()=>setOpen(false)} {...recommendation}/>} {!ready&&<p role="status">{t('backend.actionUnavailable')}</p>}
     </Modal></>
 }
-export function CardActions({media,presentation='card'}:{media:Media;presentation?:'card'|'hero'}){
+export function CardActions({media,presentation='card',...recommendation}:{media:Media;presentation?:'card'|'hero'}&RecommendationAction){
   const {userId}=useAuth()
-  return userId?<SignedInActions key={`${userId}:${media.id}`} media={media} presentation={presentation}/>:<SaveButton media={media} compact={presentation==='card'}/>
+  return userId?<SignedInActions key={`${userId}:${media.id}`} media={media} presentation={presentation} {...recommendation}/>:<SaveButton media={media} compact={presentation==='card'}/>
 }

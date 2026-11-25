@@ -591,6 +591,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/recommendation-feedback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Feedback Page */
+        get: operations["feedback_page_api_v1_me_recommendation_feedback_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/recommendation-feedback/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Feedback Read */
+        post: operations["feedback_read_api_v1_me_recommendation_feedback_read_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/recommendation-feedback/{media_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Feedback Write */
+        put: operations["feedback_write_api_v1_me_recommendation_feedback__media_id__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/saved-filters": {
         parameters: {
             query?: never;
@@ -867,6 +918,26 @@ export interface components {
             candidates: components["schemas"]["CandidateReference"][];
             /** Mode */
             mode: string;
+            /**
+             * Recommendation
+             * @default false
+             */
+            recommendation: boolean;
+        };
+        /** CandidateFeedback */
+        CandidateFeedback: {
+            /** Anilist Id */
+            anilist_id: number;
+            /** Context */
+            context?: ("favorites" | "taste" | "similar" | "management") | null;
+            /** Dismissed */
+            dismissed: boolean;
+            /** Media Id */
+            media_id: string | null;
+            /** Updated At */
+            updated_at?: string | null;
+            /** Version */
+            version: number;
         };
         /** CandidateReference */
         CandidateReference: {
@@ -1084,6 +1155,61 @@ export interface components {
             preferences_version: number;
             /** Total */
             total: number;
+        };
+        /** FeedbackBatch */
+        FeedbackBatch: {
+            /** Candidates */
+            candidates: components["schemas"]["CandidateReference"][];
+        };
+        /** FeedbackItem */
+        FeedbackItem: {
+            /** Context */
+            context?: ("favorites" | "taste" | "similar" | "management") | null;
+            /** Dismissed */
+            dismissed: boolean;
+            media: components["schemas"]["Media"];
+            /** Media Id */
+            media_id: string | null;
+            /** Updated At */
+            updated_at?: string | null;
+            /** Version */
+            version: number;
+        };
+        /** FeedbackMutation */
+        FeedbackMutation: {
+            /** Changed */
+            changed: boolean;
+            /** Context */
+            context?: ("favorites" | "taste" | "similar" | "management") | null;
+            /** Dismissed */
+            dismissed: boolean;
+            /** Media Id */
+            media_id: string | null;
+            /** Updated At */
+            updated_at?: string | null;
+            /** Version */
+            version: number;
+        };
+        /** FeedbackPage */
+        FeedbackPage: {
+            /** Data */
+            data: components["schemas"]["FeedbackItem"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+            /** Total */
+            total: number;
+        };
+        /** FeedbackWrite */
+        FeedbackWrite: {
+            /**
+             * Context
+             * @enum {string}
+             */
+            context: "favorites" | "taste" | "similar" | "management";
+            /** Dismissed */
+            dismissed: boolean;
+            /** Expected Version */
+            expected_version: number;
         };
         /** FilterCreate */
         FilterCreate: {
@@ -3309,6 +3435,106 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SessionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    feedback_page_api_v1_me_recommendation_feedback_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedbackPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    feedback_read_api_v1_me_recommendation_feedback_read_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FeedbackBatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CandidateFeedback"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    feedback_write_api_v1_me_recommendation_feedback__media_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                media_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FeedbackWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedbackMutation"];
                 };
             };
             /** @description Validation Error */

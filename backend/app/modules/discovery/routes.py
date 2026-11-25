@@ -3,13 +3,17 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, Request
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from app.core.auth import current_user
 from app.core.errors import AppError
 from app.integrations.metadata.schemas import CataloguePage, CatalogueQuery, Media
 from app.modules.catalogue.service import eligible_items, select_page
 from app.modules.discovery.schemas import (
+    CandidateFeedback,
+    FeedbackMutation,
+    FeedbackPage,
+    FeedbackWrite,
     FilterCreate,
     FilterRead,
     FilterUpdate,
@@ -29,7 +33,44 @@ class CandidateReference(BaseModel):
 
 class CandidateBatch(BaseModel):
     candidates: list[CandidateReference] = Field(max_length=100)
-    mode: str = Field(pattern="^(hide_watched|new_to_me)$")
+    mode: str = Field(pattern="^(all|hide_watched|new_to_me)$")
+    recommendation: bool = False
+
+    @model_validator(mode="after")
+    def validate_mode(self):
+        if self.mode == "all" and not self.recommendation:
+            raise ValueError("Show All exclusions require a recommendation context")
+        return self
+
+
+class FeedbackBatch(BaseModel):
+    candidates: list[CandidateReference] = Field(max_length=100)
+
+
+@router.post("/me/recommendation-feedback/read", response_model=list[CandidateFeedback])
+async def feedback_read(request: Request, user: User, body: FeedbackBatch):
+    from app.modules.discovery import feedback
+
+    return await feedback.read(request.app.state.database, user, body.candidates)
+
+
+@router.put("/me/recommendation-feedback/{media_id}", response_model=FeedbackMutation)
+async def feedback_write(request: Request, user: User, media_id: UUID, body: FeedbackWrite):
+    from app.modules.discovery import feedback
+
+    return await feedback.write(request.app.state.database, user, media_id, body)
+
+
+@router.get("/me/recommendation-feedback", response_model=FeedbackPage)
+async def feedback_page(
+    request: Request,
+    user: User,
+    limit: int = Query(24, ge=1, le=100),
+    cursor: str | None = Query(None, max_length=512),
+):
+    from app.modules.discovery import feedback
+
+    return await feedback.page(request.app.state.database, user, limit, cursor)
 
 
 @router.post("/me/discovery-exclusions", response_model=list[int])

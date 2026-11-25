@@ -6,6 +6,7 @@ from sqlalchemy import text
 from app.core.errors import AppError
 from app.integrations.metadata.schemas import Media
 from app.modules.catalogue.service import eligible_items, select_page
+from app.modules.discovery.feedback import MATCH_CANDIDATES
 from app.modules.discovery.schemas import FilterRead, PersonalPage
 from app.modules.preferences import public as preference_state
 from app.modules.preferences.schemas import Preferences
@@ -52,11 +53,12 @@ class DiscoveryService:
                 .mappings()
                 .all()
             )
-            return sorted(
-                {
-                    int(r["anilist_id"])
-                    for r in rows
-                    if r["ever_completed"]
+            excluded = {
+                int(r["anilist_id"])
+                for r in rows
+                if body.mode != "all"
+                and (
+                    r["ever_completed"]
                     or (
                         body.mode == "new_to_me"
                         and (
@@ -67,8 +69,23 @@ class DiscoveryService:
                             )
                         )
                     )
-                }
-            )
+                )
+            }
+            if body.recommendation:
+                dismissed = (
+                    (
+                        await session.execute(
+                            text(f"""SELECT i.anilist_id {MATCH_CANDIDATES}
+                    JOIN personal.recommendation_feedback f ON f.media_id=m.id AND f.user_id=:user AND f.dismissed
+                """),
+                            {"user": user, "candidates": json.dumps(candidates)},
+                        )
+                    )
+                    .scalars()
+                    .all()
+                )
+                excluded.update(int(value) for value in dismissed)
+            return sorted(excluded)
 
     async def discover(self, user, query):
         items = [] if query.memory else await self.provider.catalogue()

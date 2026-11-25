@@ -112,9 +112,14 @@
             "type": "array"
           },
           "mode": {
-            "pattern": "^(hide_watched|new_to_me)$",
+            "pattern": "^(all|hide_watched|new_to_me)$",
             "title": "Mode",
             "type": "string"
+          },
+          "recommendation": {
+            "default": false,
+            "title": "Recommendation",
+            "type": "boolean"
           }
         },
         "required": [
@@ -122,6 +127,71 @@
           "mode"
         ],
         "title": "CandidateBatch",
+        "type": "object"
+      },
+      "CandidateFeedback": {
+        "properties": {
+          "anilist_id": {
+            "title": "Anilist Id",
+            "type": "integer"
+          },
+          "context": {
+            "anyOf": [
+              {
+                "enum": [
+                  "favorites",
+                  "taste",
+                  "similar",
+                  "management"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context"
+          },
+          "dismissed": {
+            "title": "Dismissed",
+            "type": "boolean"
+          },
+          "media_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Media Id"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "media_id",
+          "dismissed",
+          "version",
+          "anilist_id"
+        ],
+        "title": "CandidateFeedback",
         "type": "object"
       },
       "CandidateReference": {
@@ -679,6 +749,215 @@
           "next_cursor"
         ],
         "title": "FavoritesPage",
+        "type": "object"
+      },
+      "FeedbackBatch": {
+        "properties": {
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/CandidateReference"
+            },
+            "maxItems": 100,
+            "title": "Candidates",
+            "type": "array"
+          }
+        },
+        "required": [
+          "candidates"
+        ],
+        "title": "FeedbackBatch",
+        "type": "object"
+      },
+      "FeedbackItem": {
+        "properties": {
+          "context": {
+            "anyOf": [
+              {
+                "enum": [
+                  "favorites",
+                  "taste",
+                  "similar",
+                  "management"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context"
+          },
+          "dismissed": {
+            "title": "Dismissed",
+            "type": "boolean"
+          },
+          "media": {
+            "$ref": "#/components/schemas/Media"
+          },
+          "media_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Media Id"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "media_id",
+          "dismissed",
+          "version",
+          "media"
+        ],
+        "title": "FeedbackItem",
+        "type": "object"
+      },
+      "FeedbackMutation": {
+        "properties": {
+          "changed": {
+            "title": "Changed",
+            "type": "boolean"
+          },
+          "context": {
+            "anyOf": [
+              {
+                "enum": [
+                  "favorites",
+                  "taste",
+                  "similar",
+                  "management"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context"
+          },
+          "dismissed": {
+            "title": "Dismissed",
+            "type": "boolean"
+          },
+          "media_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Media Id"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "media_id",
+          "dismissed",
+          "version",
+          "changed"
+        ],
+        "title": "FeedbackMutation",
+        "type": "object"
+      },
+      "FeedbackPage": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/FeedbackItem"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "data",
+          "total",
+          "next_cursor"
+        ],
+        "title": "FeedbackPage",
+        "type": "object"
+      },
+      "FeedbackWrite": {
+        "properties": {
+          "context": {
+            "enum": [
+              "favorites",
+              "taste",
+              "similar",
+              "management"
+            ],
+            "title": "Context",
+            "type": "string"
+          },
+          "dismissed": {
+            "title": "Dismissed",
+            "type": "boolean"
+          },
+          "expected_version": {
+            "minimum": 0.0,
+            "title": "Expected Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "dismissed",
+          "expected_version",
+          "context"
+        ],
+        "title": "FeedbackWrite",
         "type": "object"
       },
       "FilterCreate": {
@@ -6491,6 +6770,166 @@
         "summary": "Complete Reading-Sessions",
         "tags": [
           "tracking"
+        ]
+      }
+    },
+    "/api/v1/me/recommendation-feedback": {
+      "get": {
+        "operationId": "feedback_page_api_v1_me_recommendation_feedback_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 24,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedbackPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Feedback Page",
+        "tags": [
+          "discovery"
+        ]
+      }
+    },
+    "/api/v1/me/recommendation-feedback/read": {
+      "post": {
+        "operationId": "feedback_read_api_v1_me_recommendation_feedback_read_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeedbackBatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CandidateFeedback"
+                  },
+                  "title": "Response Feedback Read Api V1 Me Recommendation Feedback Read Post",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Feedback Read",
+        "tags": [
+          "discovery"
+        ]
+      }
+    },
+    "/api/v1/me/recommendation-feedback/{media_id}": {
+      "put": {
+        "operationId": "feedback_write_api_v1_me_recommendation_feedback__media_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "media_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Media Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeedbackWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedbackMutation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Feedback Write",
+        "tags": [
+          "discovery"
         ]
       }
     },
