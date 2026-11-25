@@ -12,7 +12,6 @@ import {useRecommendationFeed} from '../features/recommendations/hooks'
 import {RecommendationContext,recommendationFilters} from '../features/recommendations/views'
 import type {FeedKind} from '../features/recommendations/feed'
 import {useDiscoveryMode,type DiscoveryMode} from '../features/catalogue/policy'
-import {DiscoveryModeControl} from '../features/catalogue/mode-control'
 import {DiscoveryNotice} from '../features/catalogue/visibility'
 import {useCataloguePagination} from '../features/catalogue/pagination'
 import {tasteParams} from '../features/discovery/taste'
@@ -79,5 +78,5 @@ export function RecommendationsPage(){
     else if(kind==='taste'&&preferences.data&&!tasteParams(preferences.data.data,type,mode).personal)body=<p className="coverage-note">{t('recommendations.noTaste')}</p>
     else body=<FeedResults kind={kind} type={type} mode={mode} filters={filters} seeds={seeds} knownFavorites={known} version={version} favoriteVersion={selected.data?.preferences_version??favorites.data?.preferences_version??0} favoriteCursor={favoriteCursor} restart={()=>restart()}/>
   }
-  return <div className="shell page-body"><div className="page-heading"><h1>{title}</h1></div><DiscoveryModeControl mode={mode}/>{body}</div>
+  return <div className="shell page-body"><div className="page-heading"><h1>{title}</h1></div>{body}</div>
 }

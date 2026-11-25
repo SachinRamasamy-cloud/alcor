@@ -12,7 +12,6 @@ import {discoveryLink,DiscoveryNotice} from '../features/catalogue/visibility'
 import {useDiscoveryShelves} from '../features/catalogue/shelf-refill'
 import {useDiscoveryMode} from '../features/catalogue/policy'
 import {BrowseShelf} from '../features/catalogue/shelf'
-import {DiscoveryModeControl} from '../features/catalogue/mode-control'
 import {AiringShelf} from '../widgets/discovery-home'
 import {PersonalShelves} from '../features/recommendations/views'
 export {BrowseShelf} from '../features/catalogue/shelf'
@@ -27,7 +26,6 @@ function Shelves({type}:{type:'anime'|'manga'}){
   if(visibility.pending)return <Loading variant="browse" page/>
   return <div className="shell page-body browse-page"><header className="browse-heading"><div><p className="eyebrow">{t('footer.tagline')}</p><h1>{t(type==='anime'?'nav.anime':'nav.manga')}</h1><p>{t(type==='anime'?'browse.animeIntro':'browse.mangaIntro')}</p></div><Link className="button button-primary" to={`/search?type=${type}`}><Search size={17}/>{t(type==='anime'?'browse.searchAnime':'browse.searchManga')}</Link></header>
     <DiscoveryNotice unavailable={visibility.unavailable} refetch={visibility.refetch}/>
-    <DiscoveryModeControl mode={mode}/>
     {visibility.refilling&&<p className="coverage-note" role="status">{t('discovery.refilling')}</p>}
     {visibility.refillError&&<ErrorState error={visibility.refillError} retry={()=>{void visibility.retryRefill()}}/>}
     {visibility.limited.length>0&&<p className="coverage-note">{t('discovery.shelfWindow')}</p>}

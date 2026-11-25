@@ -23,7 +23,6 @@ import {discoveryLink,DiscoveryNotice} from '../features/catalogue/visibility'
 import {useDiscoveryShelves} from '../features/catalogue/shelf-refill'
 import {useDiscoveryMode} from '../features/catalogue/policy'
 import {selectFeatured} from '../features/catalogue/featured'
-import {DiscoveryModeControl} from '../features/catalogue/mode-control'
 import {HomeDiscovery} from '../widgets/discovery-home'
 import {popularCandidates} from '../features/catalogue/popular-cache'
 import {HomePersonalShelves,SimilarShelf} from '../features/recommendations/views'
@@ -62,7 +61,6 @@ export function HomePage() {
   const featured = selectFeatured([...(home.data.featured&&visibility.items.some(item=>item.id===home.data.featured?.id)?[home.data.featured]:[]),...anime])
   return <div className="shell"><PageTitle title={t('nav.home')} />
     <DiscoveryNotice unavailable={visibility.unavailable} refetch={visibility.refetch}/>
-    <DiscoveryModeControl mode={mode}/>
     {!featured&&<h1 className="sr-only">{t('nav.home')}</h1>}
     {featured && <section data-media-source="" className="hero"><div className="hero-copy"><p className="eyebrow"><span className="tiny-rule" />{t('home.featured')}</p><h1>{featured.title}</h1>
       {featured.original_title && <p className="hero-original">{featured.original_title}</p>}
