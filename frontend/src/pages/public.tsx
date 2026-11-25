@@ -2,7 +2,7 @@ import {SelectMenu} from '../shared/ui/select-menu'
 import { DiscoveryControls } from '../features/discovery'
 import { SpoilerText } from '../features/preferences'
 import { useEffect } from 'react'
-import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowRight, Star, ArrowUpRight } from 'lucide-react'
 import { m } from 'motion/react'
 import { useCatalogue, useEpisodes, useGenres, useHome, useMedia, SearchField } from '../features/catalogue'
@@ -31,10 +31,11 @@ function Section({ title, to, items }: { title: MessageKey; to: string; items: M
 function filterLabel(key:string,value:string):string {
   if(key==='has_score')return t('discovery.ratedOnly')
   if(key==='has_image')return t('discovery.coversOnly')
+  if(key==='released')return t('catalogue.released')
   if(key==='memory')return t('discovery.memory')
   if(key==='genre_match')return t(value==='any'?'discovery.matchAny':'discovery.matchAll')
   if(key==='mode')return t(value==='hide_watched'?'discovery.hideWatched':value==='new_to_me'?'discovery.newToMe':'discovery.all')
-  if(key==='sort'&&['popular','score','title','year'].includes(value))return t(`catalogue.${value}` as MessageKey)
+  if(key==='sort'&&['popular','score','title','year','trending'].includes(value))return t(`catalogue.${value}` as MessageKey)
   if(key==='status'&&['FINISHED','RELEASING','NOT_YET_RELEASED','HIATUS','CANCELLED'].includes(value))return t(`release.${value}` as MessageKey)
   const labels:Record<string,MessageKey>={year:'catalogue.year',year_from:'discovery.yearFrom',year_to:'discovery.yearTo',studio:'media.studio',score_min:'discovery.scoreMin',units_max:'discovery.unitsMax'}
   return labels[key]?`${t(labels[key])}: ${value}`:value.replaceAll('_',' ')
@@ -53,16 +54,17 @@ export function HomePage() {
       <a className="hero-source" href={featured.source.url} target="_blank" rel="noreferrer">{featured.source.name}<ArrowUpRight size={11} /></a>
     </div><div className="hero-art"><m.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .25 }} className="hero-poster"><Poster media={featured} priority /></m.div><span className="hero-art-label">{featured.original_title ?? featured.title}</span></div></section>}
     <ContinueSections />
-    <Section title="home.popularAnime" to="/anime" items={home.data.anime} />
+    <Section title="home.popularAnime" to="/search?type=anime&sort=popular" items={home.data.anime} />
     <section className="home-section genre-section"><div className="section-heading"><h2>{t('home.genres')}</h2></div><div className="genre-grid">{home.data.genres.slice(0, 8).map((genre, i) => <Link key={genre} to={`/anime?genre=${encodeURIComponent(genre)}`}><span className="genre-number">{String(i + 1).padStart(2, '0')}</span><span>{genre}</span><ArrowRight size={17} /></Link>)}</div></section>
-    <Section title="home.popularManga" to="/manga" items={home.data.manga} />
+    <Section title="home.popularManga" to="/search?type=manga&sort=popular" items={home.data.manga} />
   </div>
 }
 
 export function CataloguePage() {
   const location = useLocation()
+  const navigate=useNavigate()
   const [params, setParams] = useSearchParams()
-  const type = location.pathname === '/anime' ? 'anime' : location.pathname === '/manga' ? 'manga' : null
+  const type = location.pathname === '/anime' ? 'anime' : location.pathname === '/manga' ? 'manga' : params.get('type')==='anime'?'anime':params.get('type')==='manga'?'manga':null
   const titleKey = type ? `catalogue.${type}` as const : location.pathname === '/search' ? 'catalogue.search' : 'catalogue.discover'
   const requestParams = new URLSearchParams(params)
   const catalogue = useCatalogue(type ? `/${type}` : '/search', requestParams)
@@ -77,14 +79,14 @@ export function CataloguePage() {
     <SelectMenu label={t('catalogue.year')} placeholder={t('catalogue.anyYear')} options={options(Array.from({length:new Date().getFullYear()-1898},(_,i)=>String(new Date().getFullYear()+1-i)))} values={params.getAll('year')} onChange={values=>select('year',values)}/>
     <SelectMenu label={t('discovery.season')} placeholder={t('discovery.anySeason')} options={(['winter','spring','summer','fall'] as const).map(value=>({value,label:t(`discovery.${value}`)}))} values={params.getAll('season')} onChange={values=>select('season',values)}/>
     <SelectMenu label={t('media.status')} placeholder={t('catalogue.anyStatus')} options={(['FINISHED','RELEASING','NOT_YET_RELEASED','HIATUS','CANCELLED'] as const).map(value=>({value,label:t(`release.${value}`)}))} values={params.getAll('status')} onChange={values=>select('status',values)}/>
-    <SelectMenu label={t('catalogue.sort')} placeholder={t('catalogue.popular')} options={(['popular','score','title','year'] as const).map(value=>({value,label:t(`catalogue.${value}`)}))} values={[params.get('sort')??'popular']} multiple={false} onChange={values=>select('sort',values)}/>
+    <SelectMenu label={t('catalogue.sort')} placeholder={t('catalogue.popular')} options={(['popular','score','title','year','trending'] as const).map(value=>({value,label:t(`catalogue.${value}`)}))} values={[params.get('sort')??'popular']} multiple={false} onChange={values=>select('sort',values)}/>
     </div>
   return <div className="shell page-body catalogue-page"><PageTitle title={t(titleKey)} /><div className="page-heading"><h1>{t(titleKey)}</h1></div>
     <div className="search-panel"><div className="search-and-filters"><SearchField key={location.pathname} value={params.get('q')??''} onCommit={value=>change('q',value)} busy={catalogue.isFetching}/></div>
-    <div className="desktop-filters filters-toolbar">{filters}<DiscoveryControls params={params} onChange={setParams} items={catalogue.data?.data}/></div>{[...params].some(([key])=>!['page','cursor','q'].includes(key))&&<div className="active-filters" aria-label={t('catalogue.activeFilters')}>{[...params].filter(([key,value])=>!['page','cursor','q'].includes(key)&&value&&value!=='false'&&value!=='all').map(([key,value],index)=><button key={`${key}:${value}:${index}`} className="filter-chip" onClick={()=>{setParams(previous=>{const next=new URLSearchParams(previous);const remaining=next.getAll(key).filter(v=>v!==value);next.delete(key);remaining.forEach(v=>next.append(key,v));next.delete('page');next.delete('cursor');return next})}}>{filterLabel(key,value)}<span aria-hidden="true">&times;</span><span className="sr-only">{t('catalogue.removeFilter')}</span></button>)}</div>}
-    {[...params].some(([key])=>!['page','cursor'].includes(key))&&<button className="reset-button filter-reset" onClick={()=>setParams({})}>{t('catalogue.reset')}</button>}</div>
+    <div className="catalogue-type-tabs" aria-label={t('catalogue.mediaType')}>{(['all','anime','manga'] as const).map(value=><button key={value} aria-pressed={value===(type??'all')} onClick={()=>{const next=new URLSearchParams(params);next.delete('type');next.delete('page');next.delete('cursor');if(value!=='all')next.set('type',value);if(location.pathname==='/anime'||location.pathname==='/manga')navigate(`/search?${next}`);else setParams(next)}}>{t(value==='all'?'catalogue.allMedia':value==='anime'?'nav.anime':'nav.manga')}</button>)}</div><div className="desktop-filters filters-toolbar">{filters}<DiscoveryControls params={params} onChange={setParams} items={catalogue.data?.data}/></div>{[...params].some(([key])=>!['page','cursor','q','type'].includes(key))&&<div className="active-filters" aria-label={t('catalogue.activeFilters')}>{[...params].filter(([key,value])=>!['page','cursor','q','type'].includes(key)&&value&&value!=='false'&&value!=='all').map(([key,value],index)=><button key={`${key}:${value}:${index}`} className="filter-chip" onClick={()=>{setParams(previous=>{const next=new URLSearchParams(previous);const remaining=next.getAll(key).filter(v=>v!==value);next.delete(key);remaining.forEach(v=>next.append(key,v));next.delete('page');next.delete('cursor');return next})}}>{filterLabel(key,value)}<span aria-hidden="true">&times;</span><span className="sr-only">{t('catalogue.removeFilter')}</span></button>)}</div>}
+    {[...params].some(([key])=>!['page','cursor','type'].includes(key))&&<button className="reset-button filter-reset" onClick={()=>setParams(type?{type}:{})}>{t('catalogue.reset')}</button>}</div>
     {params.get('q') && <p className="results-label">{t('catalogue.resultsFor', { query: params.get('q')! })}</p>}
-    {catalogue.isPending ? <Loading variant="catalogue" /> : catalogue.error ? <ErrorState error={catalogue.error} retry={() => { void catalogue.refetch() }} /> : catalogue.data.data.length ? <>{catalogue.data.source==='Saved library'&&<p className="coverage-note">{t('catalogue.savedCoverage')}</p>}<MediaGrid items={catalogue.data.data} actions={media => <WishlistAction media={media} />} /><Pagination page={pagination.page} totalPages={pagination.personal?null:catalogue.data.total_pages} hasNext={catalogue.data.has_more} availablePages={pagination.availablePages} busy={catalogue.isFetching} onChange={pagination.change}/></> : <div className="state-box"><h2>{t(catalogue.data.has_more?'catalogue.batchEmpty':'catalogue.noResults')}</h2><p>{t(catalogue.data.has_more?'catalogue.batchEmptyBody':'catalogue.noResultsBody')}</p>{catalogue.data.has_more&&<Pagination page={pagination.page} hasNext availablePages={pagination.availablePages} onChange={pagination.change}/>}<Button variant="secondary" onClick={() => setParams({})}>{t('catalogue.reset')}</Button></div>}
+    {catalogue.isPending ? <Loading variant="catalogue" /> : catalogue.error ? <ErrorState error={catalogue.error} retry={() => { void catalogue.refetch() }} /> : catalogue.data.data.length ? <>{catalogue.data.source==='Saved library'&&<p className="coverage-note">{t('catalogue.savedCoverage')}</p>}<MediaGrid items={catalogue.data.data} actions={media => <WishlistAction media={media} />} /><Pagination page={pagination.page} totalPages={pagination.personal?null:catalogue.data.total_pages} hasNext={catalogue.data.has_more} availablePages={pagination.availablePages} busy={catalogue.isFetching} onChange={pagination.change}/></> : <div className="state-box"><h2>{t(catalogue.data.has_more?'catalogue.batchEmpty':'catalogue.noResults')}</h2><p>{t(catalogue.data.has_more?'catalogue.batchEmptyBody':'catalogue.noResultsBody')}</p>{catalogue.data.has_more&&<Pagination page={pagination.page} hasNext availablePages={pagination.availablePages} onChange={pagination.change}/>}<Button variant="secondary" onClick={() => setParams(type?{type}:{})}>{t('catalogue.reset')}</Button></div>}
   </div>
 }
 

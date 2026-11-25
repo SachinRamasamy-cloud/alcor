@@ -285,7 +285,7 @@ test('cards show complete metadata, hover or focus actions and balanced rows at 
     if(!query.includes('AlcorCatalogue'))return route.fallback()
     return route.fulfill({contentType:'application/json',body:JSON.stringify({data:{Page:{pageInfo:{hasNextPage:false,lastPage:1,total:24},media:Array.from({length:24},(_,i)=>({...titles[0],id:i+1,title:{english:`Card ${i+1}`},genres:['Action','Adventure'],episodes:12}))}}})})
   })
-  await page.goto('/anime')
+  await page.goto('/search?type=anime')
   const cards=page.locator('.media-card')
   await expect(cards).toHaveCount(24)
   const geometry=await cards.evaluateAll(nodes=>nodes.map(node=>{const rect=node.getBoundingClientRect();return {top:Math.round(rect.top),height:rect.height,width:rect.width}}))
@@ -314,7 +314,7 @@ test('cards show complete metadata, hover or focus actions and balanced rows at 
 
 test('desktop hover shows only the corner save and keeps the artwork clickable',async({page})=>{
   await page.setViewportSize({width:1440,height:1000})
-  await page.goto('/anime')
+  await page.goto('/search?type=anime')
   await expect(page.locator('.card-title')).toHaveCount(12)
   const card=page.locator('.media-card').first()
   await page.mouse.move(0,0)
@@ -365,7 +365,7 @@ for(const width of [320,375,640]) {
       await shelf.screenshot({path:test.info().outputPath(`${title.includes('anime')?'anime':'manga'}-shelf.png`)})
     }
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
-    await page.goto('/anime')
+    await page.goto('/search?type=anime')
     await expect(page.locator('.media-card')).toHaveCount(12)
     await expect(page.locator('.media-card .card-title')).toHaveCount(12)
     expect(await page.locator('.media-grid').evaluate(node=>getComputedStyle(node).gridAutoFlow)).toBe('row')
@@ -376,7 +376,7 @@ test('touch devices retain visible card actions at tablet widths',async({browser
   const page=await browser.newPage({viewport:{width:1024,height:1000},hasTouch:true,isMobile:true})
   try {
     await mockCatalogue(page)
-    await page.goto('/anime')
+    await page.goto('/search?type=anime')
     await expect(page.locator('.media-card')).toHaveCount(12)
     const card=page.locator('.media-card').first()
     await expect(card.locator('.card-actions')).toHaveCSS('opacity','1')
@@ -435,7 +435,7 @@ test('public home, search and details remain usable while personal server is una
   await expect(page).toHaveURL(/\/anime\/anilist-\d+$/)
   await expect(page.getByRole('heading',{name:'Synopsis',exact:true})).toBeVisible()
   await expect(page.getByText('AniList score',{exact:true})).toBeVisible()
-  await page.goto('/manga')
+  await page.goto('/search?type=manga')
   await expect(page.locator('.media-card')).toHaveCount(6)
 })
 
@@ -475,7 +475,7 @@ test('editing a search keeps focus and the caret after results update',async({pa
 })
 
 test('discovery options stay in a keyboard-accessible popup',async({page})=>{
-  await page.goto('/anime')
+  await page.goto('/search?type=anime')
   await expect(page.getByRole('dialog')).toHaveCount(0)
   await expect(page.getByText('Discovery mode',{exact:true})).toHaveCount(0)
   const trigger=page.getByRole('button',{name:'Discovery options',exact:true})
@@ -604,7 +604,7 @@ test('desktop synopsis expands on hover and collapses after leaving',async({page
 for(const width of [320,375,768,1024,1440]) {
   test(`catalogue and details align at ${width}px`,async({page})=>{
     await page.setViewportSize({width,height:1000})
-    await page.goto('/anime')
+    await page.goto('/search?type=anime')
     await expect(page.locator('.media-card')).toHaveCount(12)
     await page.getByRole('button',{name:'Discovery options',exact:true}).click()
     await expect(page.getByRole('dialog')).toBeVisible()
@@ -621,7 +621,7 @@ for(const width of [320,375,768,1024,1440]) {
   })
 }
 
-for(const [path,kind] of [['/','home'],['/anime','catalogue'],['/anime/anilist-152991','details']] as const) {
+for(const [path,kind] of [['/','home'],['/search?type=anime','catalogue'],['/anime','browse'],['/anime/anilist-152991','details']] as const) {
   test(`shows an aligned ${kind} skeleton while source data loads`,async({page})=>{
     await page.route('https://graphql.anilist.co',()=>new Promise(()=>{}))
     await page.setViewportSize({width:375,height:900})

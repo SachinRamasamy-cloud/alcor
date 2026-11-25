@@ -1,8 +1,29 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { aniHome, AniListTransport, fromAniList } from './anilist'
+import { aniHome,aniBrowse,aniCatalogue,browseSections, AniListTransport, fromAniList } from './anilist'
 
-afterEach(() => {vi.useRealTimers();vi.unstubAllEnvs()})
+afterEach(() => {vi.useRealTimers();vi.unstubAllEnvs();vi.unstubAllGlobals()})
 describe('public AniList transport', () => {
+  it('loads five shelves in one request and preserves their View all filters',async()=>{
+    vi.useFakeTimers()
+    const fetcher=vi.fn<typeof fetch>().mockImplementation(async(_url,options)=>{
+      const body=JSON.parse(String(options?.body))
+      if(body.query.includes('AlcorBrowse')){
+        expect(body.variables.type).toBe('ANIME')
+        expect(body.query).toContain('status_not: NOT_YET_RELEASED')
+        return new Response(JSON.stringify({data:Object.fromEntries(browseSections('anime').map(({key})=>[key,{media:[{id:1,type:'ANIME',title:{english:key}},{id:2,type:'ANIME',title:{english:'Adult'},isAdult:true}]}]))}))
+      }
+      expect(body.variables).toMatchObject({type:'ANIME',sort:'START_DATE_DESC',status_not:'NOT_YET_RELEASED'})
+      expect(body.query.match(/\$startDate_lesser: FuzzyDateInt/g)).toHaveLength(1)
+      return new Response(JSON.stringify({data:{Page:{media:[],pageInfo:{hasNextPage:false,total:0,lastPage:1}}}}))
+    })
+    vi.stubGlobal('fetch',fetcher)
+    const shelves=await aniBrowse('anime')
+    expect(Object.keys(shelves)).toHaveLength(5);expect(shelves.latest).toHaveLength(1)
+    expect(fetcher).toHaveBeenCalledOnce()
+    const params=browseSections('anime')[0].params;params.set('year_to','2020')
+    const request=aniCatalogue('/anime',params);await vi.advanceTimersByTimeAsync(2101);await request
+    expect(fetcher).toHaveBeenCalledTimes(2)
+  })
   it('keeps unapproved production provider use disabled',async()=>{
     vi.stubEnv('PROD',true)
     vi.stubEnv('VITE_ANILIST_USE_APPROVED','false')

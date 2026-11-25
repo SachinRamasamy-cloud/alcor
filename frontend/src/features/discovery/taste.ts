@@ -4,7 +4,7 @@ import { sameTitle } from '../../shared/api/identity'
 type Preferences=components['schemas']['Preferences']
 const normalize=(value:string)=>value.normalize('NFKC').trim().toLocaleLowerCase('en')
 
-export function tasteParams(preferences:Preferences){
+export function tasteParams(preferences:Preferences,type:'anime'|'manga'='anime'){
   const profile=preferences.intelligence_profile
   const excluded=profile?.excluded_genres??[]
   const genres=(preferences.preferred_genres??[]).filter(genre=>!excluded.some(value=>normalize(value)===normalize(genre)))
@@ -12,15 +12,15 @@ export function tasteParams(preferences:Preferences){
   genres.forEach(genre=>params.append('include_genres',genre))
   excluded.forEach(genre=>params.append('exclude_genres',genre))
   if(profile?.series_status&&profile.series_status!=='any')params.set('status',profile.series_status==='finished'?'FINISHED':'RELEASING')
-  if(profile?.max_anime_episodes!=null)params.set('units_max',String(profile.max_anime_episodes))
+  if(type==='anime'&&profile?.max_anime_episodes!=null)params.set('units_max',String(profile.max_anime_episodes))
   return {params,genres,personal:genres.length>0||excluded.length>0||params.has('status')||params.has('units_max')}
 }
 
-export function tasteItems(items:Media[],preferences:Preferences,favorites:Media[]){
-  const {params,genres}=tasteParams(preferences)
+export function tasteItems(items:Media[],preferences:Preferences,favorites:Media[],type:'anime'|'manga'='anime'){
+  const {params,genres}=tasteParams(preferences,type)
   const excluded=(preferences.intelligence_profile?.excluded_genres??[]).map(normalize)
   return items.filter(media=>{
-    if(media.media_type!=='anime'||favorites.some(favorite=>sameTitle(favorite,media)))return false
+    if(media.media_type!==type||favorites.some(favorite=>sameTitle(favorite,media)))return false
     const known=media.genres.map(normalize)
     if(excluded.some(genre=>known.includes(genre)))return false
     if(genres.length&&!genres.some(genre=>known.includes(normalize(genre))))return false

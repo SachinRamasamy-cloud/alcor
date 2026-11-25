@@ -13,6 +13,7 @@ import {FlyToTargetProvider} from '../shared/motion'
 
 const Home = lazy(() => import('../pages/public').then(m => ({ default: m.HomePage })))
 const Catalogue = lazy(() => import('../pages/public').then(m => ({ default: m.CataloguePage })))
+const Browse = lazy(()=>import('../pages/browse').then(m=>({default:m.BrowsePage})))
 const Details = lazy(() => import('../pages/public').then(m => ({ default: m.DetailsPage })))
 const Personal = lazy(() => import('../pages/account').then(m => ({ default: m.LibraryPage })))
 const Callback = lazy(() => import('../pages/account').then(m => ({ default: m.AuthCallbackPage })))
@@ -36,7 +37,7 @@ function Index(){const {userId}=useAuth();return userId?<Navigate to="/dashboard
 function AccountMotion({children}:{children:ReactNode}){const{userId}=useAuth();return <FlyToTargetProvider scopeKey={userId??'guest'}>{children}</FlyToTargetProvider>}
 export function App() {
   return <Boundary><QueryClientProvider client={queryClient}><LazyMotion features={domAnimation}><MotionConfig reducedMotion="user"><BrowserRouter><FeedbackProvider><BackendProvider><AuthProvider><PreferenceEffects><AccountMotion><Routes><Route element={<Layout />}>
-    <Route index element={<Index />} /><Route path="dashboard" element={<Dashboard/>}/>{['anime', 'manga', 'search', 'discover'].map(path => <Route key={path} path={path} element={<Catalogue />} />)}
+    <Route index element={<Index />} /><Route path="dashboard" element={<Dashboard/>}/>{['anime','manga'].map(path=><Route key={path} path={path} element={<Browse/>}/>)}{['search', 'discover'].map(path => <Route key={path} path={path} element={<Catalogue />} />)}
     <Route path="anime/:id" element={<Details />} /><Route path="manga/:id" element={<Details />} />
     <Route path="auth/complete" element={<Complete/>}/><Route path="auth/password" element={<Password/>}/>
     <Route path="setup" element={<Setup/>}/>

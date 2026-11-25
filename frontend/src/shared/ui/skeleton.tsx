@@ -1,7 +1,7 @@
 import { useLocation } from 'react-router-dom'
 import { t } from '../content'
 
-export type SkeletonKind = 'home' | 'catalogue' | 'details' | 'library' | 'wishlist' | 'collections' | 'collection-detail' | 'history' | 'statistics' | 'profile' | 'settings' | 'setup' | 'dashboard' | 'shelf' | 'tracking' | 'episodes' | 'info' | 'panel'
+export type SkeletonKind = 'browse' | 'home' | 'catalogue' | 'details' | 'library' | 'wishlist' | 'collections' | 'collection-detail' | 'history' | 'statistics' | 'profile' | 'settings' | 'setup' | 'dashboard' | 'shelf' | 'tracking' | 'episodes' | 'info' | 'panel'
 const Block = ({ className = '' }: { className?: string }) => <div className={`skeleton-block ${className}`} />
 function Lines({ count = 3 }: { count?: number }) { return <div className="skeleton-lines">{Array.from({ length: count }, (_, i) => <Block key={i} className={i === count - 1 ? 'skeleton-short' : ''} />)}</div> }
 function Cards({ mobileScroll = false,count=12 }: { mobileScroll?: boolean;count?:number }) {
@@ -13,6 +13,7 @@ function Detail() {
 }
 
 export function Loading({ variant = 'panel', page = false,count=12 }: { variant?: SkeletonKind; page?: boolean;count?:number }) {
+  if(variant==='browse')return <div role="status" aria-label={t('common.loading')} aria-busy="true" className="shell page-body skeleton-region skeleton-browse"><div aria-hidden="true"><header className="browse-heading"><div><Block className="skeleton-short"/><Block className="skeleton-title"/><Lines count={1}/></div><Block className="skeleton-input skeleton-short"/></header>{[1,2,3,4,5].map(shelf=><section key={shelf} className="home-section"><Block className="skeleton-heading"/><div className="browse-rail"><Cards count={12}/></div></section>)}</div></div>
   if(variant==='shelf')return <div role="status" aria-label={t('common.loading')} aria-busy="true" className="skeleton-region skeleton-shelf"><div aria-hidden="true"><Cards mobileScroll count={count}/></div></div>
   if(variant==='dashboard')return <div role="status" aria-label={t('common.loading')} aria-busy="true" className={`${page?'shell page-body ':''}skeleton-region skeleton-dashboard`}><div aria-hidden="true"><header className="dashboard-heading"><div><Block className="skeleton-short"/><Block className="skeleton-title"/><Lines count={2}/></div><Block className="skeleton-input skeleton-short"/></header><div className="dashboard-shortcuts">{[1,2,3].map(item=><Block key={item}/>)}</div>{[1,2].map(shelf=><section key={shelf} className="home-section"><Block className="skeleton-heading"/><div className="mobile-media-rail"><Cards/></div></section>)}</div></div>
   if(variant==='setup')return <div role="status" aria-label={t('common.loading')} aria-busy="true" className={`${page?'shell page-body ':''}skeleton-region skeleton-setup`}><div className="setup-shell" aria-hidden="true"><header className="setup-heading"><Block className="skeleton-short"/><Block className="skeleton-title"/><Lines count={2}/></header><div className="setup-steps">{[1,2,3].map(step=><Block key={step} className="skeleton-input"/>)}</div><div className="setup-panel"><Block className="skeleton-heading"/>{[1,2,3].map(question=><div key={question} className="skeleton-setup-question"><Block className="skeleton-short"/><Block className="skeleton-input"/></div>)}<div className="setup-actions"><Block className="skeleton-input skeleton-short"/><Block className="skeleton-input skeleton-short"/></div></div></div></div>
@@ -37,7 +38,9 @@ export function Loading({ variant = 'panel', page = false,count=12 }: { variant?
 }
 
 export function RouteSkeleton() {
-  const path = useLocation().pathname
+  const location=useLocation()
+  const path = location.pathname
+  if(['/anime','/manga'].includes(path)&&!location.search)return <Loading variant="browse" page/>
   const segment = path.split('/')[1]
   const variant: SkeletonKind = path === '/' ? 'home' : /^(anime|manga)$/.test(segment) && path.split('/').length > 2 ? 'details' : ['anime', 'manga', 'discover', 'search'].includes(segment) ? 'catalogue' : segment === 'collections' && path.split('/').length > 2 ? 'collection-detail' : ['library', 'wishlist', 'collections', 'history', 'statistics', 'profile', 'settings','setup','dashboard'].includes(segment) ? segment as SkeletonKind : segment === 'auth' ? 'profile' : 'info'
   return <Loading variant={variant} page />

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { api, ApiError, type Media, type EpisodePage } from '../../shared/api/client'
-import { aniCatalogue, aniDetails, aniHome } from '../../shared/api/anilist'
+import { aniBrowse,aniCatalogue, aniDetails, aniHome } from '../../shared/api/anilist'
 import { useAuth } from '../../shared/auth'
 import { useBackend } from '../../shared/api/backend'
 import { personalPage } from './personal-page'
@@ -10,6 +10,7 @@ import { needsLocalFilters,hasMultipleValues } from './custom-filters'
 
 export const homeOptions = { queryKey: ['public', 'anilist', 'home'], queryFn: ({signal}: {signal:AbortSignal}) => aniHome(signal), staleTime: 300000, retry: false as const }
 export const useHome = (enabled=true) => useQuery({...homeOptions,enabled})
+export const useBrowse=(type:'anime'|'manga')=>useQuery({queryKey:['public','anilist','browse',type],queryFn:({signal})=>aniBrowse(type,signal),staleTime:300000,retry:false})
 export function useCatalogue(path: string, params: URLSearchParams) {
   const {userId} = useAuth()
   const {ready} = useBackend()

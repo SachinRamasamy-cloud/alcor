@@ -125,6 +125,25 @@ export async function aniHome(signal?: AbortSignal): Promise<HomeResponse> {
   return { featured: anime[0] ?? null, anime, manga: result.manga.media.filter(m => !m.isAdult).map(fromAniList), genres: result.genres.filter(g => g !== 'Hentai'), is_fixture: false, is_partial: true }
 }
 
+export const browseSections=(type:'anime'|'manga')=>[
+  {key:'latest',params:new URLSearchParams({type,sort:'year',released:'true'})},
+  {key:'popular',params:new URLSearchParams({type,sort:'popular'})},
+  {key:'trending',params:new URLSearchParams({type,sort:'trending'})},
+  {key:'top',params:new URLSearchParams({type,sort:'score'})},
+  {key:'ongoing',params:new URLSearchParams({type,sort:'popular',status:type==='anime'?'NOT_YET_RELEASED':'RELEASING'})},
+] as const
+export type BrowseData=Record<ReturnType<typeof browseSections>[number]['key'],Media[]>
+const tomorrowDate=()=>{const date=new Date();date.setUTCDate(date.getUTCDate()+1);return date.getUTCFullYear()*10000+(date.getUTCMonth()+1)*100+date.getUTCDate()}
+export async function aniBrowse(type:'anime'|'manga',signal?:AbortSignal):Promise<BrowseData>{
+  const queries=browseSections(type).map(({key,params})=>{
+    const sort=params.get('sort')==='year'?'START_DATE_DESC':params.get('sort')==='score'?'SCORE_DESC':params.get('sort')==='trending'?'TRENDING_DESC':'POPULARITY_DESC'
+    const extra=params.get('released')==='true'?', status_not: NOT_YET_RELEASED, startDate_lesser: $tomorrow':params.has('status')?`, status: ${params.get('status')}`:''
+    return `${key}: Page(perPage: 12) { media(type: $type, isAdult: false, sort: ${sort}${extra}) { ${fields} } }`
+  })
+  const result=await publicQuery<Record<keyof BrowseData,{media:AniMedia[]}>>(`query AlcorBrowse($type: MediaType, $tomorrow: FuzzyDateInt) { ${queries.join('\n')} }`,{type:type.toUpperCase(),tomorrow:tomorrowDate()},signal)
+  return Object.fromEntries(browseSections(type).map(({key})=>[key,result[key].media.filter(item=>!item.isAdult).map(fromAniList)])) as BrowseData
+}
+
 export async function aniDetails(type: string, id: string, signal?: AbortSignal): Promise<Media> {
   const match = /^(anilist|mal)-(\d+)$/.exec(id)
   if (!match || Number(match[2]) < 1) throw new ApiError(404, 'NOT_FOUND')
@@ -141,11 +160,12 @@ export async function aniCatalogue(path: string, params: URLSearchParams, signal
   if (!Number.isSafeInteger(page) || page < 1 || page > 10000) throw new ApiError(422, 'INVALID_CURSOR')
   const variables: Record<string, unknown> = { page, type: path === '/anime' ? 'ANIME' : path === '/manga' ? 'MANGA' : undefined,
     search: params.get('q') || undefined,
-    sort: ({ popular: 'POPULARITY_DESC', score: 'SCORE_DESC', title: 'TITLE_ROMAJI', year: 'START_DATE_DESC' })[params.get('sort') ?? 'popular'] ?? 'POPULARITY_DESC' }
+    sort: ({ popular: 'POPULARITY_DESC', score: 'SCORE_DESC', title: 'TITLE_ROMAJI', year: 'START_DATE_DESC',trending:'TRENDING_DESC' })[params.get('sort') ?? 'popular'] ?? 'POPULARITY_DESC' }
   const declarations = ['$page: Int', '$type: MediaType', '$search: String', '$sort: [MediaSort]']
   const args = ['type: $type', 'search: $search', 'sort: $sort', 'isAdult: false']
   function arg(name: string, gqlType: string, value: unknown) {
     if (value === undefined || value === null || value === '' || (Array.isArray(value) && !value.length)) return
+    if(name in variables){variables[name]=name==='startDate_lesser'?Math.min(Number(variables[name]),Number(value)):value;return}
     declarations.push(`$${name}: ${gqlType}`); args.push(`${name}: $${name}`); variables[name] = value
   }
   const formats: Record<string, string> = { 'Light Novel': 'NOVEL', Manga: 'MANGA', Movie: 'MOVIE', Special: 'SPECIAL', TV: 'TV', OVA: 'OVA', ONA: 'ONA' }
@@ -158,6 +178,7 @@ export async function aniCatalogue(path: string, params: URLSearchParams, signal
   arg('tag_not_in', '[String]', params.getAll('exclude_themes'))
   arg('season', 'MediaSeason', params.get('season')?.toUpperCase())
   arg('status', 'MediaStatus', params.get('status')?.toUpperCase().replaceAll(' ', '_'))
+  if(params.get('released')==='true'){arg('status_not','MediaStatus','NOT_YET_RELEASED');arg('startDate_lesser','FuzzyDateInt',tomorrowDate())}
   const year = params.get('year')
   const from = year || params.get('year_from'), to = year || params.get('year_to')
   if (from) arg('startDate_greater', 'FuzzyDateInt', Number(from) * 10000 - 1)

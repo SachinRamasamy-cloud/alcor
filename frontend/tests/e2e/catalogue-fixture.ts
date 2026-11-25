@@ -21,6 +21,7 @@ export async function mockCatalogue(page: Page) {
     const { query, variables = {} } = route.request().postDataJSON()
     let data: unknown
     if (query.includes('AlcorHome')) data = { anime: { media: titles.filter(m => m.type === 'ANIME') }, manga: { media: titles.filter(m => m.type === 'MANGA') }, genres: ['Action', 'Adventure', 'Comedy', 'Drama', 'Fantasy', 'Mystery', 'Romance', 'Sci-Fi'] }
+    else if(query.includes('AlcorBrowse'))data=Object.fromEntries(['latest','popular','trending','top','ongoing'].map(key=>[key,{media:titles.filter(item=>item.type===variables.type).slice(0,12).map(item=>key==='ongoing'?{...item,status:variables.type==='ANIME'?'NOT_YET_RELEASED':'RELEASING'}:item)}]))
     else if (query.includes('AlcorDetails')) data = { Media: titles.find(m => variables.id ? m.id === variables.id : m.idMal === variables.idMal) }
     else data = { Page: { pageInfo: { hasNextPage: false }, media: titles.filter(m => (!variables.type || m.type === variables.type) && (!variables.search || JSON.stringify(m.title).toLowerCase().includes(variables.search.toLowerCase()))) } }
     return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ data }) })

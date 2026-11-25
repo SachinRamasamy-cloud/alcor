@@ -19,6 +19,8 @@ export function queryFromParams(params:URLSearchParams,path:string){
   const query:Record<string,unknown>={}
   for(const [key,value] of params){if(key==='cursor'||key==='page')continue;if(arrays.includes(key))query[key]=params.getAll(key);else if(numeric.includes(key))query[key]=Number(value);else if(['memory','include_planned','has_score','has_image'].includes(key))query[key]=value==='true';else query[key]=value}
   if(path==='/anime'||path==='/manga')query.media_type=path.slice(1)
+  else if(['anime','manga'].includes(params.get('type')??''))query.media_type=params.get('type')
+  delete query.type
   return query
 }
 export function paramsFromQuery(query:Preset['query']){
