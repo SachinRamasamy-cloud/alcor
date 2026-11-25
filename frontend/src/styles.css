@@ -89,7 +89,7 @@ main:focus { outline: none; }
 .hero-poster img { border-radius: 2px; }
 .hero-art-label { position: absolute; bottom: 20px; left: 17px; writing-mode: vertical-rl; font-size: 9px; letter-spacing: 2px; color: #666; max-height: 220px; overflow: hidden; }
 .intro-hero { position: relative; isolation: isolate; display: grid; grid-template-columns: 1.05fr 1fr; align-items: center; gap: 48px; width: min(100%,1280px); margin: 24px auto 0; padding: 32px 40px; overflow: hidden; border: 1px solid #202020; border-radius: 20px; background: #0a0a0a; color: #fff; }
-.intro-hero::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(ellipse at 14% 0%,#25252570,transparent 55%),radial-gradient(circle at 18% 12%,#ffffff60 1px,transparent 2px),radial-gradient(circle at 32% 7%,#ffffff40 1px,transparent 2px),radial-gradient(circle at 42% 20%,#ffffff30 1px,transparent 2px),radial-gradient(circle at 8% 25%,#ffffff30 1px,transparent 2px); }
+.intro-hero::before, .alcor-footer::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(ellipse at 14% 0%,#25252570,transparent 55%),radial-gradient(circle at 18% 12%,#ffffff60 1px,transparent 2px),radial-gradient(circle at 32% 7%,#ffffff40 1px,transparent 2px),radial-gradient(circle at 42% 20%,#ffffff30 1px,transparent 2px),radial-gradient(circle at 8% 25%,#ffffff30 1px,transparent 2px); }
 .intro-hero-copy { min-width: 0; padding-block: 12px; }
 .intro-brand-mark { display: block; width: 80px; height: 80px; object-fit: contain; filter: brightness(0) invert(1); }
 .intro-brand-name { margin-top: 20px; color: #a7a7a7; font-size: 11px; font-weight: 500; letter-spacing: 4px; }
@@ -307,7 +307,7 @@ main:focus { outline: none; }
 .footer-links { display: flex; flex-wrap: wrap; gap: 24px; font-size: 10px; color: #626262; }
 .footer-links a { display: inline-flex; gap: 4px; align-items: center; min-height: 44px; }
 .brand-mark { width: 32px; height: 32px; object-fit: contain; flex: 0 0 auto; }
-.site-footer.alcor-footer { background: #101110; color: #f7f7f5; border-top: 0; padding-block: 62px 24px; }
+.site-footer.alcor-footer { position: relative; isolation: isolate; background: #101110; color: #f7f7f5; border-top: 0; padding-block: 62px 24px; }
 .footer-grid { display: grid; grid-template-columns: 1.6fr repeat(3,minmax(0,1fr)); gap: 54px; }
 .footer-brand { max-width: 330px; }
 .footer-wordmark { display: inline-flex; align-items: center; gap: 18px; font-weight: 600; font-size: 24px; letter-spacing: .2em; }
