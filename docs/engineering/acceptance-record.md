@@ -312,3 +312,7 @@ Full browser regression is still running; rapid multi-choice replacement and tim
 ### A27 follow-up ? Preserve rapid filter choices
 
 E113 reproduced replacement of TV after selecting Movie during a deferred route transition. Multi-selects now collect functional local changes until Done, Escape or outside close, then update the route once. This also avoids a provider read for each checkbox click. Both formerly failing browser cases passed at 375/1440px with both checked-state and final repeated-URL assertions; clear/focus/alignment/accessibility checks remain. Lint and build passed. Full regression follows after the other diagnosed timing issues.
+
+### A30 ? Resolver dispatch spacing
+
+The delayed-preflight test failed before correction at 2464ms and passed after anchoring the unchanged 2501ms floor after each response. All 6 identity transport tests pass. The unchanged browser cooldown/arrival test passed with the original 2500ms minimum, retry/deduplication and resolved-ID assertions. No server quota, retry count, account guard or protected assertion changed. Lint/build passed. This is a local queue correction; other tabs/processes still share provider/server budgets.

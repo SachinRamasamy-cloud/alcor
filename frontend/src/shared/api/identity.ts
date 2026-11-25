@@ -25,6 +25,10 @@ export class IdentityResolver {
             if(attempt===0)continue
           }
           throw error
+        }finally{
+          // Token acquisition happens inside request(). Anchor the next wait to
+          // its response, so a slow preflight cannot compress actual dispatches.
+          this.nextAt=Math.max(this.nextAt,Date.now()+this.spacing)
         }
       }
     })

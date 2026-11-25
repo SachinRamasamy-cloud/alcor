@@ -23,3 +23,7 @@ Home stays accessible for signed-in users. Dashboard moves from the primary navi
 ## Verification and acceptance
 
 Run relevant unit, real local PostgreSQL/Redis integration, lint/type/build and headless-browser workflow/layout checks. Inspect source and generated contract diffs. Preserve protected assertions while updating route expectations for the explicitly requested navigation changes. Record actual failures in the error log. Human visual/code acceptance and production release remain pending; automated fixtures do not establish live authenticated acceptance.
+
+## A30 ? Resolver pacing regression
+
+L2 follow-up to the existing A22 quota contract. A full browser run observed arrivals 2497ms apart despite the existing 2501ms scheduling floor. An independent delayed-preflight unit case reproduced compressed dispatches (2464ms). Anchor the unchanged floor after each response, preserving deduplication, account checks, one cooldown retry and all server thresholds. Verify that unit case and the unchanged browser arrival assertion; do not raise quotas or relax the test.

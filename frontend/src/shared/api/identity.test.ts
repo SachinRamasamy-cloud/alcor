@@ -16,6 +16,19 @@ it('paces all ten sequential favorites below the existing 24/minute and 1/second
   expect(request).toHaveBeenCalledTimes(10)
   for(let index=1;index<starts.length;index++)expect(starts[index]-starts[index-1]).toBeGreaterThan(60000/24)
 })
+it('preserves dispatch spacing when authentication preflight latency varies',async()=>{
+  vi.useFakeTimers()
+  const arrivals:number[]=[]
+  const resolver=new IdentityResolver(async id=>{
+    await new Promise(resolve=>setTimeout(resolve,id===1?37:0))
+    arrivals.push(Date.now())
+    await new Promise(resolve=>setTimeout(resolve,7))
+    return media(id)
+  })
+  const results=Promise.all([resolver.resolve(1,'owner'),resolver.resolve(2,'owner')])
+  await vi.runAllTimersAsync();await results
+  expect(arrivals[1]-arrivals[0]).toBeGreaterThan(60000/24)
+})
 
 it('deduplicates an in-flight identity within its account and queues other accounts separately',async()=>{
   vi.useFakeTimers()
