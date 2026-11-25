@@ -170,5 +170,19 @@
   "tracking.reread": "Start reread",
   "tracking.continueWatching": "Continue watching",
   "tracking.continueReading": "Continue reading",
-  "tracking.nextUnresolved": "Next unresolved: {label}"
+  "tracking.nextUnresolved": "Next unresolved: {label}",
+  "collections.title": "Collections",
+  "collections.choose": "Choose a collection",
+  "collections.add": "Add to collection",
+  "collections.saved": "Collection saved.",
+  "collections.name": "Collection name",
+  "collections.create": "New collection",
+  "collections.rename": "Rename collection",
+  "collections.delete": "Delete collection",
+  "collections.position": "Position",
+  "collections.noItems": "Add titles from their details pages.",
+  "collections.count": "{count} titles",
+  "collections.empty": "No collections yet",
+  "collections.deleteQuestion": "Delete collection?",
+  "collections.deleteHelp": "Titles in this collection will remain in your library."
 }

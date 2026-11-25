@@ -13,6 +13,8 @@ from app.infrastructure.database import Database
 from app.infrastructure.limits import RateLimiter
 from app.integrations.metadata.provider import DisabledProvider, FixtureProvider
 from app.modules.catalogue.routes import router as catalogue_router
+from app.modules.collections.routes import router as collections_router
+from app.modules.collections.service import CollectionService
 from app.modules.library.routes import router as library_router
 from app.modules.library.service import LibraryService
 from app.modules.tracking.routes import router as tracking_router
@@ -41,6 +43,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     api.include_router(library_router)
     api.state.tracking = TrackingService(api.state.database, api.state.provider)
     api.include_router(tracking_router)
+    api.state.collections = CollectionService(api.state.database, api.state.provider)
+    api.include_router(collections_router)
     api.add_middleware(
         CORSMiddleware,
         allow_origins=settings.allowed_origins,

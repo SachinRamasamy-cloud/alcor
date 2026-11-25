@@ -34,3 +34,6 @@ Final checkpoint: E006–E010 and E012–E014 were resolved by the recorded pass
 
 - E020: Tracking UI count test found question marks instead of separators. Windows shell piping replaced non-ASCII characters in generated copy. Corrected the registry using explicit Unicode escapes; the original text assertion is retained.
 - E021: A test patch was rejected after its expected context had been reformatted. No files were changed; reread the formatted context and reapplied the bounded patch.
+
+- E022: A documentation patch used stale context and was rejected without changing files. Reapplied the record at its actual location.
+- E023: Collection UI typecheck exposed an omitted OpenAPI collection-list response model. Added the explicit CollectionList response, regenerated contracts sequentially and reran typecheck/build successfully; no hand-written substitute for generated types was introduced.

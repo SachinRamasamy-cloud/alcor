@@ -19,3 +19,5 @@ Guest browse/search/details and URL reload tested. A failed provider response re
 Account frontend (25 November): library/wishlist pages, versioned start/remove, configurable Google PKCE, pending-action validation/replay, account-scoped caching and logout cleanup are implemented. Real Google configuration remains deferred; signed end-to-end private browser validation and human security review remain pending.
 
 Tracking slice (25 November): sessions, sparse episode/chapter progress, manual string/decimal targets, skips, bounded bulk marking/unmark, optimistic versions, explicit completion, preserved repeat history and continue queues are implemented and locally tested. The details page has a shared tracker. Further scope remains in `docs/engineering/remaining-scope.md`.
+
+Collections slice: private create/rename/reorder/add/remove/soft-delete, paginated collection pages and a title-page picker are implemented. Real PostgreSQL tests verify ownership and preservation of library/history when deleting a collection.
