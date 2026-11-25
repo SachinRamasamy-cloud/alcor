@@ -40,3 +40,9 @@ The bootstrap script targets only the fixed loopback development database. It cr
 No automatic script applies migrations to the supplied remote database. Inspect and test them locally first. Keep migration credentials separate from the restricted application role; do not use the Supabase administrative connection as the API runtime identity.
 
 Stop local dependencies without deleting data: `docker compose -f compose.dev.yml stop`. Do not remove volumes unless a deliberate local reset is intended.
+
+## Account frontend configuration
+
+Google remains disabled until the owner enables it. Set `VITE_SUPABASE_URL` and an actual `sb_publishable_` key in ignored `frontend/.env.local`; the current frontend intentionally does not accept secret/service-role keys or legacy anon JWT keys. Add the exact frontend origin plus `/auth/callback` to Supabase's redirect allowlist and configure Google in that dedicated project. API `SUPABASE_URL`/`JWT_ISSUER` must identify the same project. Restart Vite after configuration changes.
+
+Implementation references: [Supabase PKCE](https://supabase.com/docs/guides/auth/sessions/pkce-flow), [JavaScript OAuth](https://supabase.com/docs/reference/javascript/auth-signinwithoauth). The SDK owns one persisted session; the storage adapter discards Google provider credentials. Pending desired-state actions are session-scoped, expire after ten minutes and are consumed once. The API still verifies signatures and ownership. Complete staged OAuth and independent security review before public use; mocks are not evidence of a real Google login.
