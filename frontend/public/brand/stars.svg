@@ -2,18 +2,18 @@
   <defs>
     <path id="star" d="M0-12C1.6-4.8 4.8-1.6 12 0 4.8 1.6 1.6 4.8 0 12-1.6 4.8-4.8 1.6-12 0-4.8-1.6-1.6-4.8 0-12Z"/>
   </defs>
-  <use href="#star" transform="translate(42 32) scale(.45)" opacity=".38"/>
-  <use href="#star" transform="translate(164 66) scale(.7)" opacity=".48"/>
-  <use href="#star" transform="translate(292 24) scale(.35)" opacity=".35"/>
-  <use href="#star" transform="translate(436 88) scale(.6)" opacity=".42"/>
-  <use href="#star" transform="translate(578 40) scale(.45)" opacity=".5"/>
-  <use href="#star" transform="translate(98 154) scale(.35)" opacity=".32"/>
-  <use href="#star" transform="translate(244 132) scale(.5)" opacity=".36"/>
-  <use href="#star" transform="translate(354 184) scale(.4)" opacity=".4"/>
-  <use href="#star" transform="translate(524 152) scale(.7)" opacity=".45"/>
-  <use href="#star" transform="translate(30 268) scale(.55)" opacity=".4"/>
-  <use href="#star" transform="translate(182 308) scale(.4)" opacity=".35"/>
-  <use href="#star" transform="translate(286 250) scale(.65)" opacity=".46"/>
-  <use href="#star" transform="translate(426 322) scale(.45)" opacity=".38"/>
-  <use href="#star" transform="translate(588 278) scale(.5)" opacity=".4"/>
+  <use href="#star" transform="translate(42 32) scale(0.099)" opacity="0.228"/>
+  <use href="#star" transform="translate(164 66) scale(0.154)" opacity="0.288"/>
+  <use href="#star" transform="translate(292 24) scale(0.077)" opacity="0.210"/>
+  <use href="#star" transform="translate(436 88) scale(0.132)" opacity="0.252"/>
+  <use href="#star" transform="translate(578 40) scale(0.099)" opacity="0.300"/>
+  <use href="#star" transform="translate(98 154) scale(0.077)" opacity="0.192"/>
+  <use href="#star" transform="translate(244 132) scale(0.110)" opacity="0.216"/>
+  <use href="#star" transform="translate(354 184) scale(0.088)" opacity="0.240"/>
+  <use href="#star" transform="translate(524 152) scale(0.154)" opacity="0.270"/>
+  <use href="#star" transform="translate(30 268) scale(0.121)" opacity="0.240"/>
+  <use href="#star" transform="translate(182 308) scale(0.088)" opacity="0.210"/>
+  <use href="#star" transform="translate(286 250) scale(0.143)" opacity="0.276"/>
+  <use href="#star" transform="translate(426 322) scale(0.099)" opacity="0.228"/>
+  <use href="#star" transform="translate(588 278) scale(0.110)" opacity="0.240"/>
 </svg>
