@@ -5,7 +5,7 @@ import pytest
 
 from app.core.errors import AppError
 from app.infrastructure.database import Database
-from app.integrations.metadata.provider import FixtureProvider
+from app.integrations.metadata.provider import DisabledProvider, FixtureProvider
 from app.modules.discovery.schemas import FilterCreate, FilterUpdate, PersonalQuery
 from app.modules.discovery.service import DiscoveryService
 from app.modules.library.schemas import LibraryDetails, LibraryWrite
@@ -44,6 +44,11 @@ async def test_personal_exclusion_before_page_and_owned_filter_presets():
         )
         remembered = await discovery.discover(user, PersonalQuery(q="amber telescope", memory=True))
         assert [m.id for m in remembered.data] == [planned.id]
+        assert remembered.source == "Saved library"
+        offline_source = await DiscoveryService(db, DisabledProvider()).discover(
+            user, PersonalQuery(q="amber telescope", memory=True)
+        )
+        assert [m.id for m in offline_source.data] == [planned.id]
         assert (
             await discovery.discover(other, PersonalQuery(q="amber telescope", memory=True))
         ).data == []

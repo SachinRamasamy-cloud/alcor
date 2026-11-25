@@ -45,6 +45,7 @@ async def set_tracking_status(session, user, media_id, completed: bool):
 
 record_activity = repo.record_activity
 ensure_media = repo.ensure_media
+stored_media = repo.stored_media
 
 
 async def undo_change(session, user, activity, version):

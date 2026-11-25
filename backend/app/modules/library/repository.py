@@ -22,6 +22,14 @@ async def stored_media(session: AsyncSession, media_id: UUID) -> Media | None:
 
 
 async def ensure_media(session: AsyncSession, media: Media):
+    identities = media.source_ids or (
+        {"mal": media.external_id} if media.external_id.isdecimal() else {}
+    )
+    for namespace, external in sorted(identities.items()):
+        await session.execute(
+            text("SELECT pg_advisory_xact_lock(hashtextextended(:key,0))"),
+            {"key": f"{namespace}:{media.media_type}:{external}"},
+        )
     await session.execute(
         text(
             "INSERT INTO catalogue.media(id,media_type,external_id,payload) VALUES (:id,:type,:external,CAST(:payload AS jsonb)) ON CONFLICT DO NOTHING"
@@ -41,6 +49,28 @@ async def ensure_media(session: AsyncSession, media: Media):
         from app.core.errors import AppError
 
         raise AppError(409, "IDENTITY_CONFLICT", "This title's identity needs review.")
+    for namespace, external in identities.items():
+        await session.execute(
+            text(
+                "INSERT INTO catalogue.source_ids(namespace,media_type,external_id,media_id) VALUES(:namespace,:kind,:external,:media) ON CONFLICT DO NOTHING"
+            ),
+            {
+                "namespace": namespace,
+                "kind": media.media_type,
+                "external": external,
+                "media": media.id,
+            },
+        )
+        associated = await session.scalar(
+            text(
+                "SELECT media_id FROM catalogue.source_ids WHERE namespace=:namespace AND media_type=:kind AND external_id=:external"
+            ),
+            {"namespace": namespace, "kind": media.media_type, "external": external},
+        )
+        if associated != media.id:
+            from app.core.errors import AppError
+
+            raise AppError(409, "IDENTITY_CONFLICT", "This title's identity needs review.")
 
 
 async def lock_entry(session: AsyncSession, user_id: UUID, media_id: UUID):

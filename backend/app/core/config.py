@@ -10,11 +10,12 @@ class Settings(BaseSettings):
 
     app_env: Literal["development", "test", "staging", "production"] = "development"
     database_url: SecretStr = SecretStr(
-        "postgresql+asyncpg://alcor_app:alcor_local@localhost:55432/alcor"
+        "postgresql+asyncpg://alcor_app:alcor_local@127.0.0.1:55432/alcor"
     )
-    redis_url: SecretStr = SecretStr("redis://localhost:56379/0")
+    redis_url: SecretStr = SecretStr("redis://127.0.0.1:56379/0")
     allowed_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
     metadata_provider: Literal["fixture", "disabled"] = "fixture"
+    anilist_use_approved: bool = False
     supabase_url: str = ""
     jwt_issuer: str = ""
     jwt_audience: str = "authenticated"

@@ -1,8 +1,10 @@
+import json
 from uuid import uuid4
 
 from sqlalchemy import text
 
 from app.core.errors import AppError
+from app.integrations.metadata.schemas import Media
 from app.modules.catalogue.service import eligible_items, select_page
 from app.modules.discovery.schemas import FilterRead, PersonalPage
 from app.modules.preferences.schemas import Preferences
@@ -12,9 +14,78 @@ class DiscoveryService:
     def __init__(self, database, provider):
         self.database, self.provider = database, provider
 
-    async def discover(self, user, query):
-        items = await self.provider.catalogue()
+    async def exclusions(self, user, body):
+        candidates = [
+            dict(
+                anilist_id=str(c.anilist_id),
+                mal_id=str(c.mal_id) if c.mal_id else None,
+                media_type=c.media_type,
+            )
+            for c in body.candidates
+        ]
         async with self.database.transaction(user) as session:
+            pref = await session.scalar(
+                text("SELECT payload FROM personal.user_preferences WHERE user_id=:user"),
+                {"user": user},
+            )
+            planned = (
+                Preferences.model_validate(pref).include_planned
+                if pref
+                else Preferences().include_planned
+            )
+            rows = (
+                (
+                    await session.execute(
+                        text("""
+              SELECT i.anilist_id,e.status,e.ever_completed,e.deleted_at
+              FROM jsonb_to_recordset(CAST(:candidates AS jsonb)) AS i(anilist_id text,mal_id text,media_type text)
+              JOIN catalogue.media m ON m.media_type=i.media_type AND (
+                m.external_id='anilist:'||i.anilist_id OR m.external_id=i.mal_id OR m.id IN (
+                  SELECT s.media_id FROM catalogue.source_ids s WHERE s.media_type=i.media_type AND
+                  ((s.namespace='anilist' AND s.external_id=i.anilist_id) OR (s.namespace='mal' AND s.external_id=i.mal_id))))
+              JOIN personal.library_entries e ON e.media_id=m.id AND e.user_id=:user
+            """),
+                        {"candidates": json.dumps(candidates), "user": user},
+                    )
+                )
+                .mappings()
+                .all()
+            )
+            return sorted(
+                {
+                    int(r["anilist_id"])
+                    for r in rows
+                    if r["ever_completed"]
+                    or (
+                        body.mode == "new_to_me"
+                        and (
+                            r["status"]
+                            in {"in_progress", "completed", "on_hold", "dropped", "not_interested"}
+                            or (
+                                not planned and r["status"] == "planned" and r["deleted_at"] is None
+                            )
+                        )
+                    )
+                }
+            )
+
+    async def discover(self, user, query):
+        items = [] if query.memory else await self.provider.catalogue()
+        async with self.database.transaction(user) as session:
+            if query.memory:
+                payloads = (
+                    (
+                        await session.execute(
+                            text(
+                                "SELECT m.payload FROM catalogue.media m JOIN personal.library_entries e ON e.media_id=m.id WHERE e.user_id=:user AND e.deleted_at IS NULL"
+                            ),
+                            {"user": user},
+                        )
+                    )
+                    .scalars()
+                    .all()
+                )
+                items = [Media.model_validate(payload) for payload in payloads]
             rows = (
                 (
                     await session.execute(
@@ -73,7 +144,10 @@ class DiscoveryService:
                 for r in rows
                 if r["media_id"] in ids and r["deleted_at"] is None
             }
-            return PersonalPage(**page.model_dump(), personal_status=overlay)
+            return PersonalPage(
+                **{**page.model_dump(), "source": "Saved library" if query.memory else page.source},
+                personal_status=overlay,
+            )
 
     async def filters(self, user):
         async with self.database.transaction(user) as session:

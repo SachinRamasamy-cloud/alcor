@@ -73,6 +73,63 @@
         "title": "ActivityRead",
         "type": "object"
       },
+      "CandidateBatch": {
+        "properties": {
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/CandidateReference"
+            },
+            "maxItems": 100,
+            "title": "Candidates",
+            "type": "array"
+          },
+          "mode": {
+            "pattern": "^(hide_watched|new_to_me)$",
+            "title": "Mode",
+            "type": "string"
+          }
+        },
+        "required": [
+          "candidates",
+          "mode"
+        ],
+        "title": "CandidateBatch",
+        "type": "object"
+      },
+      "CandidateReference": {
+        "properties": {
+          "anilist_id": {
+            "maximum": 2147483647.0,
+            "minimum": 1.0,
+            "title": "Anilist Id",
+            "type": "integer"
+          },
+          "mal_id": {
+            "anyOf": [
+              {
+                "maximum": 2147483647.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mal Id"
+          },
+          "media_type": {
+            "pattern": "^(anime|manga)$",
+            "title": "Media Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "anilist_id",
+          "media_type"
+        ],
+        "title": "CandidateReference",
+        "type": "object"
+      },
       "CataloguePage": {
         "properties": {
           "data": {
@@ -1123,6 +1180,14 @@
           "source": {
             "$ref": "#/components/schemas/Source"
           },
+          "source_ids": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "default": {},
+            "title": "Source Ids",
+            "type": "object"
+          },
           "status": {
             "anyOf": [
               {
@@ -1919,6 +1984,21 @@
           "retrieved_at"
         ],
         "title": "Source",
+        "type": "object"
+      },
+      "SourceReference": {
+        "properties": {
+          "anilist_id": {
+            "maximum": 2147483647.0,
+            "minimum": 1.0,
+            "title": "Anilist Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "anilist_id"
+        ],
+        "title": "SourceReference",
         "type": "object"
       },
       "StartSession": {
@@ -4477,6 +4557,51 @@
         ]
       }
     },
+    "/api/v1/me/discovery-exclusions": {
+      "post": {
+        "operationId": "exclusions_api_v1_me_discovery_exclusions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CandidateBatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "title": "Response Exclusions Api V1 Me Discovery Exclusions Post",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Exclusions",
+        "tags": [
+          "discovery"
+        ]
+      }
+    },
     "/api/v1/me/history": {
       "get": {
         "operationId": "history_api_v1_me_history_get",
@@ -4846,6 +4971,47 @@
         "summary": "Overlay",
         "tags": [
           "library"
+        ]
+      }
+    },
+    "/api/v1/me/media/resolve": {
+      "post": {
+        "operationId": "resolve_api_v1_me_media_resolve_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SourceReference"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Media"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Resolve",
+        "tags": [
+          "catalogue"
         ]
       }
     },
@@ -5999,6 +6165,31 @@
         "summary": "Set Wishlist",
         "tags": [
           "library"
+        ]
+      }
+    },
+    "/api/v1/ready": {
+      "get": {
+        "operationId": "ready_api_v1_ready_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Ready Api V1 Ready Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Ready",
+        "tags": [
+          "system"
         ]
       }
     },

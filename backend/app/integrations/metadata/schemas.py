@@ -15,6 +15,7 @@ class Source(BaseModel):
 class Media(BaseModel):
     id: UUID
     external_id: str
+    source_ids: dict[str, str] = {}
     media_type: Literal["anime", "manga"]
     title: str
     original_title: str | None = None

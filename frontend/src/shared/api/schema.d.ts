@@ -315,6 +315,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/discovery-exclusions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Exclusions */
+        post: operations["exclusions_api_v1_me_discovery_exclusions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/history": {
         parameters: {
             query?: never;
@@ -379,6 +396,23 @@ export interface paths {
         get: operations["overlay_api_v1_me_media_status_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/media/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resolve */
+        post: operations["resolve_api_v1_me_media_resolve_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -697,6 +731,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/ready": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ready */
+        get: operations["ready_api_v1_ready_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/search": {
         parameters: {
             query?: never;
@@ -742,6 +793,22 @@ export interface components {
             title: string | null;
             /** Undone */
             undone: boolean;
+        };
+        /** CandidateBatch */
+        CandidateBatch: {
+            /** Candidates */
+            candidates: components["schemas"]["CandidateReference"][];
+            /** Mode */
+            mode: string;
+        };
+        /** CandidateReference */
+        CandidateReference: {
+            /** Anilist Id */
+            anilist_id: number;
+            /** Mal Id */
+            mal_id?: number | null;
+            /** Media Type */
+            media_type: string;
         };
         /** CataloguePage */
         CataloguePage: {
@@ -1125,6 +1192,13 @@ export interface components {
             /** Season */
             season?: ("winter" | "spring" | "summer" | "fall") | null;
             source: components["schemas"]["Source"];
+            /**
+             * Source Ids
+             * @default {}
+             */
+            source_ids: {
+                [key: string]: string;
+            };
             /** Status */
             status?: string | null;
             /**
@@ -1405,6 +1479,11 @@ export interface components {
             retrieved_at: string;
             /** Url */
             url: string;
+        };
+        /** SourceReference */
+        SourceReference: {
+            /** Anilist Id */
+            anilist_id: number;
         };
         /** StartSession */
         StartSession: {
@@ -2292,6 +2371,39 @@ export interface operations {
             };
         };
     };
+    exclusions_api_v1_me_discovery_exclusions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CandidateBatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": number[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     history_api_v1_me_history_get: {
         parameters: {
             query?: {
@@ -2479,6 +2591,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LibraryEntry"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resolve_api_v1_me_media_resolve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SourceReference"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Media"];
                 };
             };
             /** @description Validation Error */
@@ -3262,6 +3407,28 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ready_api_v1_ready_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
                 };
             };
         };

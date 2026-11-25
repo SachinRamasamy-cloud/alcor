@@ -1,9 +1,11 @@
+import asyncio
 from contextlib import asynccontextmanager
 from uuid import uuid4
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 from starlette.exceptions import HTTPException
 
 from app.core.auth import Authenticator
@@ -118,6 +120,21 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @api.get("/api/v1/health", tags=["system"])
     async def health() -> dict[str, str]:
         return {"status": "ok", "version": "0.1.0"}
+
+    @api.get("/api/v1/ready", tags=["system"])
+    async def ready() -> dict[str, str]:
+        async def dependencies():
+            async with api.state.database.engine.connect() as connection:
+                await connection.execute(text("SELECT 1"))
+            await api.state.limiter.redis.ping()
+
+        try:
+            await asyncio.wait_for(dependencies(), timeout=3)
+        except Exception as exc:
+            raise AppError(
+                503, "BACKEND_WAKING", "Personal services are not ready.", retryable=True
+            ) from exc
+        return {"status": "ready"}
 
     return api
 

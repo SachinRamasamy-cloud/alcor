@@ -244,7 +244,7 @@ class TrackingService:
                 }
                 for i, label in enumerate(body.manual_labels)
             ]
-        elif media.media_type == "anime":
+        elif media.media_type == "anime" and media.source.name != "AniList":
             episodes = await self.provider.episodes(media.id)
             coverage, final = episodes.coverage_complete, episodes.confirmed_final_total
             units = [

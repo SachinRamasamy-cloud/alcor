@@ -3,6 +3,7 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, Request
+from pydantic import BaseModel, Field
 
 from app.core.auth import current_user
 from app.core.errors import AppError
@@ -18,6 +19,22 @@ from app.modules.discovery.schemas import (
 
 router = APIRouter(prefix="/api/v1", tags=["discovery"])
 User = Annotated[UUID, Depends(current_user)]
+
+
+class CandidateReference(BaseModel):
+    anilist_id: int = Field(ge=1, le=2147483647)
+    mal_id: int | None = Field(default=None, ge=1, le=2147483647)
+    media_type: str = Field(pattern="^(anime|manga)$")
+
+
+class CandidateBatch(BaseModel):
+    candidates: list[CandidateReference] = Field(max_length=100)
+    mode: str = Field(pattern="^(hide_watched|new_to_me)$")
+
+
+@router.post("/me/discovery-exclusions", response_model=list[int])
+async def exclusions(request: Request, user: User, body: CandidateBatch):
+    return await request.app.state.discovery.exclusions(user, body)
 
 
 @router.get("/me/discover", response_model=PersonalPage)

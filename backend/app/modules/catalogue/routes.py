@@ -1,8 +1,10 @@
 from typing import Annotated, Literal
 from uuid import UUID
 
-from fastapi import APIRouter, Query, Request
+from fastapi import APIRouter, Depends, Query, Request
+from pydantic import BaseModel, Field
 
+from app.core.auth import current_user
 from app.core.errors import AppError
 from app.integrations.metadata.schemas import (
     CataloguePage,
@@ -11,9 +13,27 @@ from app.integrations.metadata.schemas import (
     HomeResponse,
     Media,
 )
+from app.modules.catalogue.identity import resolve_media
 from app.modules.catalogue.service import select_page
 
 router = APIRouter(prefix="/api/v1", tags=["catalogue"])
+
+
+class SourceReference(BaseModel):
+    anilist_id: int = Field(ge=1, le=2147483647)
+
+
+@router.post("/me/media/resolve", response_model=Media)
+async def resolve(
+    request: Request, user: Annotated[UUID, Depends(current_user)], body: SourceReference
+):
+    settings = request.app.state.settings
+    if settings.app_env in {"production", "staging"} and not settings.anilist_use_approved:
+        raise AppError(503, "PROVIDER_NOT_CONFIGURED", "Provider clearance is required.")
+    retry = await request.app.state.limiter.check("anilist:resolve", 24, 1)
+    if retry:
+        raise AppError(429, "RATE_LIMITED", "Try again later.", retryable=True)
+    return await resolve_media(request.app.state.database, user, body.anilist_id)
 
 
 @router.get("/home", response_model=HomeResponse)
