@@ -11,12 +11,12 @@ afterEach(()=>{cleanup();vi.clearAllMocks();vi.unstubAllGlobals();setTokenProvid
 function mount(child=<HistoryPage/>){setTokenProvider(async()=>({token:'test-only',userId:'a'}));render(<QueryClientProvider client={new QueryClient({defaultOptions:{queries:{retry:false}}})}><BrowserRouter>{child}</BrowserRouter></QueryClientProvider>)}
 it('submits the recorded original version for undo',async()=>{
   const fetcher=vi.fn().mockImplementation((_url,init)=>Promise.resolve(new Response(JSON.stringify(init.method==='POST'?{undone:true,changed:true}:{data:[{id:'action',media_id:null,title:null,action:'library.details',occurred_at:'2026-11-25T00:00:00Z',can_undo:true,undone:false,expected_version:4}],next_cursor:null}),{status:200})))
-  vi.stubGlobal('fetch',fetcher);mount();fireEvent.click(await screen.findByRole('button',{name:'Undo',exact:true}))
+  vi.stubGlobal('fetch',fetcher);mount();fireEvent.click(await screen.findByRole('button',{name:/^Undo$/}))
   await waitFor(()=>expect(state.notify).toHaveBeenCalledWith('Change undone.'))
   expect(JSON.parse(fetcher.mock.calls.find(([,init])=>init.method==='POST')![1].body)).toEqual({expected_version:4})
 })
 it('does not turn an unavailable history response into no activity',async()=>{
-  vi.stubGlobal('fetch',vi.fn().mockResolvedValue(new Response(JSON.stringify({error:{code:'UPSTREAM_UNAVAILABLE'}}),{status:503})))
+  vi.stubGlobal('fetch',vi.fn().mockImplementation(()=>Promise.resolve(new Response(JSON.stringify({error:{code:'UPSTREAM_UNAVAILABLE'}}),{status:503}))))
   mount();expect(await screen.findByRole('alert')).toHaveTextContent('temporarily unavailable')
   expect(screen.queryByText('No recorded activity')).toBeNull()
 })

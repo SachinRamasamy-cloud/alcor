@@ -1095,6 +1095,178 @@
         "title": "Media",
         "type": "object"
       },
+      "Preferences": {
+        "additionalProperties": false,
+        "properties": {
+          "include_planned": {
+            "default": true,
+            "title": "Include Planned",
+            "type": "boolean"
+          },
+          "minimum_rating_votes": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Minimum Rating Votes"
+          },
+          "motion": {
+            "default": "system",
+            "enum": [
+              "system",
+              "reduced",
+              "full"
+            ],
+            "title": "Motion",
+            "type": "string"
+          },
+          "notifications": {
+            "default": false,
+            "title": "Notifications",
+            "type": "boolean"
+          },
+          "positive_rating_min": {
+            "anyOf": [
+              {
+                "maximum": 10.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Positive Rating Min"
+          },
+          "preferred_genres": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Preferred Genres",
+            "type": "array"
+          },
+          "preferred_max_units": {
+            "anyOf": [
+              {
+                "maximum": 100000.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preferred Max Units"
+          },
+          "preferred_studios": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Preferred Studios",
+            "type": "array"
+          },
+          "preferred_themes": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Preferred Themes",
+            "type": "array"
+          },
+          "spoiler_mode": {
+            "default": false,
+            "title": "Spoiler Mode",
+            "type": "boolean"
+          },
+          "timezone": {
+            "default": "UTC",
+            "title": "Timezone",
+            "type": "string"
+          }
+        },
+        "title": "Preferences",
+        "type": "object"
+      },
+      "PreferencesRead": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Preferences"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "data",
+          "version"
+        ],
+        "title": "PreferencesRead",
+        "type": "object"
+      },
+      "PreferencesWrite": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Preferences"
+          },
+          "expected_version": {
+            "minimum": 0.0,
+            "title": "Expected Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "data",
+          "expected_version"
+        ],
+        "title": "PreferencesWrite",
+        "type": "object"
+      },
+      "ProfileRead": {
+        "properties": {
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "display_name",
+          "version"
+        ],
+        "title": "ProfileRead",
+        "type": "object"
+      },
+      "ProfileWrite": {
+        "properties": {
+          "display_name": {
+            "maxLength": 80,
+            "title": "Display Name",
+            "type": "string"
+          },
+          "expected_version": {
+            "minimum": 0.0,
+            "title": "Expected Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "display_name",
+          "expected_version"
+        ],
+        "title": "ProfileWrite",
+        "type": "object"
+      },
       "ProgressCounts": {
         "properties": {
           "reading_events": {
@@ -2149,6 +2321,66 @@
         ]
       }
     },
+    "/api/v1/me": {
+      "get": {
+        "operationId": "profile_api_v1_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Profile",
+        "tags": [
+          "preferences"
+        ]
+      },
+      "patch": {
+        "operationId": "update_profile_api_v1_me_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Profile",
+        "tags": [
+          "preferences"
+        ]
+      }
+    },
     "/api/v1/me/actions/{activity_id}/undo": {
       "post": {
         "operationId": "undo_api_v1_me_actions__activity_id__undo_post",
@@ -3095,6 +3327,66 @@
         "summary": "Manual Episodes",
         "tags": [
           "tracking"
+        ]
+      }
+    },
+    "/api/v1/me/preferences": {
+      "get": {
+        "operationId": "preferences_api_v1_me_preferences_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreferencesRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Preferences",
+        "tags": [
+          "preferences"
+        ]
+      },
+      "patch": {
+        "operationId": "update_preferences_api_v1_me_preferences_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreferencesWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreferencesRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Preferences",
+        "tags": [
+          "preferences"
         ]
       }
     },

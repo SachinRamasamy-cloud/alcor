@@ -140,6 +140,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Profile */
+        get: operations["profile_api_v1_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Profile */
+        patch: operations["update_profile_api_v1_me_patch"];
+        trace?: never;
+    };
     "/api/v1/me/actions/{activity_id}/undo": {
         parameters: {
             query?: never;
@@ -348,6 +366,24 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Preferences */
+        get: operations["preferences_api_v1_me_preferences_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Preferences */
+        patch: operations["update_preferences_api_v1_me_preferences_patch"];
         trace?: never;
     };
     "/api/v1/me/reading-sessions": {
@@ -984,6 +1020,73 @@ export interface components {
             /** Year */
             year?: number | null;
         };
+        /** Preferences */
+        Preferences: {
+            /**
+             * Include Planned
+             * @default true
+             */
+            include_planned: boolean;
+            /** Minimum Rating Votes */
+            minimum_rating_votes?: number | null;
+            /**
+             * Motion
+             * @default system
+             * @enum {string}
+             */
+            motion: "system" | "reduced" | "full";
+            /**
+             * Notifications
+             * @default false
+             */
+            notifications: boolean;
+            /** Positive Rating Min */
+            positive_rating_min?: number | null;
+            /** Preferred Genres */
+            preferred_genres?: string[];
+            /** Preferred Max Units */
+            preferred_max_units?: number | null;
+            /** Preferred Studios */
+            preferred_studios?: string[];
+            /** Preferred Themes */
+            preferred_themes?: string[];
+            /**
+             * Spoiler Mode
+             * @default false
+             */
+            spoiler_mode: boolean;
+            /**
+             * Timezone
+             * @default UTC
+             */
+            timezone: string;
+        };
+        /** PreferencesRead */
+        PreferencesRead: {
+            data: components["schemas"]["Preferences"];
+            /** Version */
+            version: number;
+        };
+        /** PreferencesWrite */
+        PreferencesWrite: {
+            data: components["schemas"]["Preferences"];
+            /** Expected Version */
+            expected_version: number;
+        };
+        /** ProfileRead */
+        ProfileRead: {
+            /** Display Name */
+            display_name: string;
+            /** Version */
+            version: number;
+        };
+        /** ProfileWrite */
+        ProfileWrite: {
+            /** Display Name */
+            display_name: string;
+            /** Expected Version */
+            expected_version: number;
+        };
         /** ProgressCounts */
         ProgressCounts: {
             /** Reading Events */
@@ -1414,6 +1517,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Media"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    profile_api_v1_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileRead"];
+                };
+            };
+        };
+    };
+    update_profile_api_v1_me_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProfileWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileRead"];
                 };
             };
             /** @description Validation Error */
@@ -1998,6 +2154,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SessionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preferences_api_v1_me_preferences_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreferencesRead"];
+                };
+            };
+        };
+    };
+    update_preferences_api_v1_me_preferences_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreferencesWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreferencesRead"];
                 };
             };
             /** @description Validation Error */

@@ -98,3 +98,11 @@ Executed: local Alembic upgrade; backend formatter/lint and actual PostgreSQL te
 ## B02 - Preserve source progress keys
 
 Baseline `9b90804`, L2 identity correctness. Source inspection found manual decimal normalization incorrectly applied to provider keys. `ALCOR_RUN_INTEGRATION=1 python -m uv run pytest -q -k provider_keys --tb=short` reproduced failure for key `001`. Fix preserves exact source keys, resolves numeric aliases only for manual targets, rejects duplicate resolved bulk targets, and applies the same rule to unit details. Formatter/lint passed; full actual database suite passed 29 tests. Existing manual decimal behavior retained. No migration, dependency, public shape or scientific change. Human review remains pending.
+
+## Profile and preferences vertical slice
+
+Date: 25 November 2026. Baseline `fddd452`. L2 behavior/L4 ownership. Added local migration 006, versioned private profile/preferences, settings/profile pages, IANA timezone validation, explicit discovery preferences, notification opt-in, synopsis spoiler controls and account-scoped motion preferences. Device reduced-motion remains respected. Editors retain original versions and offer explicit reload. User quality/positive-rating thresholds stay optional; no recommendation formula was implemented by this change.
+
+Commands: local Alembic upgrade; backend formatter/lint and actual PostgreSQL suite (30 passed), sequential OpenAPI/type generation; frontend lint, typecheck/production build, 25 unit/component tests and 8 public browser regressions passed. Initial entry measured 203.55 KB gzip. Known uncompressed-size warning remains. Added first-party tzdata for Windows IANA support after a reproduced failure, following https://docs.python.org/3/library/zoneinfo.html. Lockfile preserved reproducibility. E029-E031 record the timezone and test/typecheck failures; assertions retained.
+
+Status: implemented/locally verified on the review branch. Real Google configuration remains excluded; production and human security/editorial review pending. Notification delivery and recommendation ranking are separate features, not implied by saving these preferences.

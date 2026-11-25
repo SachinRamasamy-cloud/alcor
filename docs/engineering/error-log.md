@@ -45,3 +45,7 @@ Final checkpoint: E006–E010 and E012–E014 were resolved by the recorded pass
 - E027: The first repair command used a root-relative path from the backend directory, so no patch was applied and tests repeated the original failure. Corrected the working directory and applied the diagnosed repair before rerunning.
 
 - E028: A real PostgreSQL regression reproduced provider key `001` being normalized to `1`, causing a false invalid-target error. Preserve provider keys exactly; apply decimal aliases only as a fallback for explicitly manual targets. Original provider-key regression and decimal-manual tests now pass.
+
+- E029: IANA timezone validation failed for Asia/Kolkata on Windows because the host lacked timezone data. Added CPython-maintained tzdata as a locked runtime dependency, following the official zoneinfo data-source guidance; original timezone tests passed.
+- E030: A history error test reused a single Response body across both preference/history fetches, exhausting its stream. Updated the fixture to return a fresh HTTP response per call; original error/empty assertions retained and passed.
+- E031: Final typecheck found an unsupported RTL `exact` option in a history test and an optional generated preference array. Used an anchored accessible-name matcher and a null-safe array fallback; no assertion was removed.

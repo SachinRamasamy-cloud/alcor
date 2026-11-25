@@ -1,6 +1,6 @@
 # Remaining implementation scope
 
-Authority: owner instruction, 25 November 2026: defer Google login, import and export; complete the other planned work. Preserve the original plans as requirements. This is a delivery checklist, not a completion claim.
+Authority: owner instruction, 25 November 2026: defer Google login, import and export; complete the other planned work. The owner subsequently deferred recommendation scoring as well. Preserve the original plans as requirements. This is a delivery checklist, not a completion claim.
 
 | Workstream | Required remaining behavior | State |
 | --- | --- | --- |
@@ -11,7 +11,7 @@ Authority: owner instruction, 25 November 2026: defer Google login, import and e
 | Provider/cache | Validated adapter, canonical persistence, safe URLs/schema bounds, shared cache/singleflight, distributed inbound/outbound budgets and degraded behavior | Pending; production rights remain a human gate |
 | Reporting/account | History/statistics, profile/settings, privacy controls and safe account deletion | Pending |
 | Polish/operations | Success-only motion, responsive/accessibility checks, performance, secrets/dependency scans, reproducible containers, CI/contracts, monitoring, backup/restore and rollback | Partial; remaining checks pending |
-| Deferred | Google configuration/live Google validation, user import and user export | Explicitly excluded by owner |
+| Deferred | Google configuration/live Google validation, user import, user export and recommendation scoring | Explicitly excluded by owner |
 | Conditional extensions | Offline/PWA, push/email, streaming availability, extra providers/languages | Only where supported and independently reviewable; no invented capabilities |
 
 ## A04 execution contract
@@ -29,3 +29,7 @@ Risk L2/L4 ownership. Reuse existing library/session version controls. Add expli
 ## Reporting and safe recovery contract
 
 Risk L2 reporting/L4 ownership. Add history keyset pages, recorded statistics, soft library removal and idempotent undo for metadata edits/removals/non-completing progress. Original events remain append-only. Strict original version prevents overwriting later edits. Do not offer undo for unsupported completion/release cases. Unknown duration remains null, not zero or fabricated watch time. Test actual PostgreSQL owner isolation, duplicate undo, stale undo refusal, retained history and restored progress gaps.
+
+## Preferences and profile contract
+
+L2/L4 ownership. Private, versioned display name and explicit discovery preferences; timezone uses IANA validation, notifications default off, motion defaults to system, no inferred preferences from watch frequency. Quality/minimum-positive evidence thresholds remain optional user choices rather than invented defaults. Save drafts against original versions, preserve private caches per account, and test actual database isolation/stale writes. Additive local migration 006; Google/import/export remain excluded.

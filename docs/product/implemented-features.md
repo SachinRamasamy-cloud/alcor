@@ -25,3 +25,5 @@ Collections slice: private create/rename/reorder/add/remove/soft-delete, paginat
 Personal details slice: title and episode/chapter ratings/notes, favorites, tags and wishlist priority/reason are implemented with ownership and version checks. Unit notes remain independent of progress.
 
 Reporting/recovery slice: private history pages, saved-record statistics, soft library removal and version-aware undo for supported details/removals/non-completing progress are implemented. Original activity is retained; unknown durations are not estimated.
+
+Profile/preferences slice: private display name, IANA timezone, explicit discovery preferences, notification opt-in, reduced motion and synopsis spoiler controls are implemented. User-set evidence thresholds do not imply a completed recommendation algorithm.

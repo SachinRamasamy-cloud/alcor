@@ -1,3 +1,4 @@
+import { usePreferences } from '../features/preferences'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useSearchParams } from 'react-router-dom'
 import { api } from '../shared/api/client'
@@ -17,10 +18,11 @@ function Guest(){const {requireSignIn}=useAuth();return <div className="state-bo
 export function HistoryPage(){
   const {userId}=useAuth()
   const [params,setParams]=useSearchParams()
+  const preferences=usePreferences()
   const queries=useQueryClient(),notify=useFeedback()
   const history=useQuery({queryKey:['private',userId,'history',params.toString()],enabled:Boolean(userId),queryFn:({signal})=>api<components['schemas']['HistoryPage']>(`/me/history?${params}`,{signal,accountId:userId!})})
   const undo=useMutation({mutationFn:({id,version}:{id:string;version:number})=>api(`/me/actions/${id}/undo`,{method:'POST',accountId:userId!,body:JSON.stringify({expected_version:version})}),onSuccess:()=>notify(t('reports.undoSuccess')),onError:(error:Error)=>notify(error.message),onSettled:()=>{void queries.invalidateQueries({queryKey:['private',userId]})}})
-  const date=(value:string)=>new Intl.DateTimeFormat('en',{dateStyle:'medium',timeStyle:'short'}).format(new Date(value))
+  const date=(value:string)=>new Intl.DateTimeFormat('en',{dateStyle:'medium',timeStyle:'short',timeZone:preferences.data?.data.timezone??'UTC'}).format(new Date(value))
   return <div className="shell page-body"><PersonalNav/><div className="page-heading"><h1>{t('reports.history')}</h1></div>{!userId?<Guest/>:history.isPending?<Loading/>:history.error?<ErrorState error={history.error} retry={()=>{void history.refetch()}}/>:<><p className="mb-5 text-xs text-muted">{t('reports.recordedDates')}</p>{!history.data.data.length?<p>{t('reports.noHistory')}</p>:<ol className="divide-y divide-line">{history.data.data.map(item=><li key={item.id} className="flex flex-wrap items-center gap-4 py-5"><div className="mr-auto"><p className="text-sm font-medium">{t(actions[item.action]??'reports.activity')}</p>{item.title&&<p className="mt-2 text-sm text-muted">{item.title}</p>}<time className="mt-2 block text-xs text-muted" dateTime={item.occurred_at}>{date(item.occurred_at)}</time></div>{item.undone?<span className="text-xs text-muted">{t('reports.undone')}</span>:item.can_undo&&item.expected_version!==null&&<Button variant="secondary" disabled={undo.isPending} onClick={()=>undo.mutate({id:item.id,version:item.expected_version!})}>{t('reports.undo')}</Button>}</li>)}</ol>}<div className="pagination">{params.has('cursor')&&<Button variant="secondary" onClick={()=>setParams({})}>{t('catalogue.back')}</Button>}{history.data.next_cursor&&<Button variant="secondary" onClick={()=>setParams({cursor:history.data.next_cursor!})}>{t('catalogue.more')}</Button>}</div></>}</div>
 }
 export function StatisticsPage(){
