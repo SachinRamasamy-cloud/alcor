@@ -79,7 +79,7 @@ describe('library integration', () => {
     expect(screen.getByRole('button',{name:'In your library: Test title'})).toHaveAttribute('aria-pressed','true')
   })
   it('confirms completion through the active session with its version and no invented marks',async()=>{
-    const fetcher=vi.fn(async(url,init)=>new Response(JSON.stringify(String(url).includes('/watch-sessions')?(init.method==='POST'?{id:'session',version:5}:[{id:'session',active:true,version:4}]):{data:[{...entry,status:'in_progress'}],total:1})))
+    const fetcher=vi.fn(async(url,init)=>new Response(JSON.stringify(String(url).includes('/watch-sessions')?(init.method==='POST'?{id:'session',version:5}:[{id:'session',active:true,version:4}]):String(url).includes('/media-status')?[{...entry,status:'completed',ever_completed:true,version:8}]:{data:[{...entry,status:'in_progress'}],total:1})))
     vi.stubGlobal('fetch',fetcher);mount()
     fireEvent.click(await screen.findByRole('button',{name:'Manage Test title'}))
     await waitFor(()=>expect(screen.getByRole('button',{name:'Mark as completed'})).not.toBeDisabled())

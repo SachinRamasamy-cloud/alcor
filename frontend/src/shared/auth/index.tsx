@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
@@ -6,11 +6,12 @@ import { t } from '../content'
 import { Button, Modal } from '../ui'
 import { setTokenProvider } from '../api/client'
 import { useBackend } from '../api/backend-state'
-import { clearPending, savePending, type PendingAction } from './pending'
+import { clearPending, savePending } from './pending'
 import { sessionStorageAdapter } from './storage'
 import { EmailForm, type EmailMode } from './email-form'
 
-type Reason = 'wishlist' | 'library' | 'progress'
+import {AuthContext,type Reason,type AuthState} from './state'
+export {useAuth} from './state'
 const url = import.meta.env.VITE_SUPABASE_URL ?? ''
 const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? ''
 // Only browser-safe publishable keys enable the deferred configuration.
@@ -20,15 +21,6 @@ setTokenProvider(async () => {
   const session = (await authClient?.auth.getSession())?.data.session
   return session ? { token: session.access_token, userId: session.user.id } : null
 })
-type AuthState = {
-  userId: string | null
-  loading: boolean
-  requireSignIn: (reason?: Reason, action?: { kind: PendingAction['kind']; mediaId: string }) => void
-  signOut: () => Promise<void>
-}
-const AuthContext = createContext<AuthState>({ userId: null, loading: false, requireSignIn: () => {}, signOut: async () => {} })
-export const useAuth = () => useContext(AuthContext)
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [reason, setReason] = useState<Reason | null>(null)
   const [userId, setUserId] = useState<string | null>(null)

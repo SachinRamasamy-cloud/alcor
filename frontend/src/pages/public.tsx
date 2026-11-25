@@ -12,6 +12,7 @@ import { ExpandableSynopsis } from '../features/catalogue/synopsis'
 import { PersonalMedia } from '../features/catalogue/personal'
 import { mediaPath } from '../shared/api/anilist'
 import { SaveButton } from '../features/library'
+import {CardActions,CardStatus} from '../features/library/actions'
 import { MediaGrid, Poster } from '../entities/media'
 import type { Media } from '../shared/api/client'
 import { t, formatDate, unitCount, type MessageKey } from '../shared/content'
@@ -25,10 +26,10 @@ function PageTitle({ title }: { title: string }) {
   return null
 }
 
-function WishlistAction({ media }: { media: Media }) { return <SaveButton media={media} compact /> }
+function WishlistAction({ media }: { media: Media }) { return <CardActions media={media}/> }
 function Section({ title, to, items }: { title: MessageKey; to: string; items: Media[] }) {
   if (!items.length) return null
-  return <section className="home-section"><div className="section-heading"><h2>{t(title)}</h2><Link className="subtle-link" to={to}>{t('home.all')}<ArrowRight size={14} /></Link></div><div className="mobile-media-rail" role="region" aria-label={t(title)} tabIndex={0}><MediaGrid items={items} actions={media => <WishlistAction media={media} />} /></div></section>
+  return <section className="home-section"><div className="section-heading"><h2>{t(title)}</h2><Link className="subtle-link" to={to}>{t('home.all')}<ArrowRight size={14} /></Link></div><div className="mobile-media-rail" role="region" aria-label={t(title)} tabIndex={0}><MediaGrid items={items} actions={media => <WishlistAction media={media} />} context={media=><CardStatus media={media}/>} /></div></section>
 }
 function filterLabel(key:string,value:string):string {
   if(key==='has_score')return t('discovery.ratedOnly')
@@ -99,7 +100,7 @@ export function CataloguePage() {
     {[...params].some(([key])=>!['page','cursor','type'].includes(key))&&<button className="reset-button filter-reset" onClick={()=>setParams(type?{type}:{})}>{t('catalogue.reset')}</button>}</div>
     {params.get('q') && <p className="results-label">{t('catalogue.resultsFor', { query: params.get('q')! })}</p>}
     {catalogue.personalUnavailable&&<p role="status" className="coverage-note">{t('discovery.filterUnavailable')}</p>}
-    {catalogue.isPending ? <Loading variant="catalogue" /> : catalogue.error ? <ErrorState error={catalogue.error} retry={() => { void catalogue.refetch() }} /> : catalogue.data.data.length ? <>{catalogue.data.source==='Saved library'&&<p className="coverage-note">{t('catalogue.savedCoverage')}</p>}<MediaGrid items={catalogue.data.data} actions={media => <WishlistAction media={media} />} /><Pagination page={pagination.page} totalPages={pagination.personal?null:catalogue.data.total_pages} hasNext={catalogue.data.has_more} availablePages={pagination.availablePages} busy={catalogue.isFetching} onChange={pagination.change}/></> : <div className="state-box"><h2>{t(catalogue.data.has_more?'catalogue.batchEmpty':'catalogue.noResults')}</h2><p>{t(catalogue.data.has_more?'catalogue.batchEmptyBody':'catalogue.noResultsBody')}</p>{catalogue.data.has_more&&<Pagination page={pagination.page} hasNext availablePages={pagination.availablePages} onChange={pagination.change}/>}<Button variant="secondary" onClick={() => setParams(type?{type}:{})}>{t('catalogue.reset')}</Button></div>}
+    {catalogue.isPending ? <Loading variant="catalogue" /> : catalogue.error ? <ErrorState error={catalogue.error} retry={() => { void catalogue.refetch() }} /> : catalogue.data.data.length ? <>{catalogue.data.source==='Saved library'&&<p className="coverage-note">{t('catalogue.savedCoverage')}</p>}<MediaGrid items={catalogue.data.data} actions={media => <WishlistAction media={media} />} context={media=><CardStatus media={media}/>} /><Pagination page={pagination.page} totalPages={pagination.personal?null:catalogue.data.total_pages} hasNext={catalogue.data.has_more} availablePages={pagination.availablePages} busy={catalogue.isFetching} onChange={pagination.change}/></> : <div className="state-box"><h2>{t(catalogue.data.has_more?'catalogue.batchEmpty':'catalogue.noResults')}</h2><p>{t(catalogue.data.has_more?'catalogue.batchEmptyBody':'catalogue.noResultsBody')}</p>{catalogue.data.has_more&&<Pagination page={pagination.page} hasNext availablePages={pagination.availablePages} onChange={pagination.change}/>}<Button variant="secondary" onClick={() => setParams(type?{type}:{})}>{t('catalogue.reset')}</Button></div>}
   </div>
 }
 

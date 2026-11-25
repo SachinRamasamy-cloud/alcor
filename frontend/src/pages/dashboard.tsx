@@ -8,7 +8,8 @@ import { t,type MessageKey } from '../shared/content'
 import { Button,ErrorState,Loading } from '../shared/ui'
 import { useSetup,storyTraits,type SetupRead } from '../features/profile'
 import { useHome,useCatalogue } from '../features/catalogue'
-import { SaveButton,useLibrary } from '../features/library'
+import { useLibrary } from '../features/library'
+import {CardActions,CardStatus} from '../features/library/actions'
 import { tasteItems,tasteParams } from '../features/discovery/taste'
 import { MediaGrid } from '../entities/media'
 import { ContinueSections } from '../widgets/continue'
@@ -20,7 +21,7 @@ export function DashboardHeader({name,needsSetup}:{name?:string;needsSetup:boole
 }
 export function DashboardShelf({title,description,items,to,showSave=true}:{title:string;description?:string;items:Media[];to?:string;showSave?:boolean}){
   if(!items.length)return null
-  return <section className="home-section dashboard-shelf"><div className="section-heading"><div><h2>{title}</h2>{description&&<p>{description}</p>}</div>{to&&<Link className="subtle-link" to={to}>{t('home.all')}<ArrowRight size={14}/></Link>}</div><div className="mobile-media-rail" role="region" aria-label={title} tabIndex={0}><MediaGrid items={items} actions={showSave?media=><SaveButton media={media} compact/>:undefined}/></div></section>
+  return <section className="home-section dashboard-shelf"><div className="section-heading"><div><h2>{title}</h2>{description&&<p>{description}</p>}</div>{to&&<Link className="subtle-link" to={to}>{t('home.all')}<ArrowRight size={14}/></Link>}</div><div className="mobile-media-rail" role="region" aria-label={title} tabIndex={0}><MediaGrid items={items} actions={showSave?media=><CardActions media={media}/>:undefined} context={media=><CardStatus media={media}/>}/></div></section>
 }
 function Suggestions({setup}:{setup:SetupRead}){
   const taste=tasteParams(setup.preferences.data)

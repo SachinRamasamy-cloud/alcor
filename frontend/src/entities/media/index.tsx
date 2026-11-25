@@ -21,11 +21,11 @@ export function MediaCard({ media, actions, context }: { media: Media; actions?:
     <p className="card-meta">{[media.format, media.year].filter(Boolean).join(' · ') || t('media.notAvailable')}</p>
     <p className="card-unit-count">{unitCount(media.total_units??null,media.media_type)}</p>
     <div className="card-genres">{(media.genres??[]).slice(0,2).map(genre=><span key={genre} title={genre}>{genre}</span>)}</div>
-    {context&&<div className="card-context">{context}</div>}
+    {context}
   </div>
     {actions&&<div className="card-actions">{actions}</div>}
   </article>
 }
-export function MediaGrid({ items, actions }: { items: Media[]; actions?: (media: Media) => ReactNode }) {
-  return <div className="media-grid">{items.map(media => <MediaCard key={media.id} media={media} actions={actions?.(media)} />)}</div>
+export function MediaGrid({ items, actions,context }: { items: Media[]; actions?: (media: Media) => ReactNode;context?:(media:Media)=>ReactNode }) {
+  return <div className="media-grid">{items.map(media => <MediaCard key={media.id} media={media} actions={actions?.(media)} context={context?.(media)}/>)}</div>
 }

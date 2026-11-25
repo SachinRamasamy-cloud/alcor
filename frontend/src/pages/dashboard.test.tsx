@@ -13,6 +13,7 @@ vi.mock('../shared/api/backend',()=>({useBackend:()=>({ready:state.ready})}))
 vi.mock('../features/profile',async original=>({...await original<typeof import('../features/profile')>(),useSetup:()=>({data:{profile:{display_name:'Reader',version:1},preferences:{version:1,data:{preferred_genres:['Fantasy'],intelligence_profile:{...defaultAnswers(),favorite_anime_ids:[favorite.id],excluded_genres:['Romance']}}},favorites:[favorite]},isPending:false,error:null})}))
 vi.mock('../features/catalogue',()=>({useHome:()=>({data:{anime:[suggestion]},isPending:false,error:null}),useCatalogue:()=>({data:{data:[suggestion,favorite]},isPending:false,error:null})}))
 vi.mock('../features/library',()=>({SaveButton:()=> <button>Save title</button>,useLibrary:()=>({data:{total:1,data:[{media:suggestion}]},isPending:false,error:null})}))
+vi.mock('../features/library/actions',()=>({CardActions:()=> <button>Save title</button>,CardStatus:()=>null}))
 vi.mock('../widgets/continue',()=>({ContinueSections:()=> <h2>Continue watching</h2>}))
 afterEach(()=>{cleanup();state.ready=true})
 function mount(){render(<QueryClientProvider client={new QueryClient()}><MemoryRouter><DashboardPage/></MemoryRouter></QueryClientProvider>)}

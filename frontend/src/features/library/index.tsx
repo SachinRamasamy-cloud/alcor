@@ -11,6 +11,7 @@ import { useFeedback } from '../../shared/feedback'
 import { t } from '../../shared/content'
 import { Button } from '../../shared/ui'
 import {captureFlyOrigin,flyToTarget,type FlyOrigin} from '../../shared/motion'
+import {publishLibraryEntry} from './cache'
 
 export type Entry = components['schemas']['LibraryEntry']
 export { PersonalDetails } from './details'
@@ -30,7 +31,7 @@ export function useLibraryWrite() {
   const notify = useFeedback()
   const { userId } = useAuth()
   const currentAccount=useRef(userId)
-  useLayoutEffect(()=>{currentAccount.current=userId},[userId])
+  useLayoutEffect(()=>{currentAccount.current=userId;return()=>{currentAccount.current=null}},[userId])
   return useMutation({
     scope: { id: `library:${userId}` },
     onMutate:()=>({accountId:userId}),
@@ -42,9 +43,8 @@ export function useLibraryWrite() {
     onSuccess: (result,variables,context) => {
       if(!context.accountId||context.accountId!==currentAccount.current)return
       const entry=result.entry
-      const references=[variables.id,entry.media.id,...(entry.media.source_ids?.anilist?[`anilist-${entry.media.source_ids.anilist}`]:[])]
-      queries.setQueriesData<Entry|null>({predicate:query=>query.queryKey[0]==='private'&&query.queryKey[1]===context.accountId&&query.queryKey[2]==='media-status'&&query.queryKey[3]===entry.media.media_type&&references.includes(String(query.queryKey[4]))},entry.deleted_at?null:entry)
-      if(result.changed){
+      const published=publishLibraryEntry(queries,context.accountId,entry,[variables.id])
+      if(result.changed&&published){
         notify(t(entry.deleted_at?(variables.removeLibrary?'library.removed':'wishlist.removed'):entry.status==='planned'?'wishlist.added':'library.saved'))
         if(!entry.deleted_at&&!variables.remove&&['planned','in_progress'].includes(entry.status))flyToTarget({scopeKey:context.accountId,target:entry.status==='planned'?'wishlist':'library',origin:variables.origin,image:entry.media.image_url})
       }
@@ -53,7 +53,7 @@ export function useLibraryWrite() {
     onSettled: () => { void queries.invalidateQueries({ queryKey: ['private', userId] }) },
   })
 }
-export function SaveButton({ media, kind = 'wishlist', compact = false }: { media: Media; kind?: 'wishlist' | 'library'; compact?: boolean }) {
+export function SaveButton({ media, kind = 'wishlist', compact = false,origin,onSaved }: { media: Media; kind?: 'wishlist' | 'library'; compact?: boolean;origin?:FlyOrigin;onSaved?:()=>void }) {
   const { userId, requireSignIn } = useAuth()
   const write = useLibraryWrite()
   const { ready } = useBackend()
@@ -65,7 +65,7 @@ export function SaveButton({ media, kind = 'wishlist', compact = false }: { medi
   const save = (event:MouseEvent<HTMLButtonElement>) => {
     if (!userId) requireSignIn(kind, { kind, mediaId: media.id })
     else if(saved.error)void saved.refetch()
-    else if(!already)write.mutate({ id: media.id, status: kind === 'wishlist' ? 'planned' : 'in_progress',version:entry?.version,origin:captureFlyOrigin(event.currentTarget) })
+    else if(!already)write.mutate({ id: media.id, status: kind === 'wishlist' ? 'planned' : 'in_progress',version:entry?.version,origin:origin??captureFlyOrigin(event.currentTarget) },{onSuccess:()=>onSaved?.()})
   }
   if (compact) return <button className="card-save" aria-pressed={already} aria-label={already||saved.error?`${label}: ${media.title}`:t('media.wishlistLabel', { title: media.title })} title={userId && !ready ? t('backend.actionUnavailable') : label} disabled={disabled} onClick={save}><Bookmark size={17} fill={already?'currentColor':'none'} /></button>
   return <Button variant={kind === 'wishlist' ? 'secondary' : 'primary'} aria-pressed={already} title={userId && !ready ? t('backend.actionUnavailable') : undefined} disabled={disabled} onClick={save}>{already?<Check size={16}/>:kind === 'wishlist' ? <Bookmark size={16} /> : <Plus size={16} />}{label}</Button>

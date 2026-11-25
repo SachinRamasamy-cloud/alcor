@@ -41,3 +41,7 @@ L2 discovery/L4 personal isolation. Extend existing filters without changing pri
 ## Provider architecture update
 
 The owner requested AniList for discovery, AniZip for episode metadata and TMDB for enrichment/fallback. Follow the [implementation addendum](../product/MULTI_PROVIDER_METADATA_PLAN.md) next. Preserve browser-first cold-start browsing, exact existing progress and server-only TMDB credentials. The addendum is a plan, not evidence that AniZip/TMDB integration is complete.
+
+## Foundation V1 execution
+
+Working branch: `finish-the-foundation`. Owner-approved attachment: [Foundation V1](../product/ALCOR_FOUNDATION_V1.md), subject to the newer UI/alignment lock. F01/F02 filtering and mode persistence are locally verified; F03 direct completion/shared confirmed cache state is locally verified. Stage 1 remains incomplete for broader server-derived actions and all-route/refill polish. Stages 2-7 remain outstanding. Owner approved reconciled favourites, per-item bulk results and impression parameters in chat; this approval is not live validation, a provider clearance or a release. Keep status correction/undo unavailable until its evidence contract is approved and verified.
