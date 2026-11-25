@@ -25,7 +25,7 @@ function PageTitle({ title }: { title: string }) {
 function WishlistAction({ media }: { media: Media }) { return <SaveButton media={media} compact /> }
 function Section({ title, to, items }: { title: MessageKey; to: string; items: Media[] }) {
   if (!items.length) return null
-  return <section className="home-section"><div className="section-heading"><h2>{t(title)}</h2><Link className="subtle-link" to={to}>{t('home.all')}<ArrowRight size={14} /></Link></div><MediaGrid items={items} actions={media => <WishlistAction media={media} />} /></section>
+  return <section className="home-section"><div className="section-heading"><h2>{t(title)}</h2><Link className="subtle-link" to={to}>{t('home.all')}<ArrowRight size={14} /></Link></div><div className="mobile-media-rail" role="region" aria-label={t(title)} tabIndex={0}><MediaGrid items={items} actions={media => <WishlistAction media={media} />} /></div></section>
 }
 function filterLabel(key:string,value:string):string {
   if(key==='has_score')return t('discovery.ratedOnly')

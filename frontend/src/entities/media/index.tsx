@@ -21,8 +21,8 @@ export function MediaCard({ media, actions }: { media: Media; actions?: ReactNod
     <p className="card-meta">{[media.format, media.year].filter(Boolean).join(' · ') || t('media.notAvailable')}</p>
     <p className="card-unit-count">{unitCount(media.total_units??null,media.media_type)}</p>
     <div className="card-genres">{(media.genres??[]).slice(0,2).map(genre=><span key={genre} title={genre}>{genre}</span>)}</div>
-    <div className="card-footer"><Link className="card-details" to={mediaPath(media)} aria-label={t('media.detailsLabel',{title:media.title})}>{t('home.details')}<ArrowUpRight size={15} aria-hidden="true"/></Link>{actions&&<div className="card-actions">{actions}</div>}</div>
   </div>
+    <div className="card-footer"><Link className="card-details" to={mediaPath(media)} aria-label={t('media.detailsLabel',{title:media.title})}>{t('home.details')}<ArrowUpRight size={15} aria-hidden="true"/></Link>{actions&&<div className="card-actions">{actions}</div>}</div>
   </article>
 }
 export function MediaGrid({ items, actions }: { items: Media[]; actions?: (media: Media) => ReactNode }) {

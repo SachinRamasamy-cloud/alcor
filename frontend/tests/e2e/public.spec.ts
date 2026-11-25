@@ -37,7 +37,7 @@ for (const width of [320, 375, 640, 768, 1024, 1280, 1440, 1600, 1920]) {
   })
 }
 
-test('cards show complete metadata, visible actions and balanced rows at wide widths',async({page})=>{
+test('cards show complete metadata, hover or focus actions and balanced rows at wide widths',async({page})=>{
   await page.setViewportSize({width:1920,height:1000})
   await page.route('https://graphql.anilist.co',route=>{
     const {query}=route.request().postDataJSON()
@@ -52,12 +52,71 @@ test('cards show complete metadata, visible actions and balanced rows at wide wi
   expect(geometry.filter(card=>card.top===geometry[0].top)).toHaveLength(6)
   expect(Math.max(...geometry.map(card=>card.height))-Math.min(...geometry.map(card=>card.height))).toBeLessThan(1)
   await expect(cards.first().getByText('12 episodes')).toBeVisible()
+  const footer=cards.first().locator('.card-footer')
+  await page.mouse.move(0,0)
+  await expect(footer).toHaveCSS('opacity','0')
+  await cards.first().locator('.poster-wrap a').focus()
+  await expect(footer).toHaveCSS('opacity','1')
+  await page.locator('.site-header .wordmark').focus()
+  await expect(footer).toHaveCSS('opacity','0')
+  await cards.first().hover()
+  await expect(footer).toHaveCSS('opacity','1')
+  const poster=await cards.first().locator('.poster-wrap').boundingBox(),actions=await footer.boundingBox()
+  expect(actions!.y+actions!.height).toBeLessThanOrEqual(poster!.y+poster!.height)
   await expect(cards.first().getByRole('button',{name:'Add Card 1 to wishlist'})).toBeVisible()
   await cards.first().getByRole('button',{name:'Add Card 1 to wishlist'}).click()
   await expect(page.getByRole('dialog')).toBeVisible()
   await page.keyboard.press('Escape')
   await expect(cards.first().getByRole('button',{name:'Add Card 1 to wishlist'})).toBeFocused()
   await page.screenshot({path:test.info().outputPath('cards-wide.png'),fullPage:true})
+})
+
+for(const width of [320,375,640]) {
+  test(`mobile home shelves scroll horizontally at ${width}px`,async({page})=>{
+    await page.setViewportSize({width,height:900})
+    await page.goto('/')
+    await expect(page.locator('.media-card')).toHaveCount(18)
+    for(const title of ['Popular anime','Popular manga']) {
+      const shelf=page.getByRole('region',{name:title,exact:true})
+      await expect(shelf).toBeVisible()
+      expect(await shelf.evaluate(node=>node.scrollWidth>node.clientWidth)).toBeTruthy()
+      const cards=shelf.locator('.media-card')
+      expect(await shelf.evaluate(node=>{
+        const edge=node.getBoundingClientRect().right
+        return [...node.querySelectorAll('.media-card')].some(card=>{const rect=card.getBoundingClientRect();return rect.left<edge&&rect.right>edge})
+      })).toBeTruthy()
+      await shelf.screenshot({path:test.info().outputPath(`${title.includes('anime')?'anime':'manga'}-shelf-start.png`)})
+      const rows=await cards.evaluateAll(nodes=>nodes.map(node=>Math.round(node.getBoundingClientRect().top)))
+      expect([...new Set(rows)]).toHaveLength(1)
+      await shelf.focus()
+      await page.keyboard.press('ArrowRight')
+      await expect.poll(()=>shelf.evaluate(node=>node.scrollLeft)).toBeGreaterThan(0)
+      await cards.last().locator('.card-title').focus()
+      await expect(cards.last().locator('.card-title')).toBeInViewport()
+      await expect(cards.last().locator('.card-footer')).toHaveCSS('opacity','1')
+      await shelf.screenshot({path:test.info().outputPath(`${title.includes('anime')?'anime':'manga'}-shelf.png`)})
+    }
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
+    await page.goto('/anime')
+    await expect(page.locator('.media-card')).toHaveCount(12)
+    await expect(page.locator('.media-card .card-title')).toHaveCount(12)
+    expect(await page.locator('.media-grid').evaluate(node=>getComputedStyle(node).gridAutoFlow)).toBe('row')
+  })
+}
+
+test('touch devices retain visible card actions at tablet widths',async({browser})=>{
+  const page=await browser.newPage({viewport:{width:1024,height:1000},hasTouch:true,isMobile:true})
+  try {
+    await mockCatalogue(page)
+    await page.goto('/anime')
+    await expect(page.locator('.media-card')).toHaveCount(12)
+    const card=page.locator('.media-card').first()
+    await expect(card.locator('.card-footer')).toHaveCSS('opacity','1')
+    const poster=await card.locator('.poster-wrap').boundingBox(),actions=await card.locator('.card-footer').boundingBox()
+    expect(actions!.y).toBeGreaterThanOrEqual(poster!.y+poster!.height)
+    await card.getByRole('button',{name:/^Add .* to wishlist$/}).tap()
+    await expect(page.getByRole('dialog')).toBeVisible()
+  } finally { await page.close() }
 })
 
 test('card actions stay usable on a narrow screen and hover does not request more metadata',async({page})=>{
@@ -256,6 +315,11 @@ for(const [path,kind] of [['/','home'],['/anime','catalogue'],['/anime/anilist-1
     const skeleton=page.locator(`.skeleton-${kind}`)
     await expect(skeleton).toBeVisible()
     await expect(skeleton.getByText('Loading…',{exact:true})).toHaveClass('sr-only')
+    if(kind==='home') {
+      const shelves=skeleton.locator('.mobile-media-rail')
+      await expect(shelves).toHaveCount(2)
+      for(const shelf of await shelves.all()) expect(await shelf.evaluate(node=>node.scrollWidth>node.clientWidth)).toBeTruthy()
+    }
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
     await page.screenshot({path:test.info().outputPath(`${kind}-skeleton.png`),fullPage:true})
   })
