@@ -328,8 +328,16 @@ button:disabled { cursor: not-allowed; opacity: .5; }
   .media-card .poster-wrap, .media-card > .skeleton-poster { grid-area: 1 / 1; }
   .media-card .card-body { grid-area: 2 / 1; }
   .media-card .score-pill { top: 9px; bottom: auto; }
-  .media-card .card-footer { grid-area: 1 / 1; align-self: end; z-index: 1; margin: 12px; padding: 4px 8px; border: 1px solid #e5e5e5; border-radius: 6px; background: #fff; opacity: 0; pointer-events: none; }
-  .media-card:hover .card-footer, .media-card:focus-within .card-footer { opacity: 1; pointer-events: auto; }
+  .media-card .card-footer { grid-area: 1 / 1; align-self: stretch; z-index: 1; display: grid; grid-template-columns: minmax(0,1fr) 44px; grid-template-rows: 44px 1fr 44px; gap: 0; margin: 12px; padding: 0; border: 0; background: transparent; opacity: 0; pointer-events: none; }
+  .media-card .card-details { grid-area: 3 / 1 / 4 / 3; padding-inline: 14px; border: 1px solid #fff; border-radius: 6px; background: #171717; color: #fff; box-shadow: 0 2px 8px #0002; }
+  .media-card .card-details:hover { background: #333; text-decoration: none; }
+  .media-card .card-actions { grid-area: 1 / 2; align-self: start; margin-left: 0; }
+  .media-card .card-save { border: 1px solid #e5e5e5; border-radius: 50%; box-shadow: 0 2px 8px #0002; }
+  .media-card .card-save:not(:disabled):hover { background: #171717; color: #fff; border-color: #fff; }
+  .media-card .card-details:focus-visible, .media-card .card-save:focus-visible { outline: 2px solid #fff; outline-offset: 2px; box-shadow: 0 0 0 5px #171717; }
+  .media-card:hover .card-footer, .media-card:focus-within .card-footer { opacity: 1; }
+  .media-card:is(:hover,:focus-within) .card-footer > * { pointer-events: auto; }
+  .skeleton-region .media-card .card-footer { visibility: hidden; }
 }
 @media (min-width: 1101px) and (max-width: 1279px) { .media-grid { grid-template-columns: repeat(4,minmax(0,1fr)); } }
 @media (max-width: 1100px) {

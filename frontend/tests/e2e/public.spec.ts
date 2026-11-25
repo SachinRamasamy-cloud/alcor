@@ -71,6 +71,33 @@ test('cards show complete metadata, hover or focus actions and balanced rows at 
   await page.screenshot({path:test.info().outputPath('cards-wide.png'),fullPage:true})
 })
 
+test('desktop hover separates actions and keeps the artwork clickable',async({page})=>{
+  await page.setViewportSize({width:1440,height:1000})
+  await page.goto('/anime')
+  await expect(page.locator('.card-title')).toHaveCount(12)
+  const card=page.locator('.media-card').first()
+  await page.mouse.move(0,0)
+  await card.screenshot({path:test.info().outputPath('card-idle.png')})
+  const idle=await card.boundingBox()
+  await card.hover()
+  const hovered=await card.boundingBox()
+  expect(Math.abs(hovered!.width-idle!.width)).toBeLessThan(1)
+  expect(Math.abs(hovered!.height-idle!.height)).toBeLessThan(1)
+  const save=card.getByRole('button',{name:/^Add .* to wishlist$/})
+  const details=card.locator('.card-details')
+  const saveBox=await save.boundingBox(),detailsBox=await details.boundingBox()
+  expect(saveBox!.height).toBeGreaterThanOrEqual(44)
+  expect(detailsBox!.height).toBeGreaterThanOrEqual(44)
+  expect(saveBox!.y+saveBox!.height).toBeLessThan(detailsBox!.y)
+  const accessibility=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()
+  expect(accessibility.violations.map(v=>v.id)).toEqual([])
+  await card.screenshot({path:test.info().outputPath('card-hover.png')})
+  const target=await details.getAttribute('href')
+  const poster=await card.locator('.poster-wrap').boundingBox()
+  await page.mouse.click(poster!.x+poster!.width/2,poster!.y+poster!.height/2)
+  await expect(page).toHaveURL(target!)
+})
+
 for(const width of [320,375,640]) {
   test(`mobile home shelves scroll horizontally at ${width}px`,async({page})=>{
     await page.setViewportSize({width,height:900})
