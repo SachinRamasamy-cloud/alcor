@@ -18,6 +18,14 @@ Baseline inspected: README-only repository at `12b945b`. Both plans and the full
 
 ## Execution and stop conditions
 
+### A09 - Three-provider plan addendum
+
+Owner supplied a new AniList/AniZip/TMDB architecture and requested further planning. Scope: versioned plan, bounded public feasibility reads and ADR; no AniZip/TMDB runtime adapter or new credential requirement in the existing build. Evidence: AniZip mappings response fields/CORS/cache headers, primary Fribb mapping documentation and official TMDB references. Exact episode contracts and outstanding provider conditions remain next-stage prerequisites. Risk L2 planning with L4 credential/identity constraints identified. Original plans remain unchanged.
+
+### A10 - Pagination, search and branding refinements
+
+Owner explicitly requests separate commits for pagination and search/copy, followed by a generated celestial logo and black footer with full navigation, GitHub, LinkedIn and creator credit. Risk L2 UI/read pagination; preserve L4 account bounds. Scope: additive numbered-page API reads where totals are known, shared First/Previous/numbers/Next/Last/custom-page controls, tracked cursors where totals are unknown; stable search input with 300 ms debounce and cancellation; remove implementation copy from product flows; generated image asset, star branding and responsive dark footer. Do not invent totals, expose credentials, alter recommendation scoring or make placeholder social links. Acceptance: real PostgreSQL page boundaries/isolation, page-jump/keyboard tests, search edit/focus/debounce regression, existing errors preserved, five-width accessibility/alignment and image inspection. No private writes are added. Owner's LinkedIn URL: https://www.linkedin.com/in/m-sachin-ramasamy-5146092b5/.
+
 ### A08 - Browser-first catalogue and backend cold starts, 25 November 2026
 
 Owner explicitly authorized direct frontend AniList reads and backend-dependent personal operations. Risk L2 public integration, L4 identity/private boundaries. Scope: separate public GraphQL transport, bounded request scheduling, accurate source labels, stable provider references, verified server-side identity resolution, nonblocking backend readiness, and responsive alignment. No change to progress mathematics, authentication or deferred recommendation scoring. Existing MAL identities and personal history must remain intact. No frontend metadata is trusted for persistence. Acceptance: browser-only home/search/details with the ALCOR API unavailable; failed source requests distinguished from empty data; no bearer token sent to AniList; 429 cooldown respected; personal writes require backend readiness; identity regression tests and five-width browser/layout checks. Dependencies: existing HTTPX, browser fetch and current test tools. No new dependency required.

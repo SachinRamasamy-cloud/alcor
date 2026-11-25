@@ -1,35 +1,29 @@
 # Development handover
 
-Updated: 25 November 2026, Asia/Calcutta. Development resumed at the owner's request.
+Updated: 25 November 2026, Asia/Calcutta. Review branch: `build/alcor-v1`.
 
-## Saved work
+## Implemented checkpoint
 
-- Review branch: `build/alcor-v1`; remote: `SachinRamasamy-cloud/alcor`.
-- Specifications, governing protocol, work orders, acceptance evidence and error log are versioned.
-- Foundation and public website are in separate feature commits.
-- Public development UI: responsive home, anime/manga browse, alias search, URL filters, details, source attribution, shared content/dialog/feedback and guest sign-in prompts.
-- Private backend checkpoint: JWT verification, RLS migrations, library/wishlist persistence, optimistic versions, history events and Redis quotas.
-- Latest verification: 17 Python tests, 3 frontend content tests, frontend lint/build. The preceding public slice passed 7 Playwright tests, including five widths and automated accessibility.
+- Public AniList home, anime/manga browsing, search and provider-reference details work independently of the personal backend. Read scheduling, cancellation, deduplication and 429 cooldowns use a separate credential-free transport.
+- Personal services have explicit PostgreSQL/Redis readiness. Saves do not queue or claim success while the server wakes up.
+- Page-shaped skeletons cover public and account routes; mobile/desktop alignment and device/app reduced-motion behavior are supported.
+- JWT/RLS-backed library/wishlist, exact tracking sessions and manual targets, collections, ratings/notes, private history/statistics, bounded undo, profile/preferences, owned saved filters and saved-note search are implemented.
+- Local migrations 001-007 are applied. Namespaced provider references preserve existing MAL identities and personal history. No remote Supabase migration or data write occurred.
 
-## Service and data state
+## Verification
 
-The remote Supabase database was inspected read-only. No remote migrations or data writes were applied. The password was used in process memory and was not written to Git or a configuration file. The supplied administrative role bypasses RLS and must not become the API runtime identity.
+Latest backend checkpoint: 39 Python tests passed with real local PostgreSQL/Redis, formatter/lint passed. Frontend: 44 unit/component tests, lint and production build passed. Public browser checks passed 17 tests, including API-off browsing, source errors, legacy episode retry, five widths and loading skeletons. Exact final evidence and any later rerun belong in acceptance-record.md.
 
-Local ALCOR Docker volumes contain the initial migration and disposable integration-test records. Stopping containers preserves those volumes. Local API and owned containers are stopped for this handover.
+Browser screenshots use explicit mocked AniList responses and deterministic test artwork; they are layout evidence, not live-provider completeness or licensing evidence. A bounded live AniList query succeeded; a separate AniZip mapping probe succeeded. TMDB authenticated integration was not exercised. Initial entry gzip is 205.92 KB; the existing uncompressed chunk-size warning remains.
 
-The owner explicitly deferred Google OAuth configuration. Leave sign-in visibly unconfigured until actual browser-safe configuration is supplied; do not invent a dummy working login or use a service-role key in the frontend.
+## Next work
 
-Tenrai endpoint reachability was tested, but provider selection, usage rights, artwork/synopsis redistribution and production quotas remain unresolved. The application uses an explicitly labelled finite development snapshot. Production configuration rejects fixtures.
+Follow product/MULTI_PROVIDER_METADATA_PLAN.md: establish provider conditions and freeze the episode contract, implement AniZip normalization and browser episode display, verify server identities without changing old marks, then add optional TMDB enrichment and permitted caching. AniList/AniZip/TMDB usage conditions, TMDB secret configuration and episode mapping references remain prerequisites for those respective stages.
 
-## Next ready work
+The full roadmap remains incomplete. remaining-scope.md records unfinished organization/discovery, release monitoring, privacy/account deletion and operational work. Google configuration, import, export and personalized scoring remain deferred by the owner.
 
-1. Read the full protocol and current source before further changes. Inspect the pushed branch and review the API checkpoint against the work orders.
-2. Review the implemented account frontend and configurable PKCE flow. Add real staged OAuth and signed private browser-to-API validation when the owner enables Google. Unit/component tests cover pending-action rejection, replay deduplication, session cleanup and account-bound requests.
-3. Continue the remaining scope in remaining-scope.md. The first exact tracking slice is implemented: sessions, sparse progress, manual targets, repeat preservation and continue queues. Add remaining correction/reconciliation and per-unit details with their own acceptance evidence.
-4. Google login configuration, import and export are deferred by the owner. Continue independent recovery, organization, reporting and discovery features.
-5. Continue P5/P6 discovery, organization, release monitoring and notifications only after prerequisites are ready. Unsupported controls remain omitted.
-6. Complete provider rights, independent engineering/security/editorial review, staging, backup/restore, performance and production operations gates before release.
+## Release state
 
-## Known limits
+No production deployment, default-branch merge or independent human acceptance is claimed. Provider clearance, staged critical flows, independent engineering/security/editorial review and operational release checks remain pending. The remote administrative database role must not become the API runtime identity. Do not commit credentials or replace missing production services with a development login bypass.
 
-No public production site was deployed. No release or human acceptance was claimed. The in-app browser access host was unavailable; local automated browser tests and inspected screenshots supplied the available UI evidence. Screen-reader validation and real OAuth are pending.
+Local dependencies were running during verification; no shutdown is implied by this handover. The in-app browser host was unavailable earlier; automated browser tests and inspected screenshots provided the available UI evidence. Real OAuth and screen-reader validation remain pending.

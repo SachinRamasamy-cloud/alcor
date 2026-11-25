@@ -4,13 +4,13 @@ Authority: owner instruction, 25 November 2026: defer Google login, import and e
 
 | Workstream | Required remaining behavior | State |
 | --- | --- | --- |
-| Exact tracking | Sparse episode/chapter marks, manual targets, bulk ranges, gap/skip counts, sessions, rewatch/reread, continue, completion and history | Ready; first implementation slice |
-| Personal organization | Status corrections/recovery, wishlist priority/reason/count/undo, bulk actions, collections, ratings, notes, favorites, preferences | Pending |
-| Discovery | Exclusions before pagination, advanced filters/presets, memory search, random, deterministic recommendations, hidden gems, relations and missing sequels | Pending |
+| Exact tracking | Sparse episode/chapter marks, manual targets, bulk ranges, gap/skip counts, sessions, rewatch/reread, continue, completion and history | Core implemented/locally verified; richer provider episode integration and reconciliation are next |
+| Personal organization | Status corrections/recovery, wishlist priority/reason/count/undo, bulk actions, collections, ratings, notes, favorites, preferences | Collections, personal details, preferences, removal and bounded undo implemented; bulk/correction polish remains |
+| Discovery | Exclusions before pagination, advanced filters/presets, memory search, random, hidden gems, relations and missing sequels | Partial: direct public AniList, bounded personal exclusion paging, owned presets and saved-note search; studio filter, full random/hidden-gem/franchise UI remain; personalized scoring deferred |
 | Release monitoring | Calendar, follows, durable jobs/outbox/scheduler, deduplicated in-app notifications, announcements and operational notices | Pending |
-| Provider/cache | Validated adapter, canonical persistence, safe URLs/schema bounds, shared cache/singleflight, distributed inbound/outbound budgets and degraded behavior | Pending; production rights remain a human gate |
-| Reporting/account | History/statistics, profile/settings, privacy controls and safe account deletion | Pending |
-| Polish/operations | Success-only motion, responsive/accessibility checks, performance, secrets/dependency scans, reproducible containers, CI/contracts, monitoring, backup/restore and rollback | Partial; remaining checks pending |
+| Provider/cache | Validated adapter, canonical persistence, safe URLs/schema bounds, shared cache/singleflight, distributed budgets and degraded behavior | Browser AniList adapter, aliases and readiness implemented; AniZip/TMDB plan added; shared enrichment cache and production clearance pending |
+| Reporting/account | History/statistics, profile/settings, privacy controls and safe account deletion | History, recorded statistics, profile and settings implemented; account deletion/privacy workflow pending |
+| Polish/operations | Success-only motion, responsive/accessibility checks, performance, secrets/dependency scans, reproducible containers, CI/contracts, monitoring, backup/restore and rollback | Page-shaped skeletons, five-width public checks and local integration implemented; release operations and human validation remain |
 | Deferred | Google configuration/live Google validation, user import, user export and recommendation scoring | Explicitly excluded by owner |
 | Conditional extensions | Offline/PWA, push/email, streaming availability, extra providers/languages | Only where supported and independently reviewable; no invented capabilities |
 
@@ -37,3 +37,7 @@ L2/L4 ownership. Private, versioned display name and explicit discovery preferen
 ## Discovery/filter execution contract
 
 L2 discovery/L4 personal isolation. Extend existing filters without changing prior defaults. Include/exclude genres/themes, year ranges, source score, studio, season, publication status and known-length filters run before pagination. Hide watched excludes ever-completed; New to me excludes recorded started/dropped/not-interested and optionally planned. Memory search covers available synopsis and account-private notes only. Saved presets are owned/versioned; random picks from eligible available data. Hidden-gem thresholds are explicitly supplied, not invented defaults. No personalized scoring (owner-deferred). Fixture metadata is enriched only from existing attributed source snapshots; coverage stays partial. Tests must verify exclusions before page, missing-value behavior, private-note isolation and preset ownership/idempotence.
+
+## Provider architecture update
+
+The owner requested AniList for discovery, AniZip for episode metadata and TMDB for enrichment/fallback. Follow the [implementation addendum](../product/MULTI_PROVIDER_METADATA_PLAN.md) next. Preserve browser-first cold-start browsing, exact existing progress and server-only TMDB credentials. The addendum is a plan, not evidence that AniZip/TMDB integration is complete.

@@ -9,7 +9,7 @@ Remote: `https://github.com/SachinRamasamy-cloud/alcor.git`. Baseline: `12b945b`
 ## Architecture
 
 - React, TypeScript and Vite serve a responsive public website. React Router owns routes; TanStack Query owns server state. Tailwind, accessible Radix primitives, Lucide and Motion follow the supplied monochrome design.
-- FastAPI is a modular monolith. Catalogue normalization is separate from private library/tracking workflows. The frontend calls ALCOR, never a metadata provider directly.
+- FastAPI is a modular monolith. Catalogue normalization is separate from private library/tracking workflows. The owner's 25 November change authorizes direct public AniList browsing; private operations still use ALCOR. See the browser-first ADR and multi-provider plan.
 - PostgreSQL is authoritative. Redis provides shared caches and atomic quotas. SQLAlchemy sessions set a transaction-local, verified user identity for private RLS.
 - Supabase Auth supplies Google PKCE sessions. The API verifies asymmetric JWT signatures, issuer, audience, expiry and subject. No local login bypass ships in the application.
 - Public catalogue content and private history have separate schemas, cache policies and lifecycles. Provider loss must not erase personal history.
@@ -38,4 +38,8 @@ ADR-001: retain the exact stack and modular monolith selected in plan §2. No fr
 ADR-002: use explicit development fixtures until a production metadata provider and redistribution rights are approved. Fixtures are labelled; production configuration rejects them. The discontinued public Jikan API is not a runtime fallback.
 
 ADR-003: use a scoped build branch for feature commits. Human review is pending; the agent does not self-certify approval or merge into the default branch.
+
+ADR-004 (owner-authorized, 25 November): separate public catalogue reads from the sleeping personal backend. Context: free-host cold starts must not block browsing. Decision: direct AniList reads, explicit backend readiness and verified server identity resolution. Details and limitations: [browser-first catalogue](browser-first-catalogue.md). Production clearance remains pending.
+
+ADR-005 (planning, 25 November): use the owner's AniList/AniZip/TMDB division to improve episode coverage. The [plan addendum](../product/MULTI_PROVIDER_METADATA_PLAN.md) preserves direct public fast paths and server-only TMDB credentials. Exact episode/mapping contracts and provider prerequisites must be settled before implementation. No new provider adapter is accepted or released by this record.
 

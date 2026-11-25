@@ -5,6 +5,8 @@
 | [Product plan](product/ALCOR_MASTER_IMPLEMENTATION_PLAN.md) | Owner-supplied requirements, stack and roadmap |
 | [Editorial plan](product/ALCOR_CONTENT_AND_UX_WRITING_PLAN.md) | Voice, terminology, copy and screen review gates |
 | [System baseline](architecture/system-baseline.md) | Boundaries, contracts, dependencies and decisions |
+| [Browser-first catalogue](architecture/browser-first-catalogue.md) | Direct public browsing, backend readiness and stable saved identities |
+| [Multi-provider plan](product/MULTI_PROVIDER_METADATA_PLAN.md) | AniList discovery, AniZip episodes and TMDB enrichment; staged acceptance |
 | [Work orders](engineering/work-orders.md) | Risk, scope and acceptance behavior before code |
 | [Acceptance record](engineering/acceptance-record.md) | Executed checks, results and review status |
 | [Error log](engineering/error-log.md) | Actual failures, fixes and verification |
