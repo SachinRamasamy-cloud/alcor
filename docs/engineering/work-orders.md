@@ -18,6 +18,10 @@ Baseline inspected: README-only repository at `12b945b`. Both plans and the full
 
 ## Execution and stop conditions
 
+### A15 - Save-only card controls
+
+25 November 2026; baseline `d77b1b4`, clean tree. Owner removes the redundant card details action on every screen and requests a top-corner save icon: always visible on small/touch screens, revealed on desktop hover or keyboard focus. Scope: MediaCard, card styles/skeleton, unused copy, affected component/browser checks and documentation. Keep existing cover/title navigation, source metadata, 44px save targets, account actions, confirmed-write behavior and mobile horizontal shelves. No new saved-state claim, API, dependency or authentication behavior. Risk L2 interaction/L1 layout. Owner's request supersedes the prior details-action and bottom mobile-row assertions; replace those with absence, corner geometry and navigation checks while retaining save/sign-in/focus, accessibility and no-extra-request assertions. Verify frontend lint/build, component suite, affected browser cases and screenshots. Human visual acceptance and release remain pending.
+
 ### A14 - Refined card hover controls
 
 25 November 2026; baseline `a3cd0f2`, clean tree. Owner requests a redesign of the generic white hover bar. Scope: desktop card CSS, an affected browser workflow and design/evidence records. Place a separate 44px save control at the poster's upper-right corner and a dark details action at the bottom, with a transparent noninteractive gap. Retain hover/focus reveal, poster click navigation, exact link names, sign-in focus restoration, source artwork, reduced-motion behavior and visible mobile/touch action rows. No new dependencies, animation engine, copy, metadata or account behavior. Risk L1 appearance/L2 hit testing. Verify separated control geometry, click-through artwork, hover-state accessibility and screenshots, plus existing responsive/card/touch regressions and lint/build. Human visual acceptance and release remain pending.

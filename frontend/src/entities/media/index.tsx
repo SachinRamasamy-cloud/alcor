@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { m } from 'motion/react'
-import { ArrowUpRight, ImageOff, Star } from 'lucide-react'
+import { ImageOff, Star } from 'lucide-react'
 import { useId, useState, type ReactNode } from 'react'
 import type { Media } from '../../shared/api/client'
 import { mediaPath } from '../../shared/api/anilist'
@@ -22,7 +22,7 @@ export function MediaCard({ media, actions }: { media: Media; actions?: ReactNod
     <p className="card-unit-count">{unitCount(media.total_units??null,media.media_type)}</p>
     <div className="card-genres">{(media.genres??[]).slice(0,2).map(genre=><span key={genre} title={genre}>{genre}</span>)}</div>
   </div>
-    <div className="card-footer"><Link className="card-details" to={mediaPath(media)} aria-label={t('media.detailsLabel',{title:media.title})}>{t('home.details')}<ArrowUpRight size={15} aria-hidden="true"/></Link>{actions&&<div className="card-actions">{actions}</div>}</div>
+    {actions&&<div className="card-actions">{actions}</div>}
   </article>
 }
 export function MediaGrid({ items, actions }: { items: Media[]; actions?: (media: Media) => ReactNode }) {
