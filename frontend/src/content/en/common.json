@@ -525,7 +525,7 @@
   "recommendations.contextChanged": "Your favourites or preferences changed. Start this recommendation feed again to use the current choices.",
   "recommendations.restart": "Start this feed again",
   "recommendations.noFavorites": "Add favourites to see source-backed suggestions from those titles.",
-  "recommendations.seedWindowEmpty": "No usable favourites for this media type in the current batch. Try the next favourites batch.",
+  "recommendations.seedWindowEmpty": "No favourites with recommendation data are available for this media type in the current selection.",
   "recommendations.nextFavorites": "Next favourites",
   "recommendations.noTaste": "Choose genres, themes, studios or other discovery preferences to see personal filter suggestions.",
   "recommendations.empty": "No matching suggestions in the source results checked.",
@@ -570,5 +570,10 @@
   "catalogue.trending": "Trending",
   "catalogue.released": "Released titles",
   "nav.account": "Account menu",
-  "nav.yourAccount": "Your account"
+  "nav.yourAccount": "Your account",
+  "media.showMoreEpisodes": "Show more episodes",
+  "media.showFewerEpisodes": "Show fewer episodes",
+  "recommendations.loadMore": "Load more similar titles",
+  "recommendations.loadingMore": "Loading more similar titles…",
+  "recommendations.noMoreSimilar": "No more similar titles"
 }

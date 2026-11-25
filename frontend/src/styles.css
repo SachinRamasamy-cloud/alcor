@@ -417,6 +417,20 @@ main:focus { outline: none; }
 .episode-overview { margin-top: 7px; font-size: 11px; line-height: 1.9; color: #555; }
 .episode-overview summary { min-height: 28px; cursor: pointer; }
 .episode-overview p { padding-top: 6px; overflow-wrap: anywhere; }
+.episode-preview { position: relative; }
+.episode-preview.is-collapsed.has-more::after { content: ''; position: absolute; inset: auto 0 0; height: 64px; background: linear-gradient(to bottom,transparent,#fff); pointer-events: none; }
+.episode-preview-actions { display: flex; justify-content: center; margin-top: 16px; }
+.episode-preview-actions.mobile-only { display: none; }
+.details-similar { min-width: 0; margin-top: 36px; }
+.details-similar .browse-shelf { margin-bottom: 0; }
+.details-similar .shelf-arrows { display: flex; }
+.details-similar .shelf-arrows button { width: 44px; height: 44px; min-height: 44px; }
+.similar-load-more { display: flex; justify-content: center; margin-block: 12px 28px; }
+@media(max-width:1100px) {
+  .episode-preview.is-collapsed .episode-card:nth-child(n+4) { display: none; }
+  .episode-preview.is-collapsed.mobile-more:has(.episode-card:nth-child(4))::after { content: ''; position: absolute; inset: auto 0 0; height: 64px; background: linear-gradient(to bottom,transparent,#fff); pointer-events: none; }
+  .episode-preview-actions.mobile-only { display: flex; }
+}
 @media(max-width:1100px) { .detail-intro { grid-template-columns: 200px minmax(0,1fr); gap: 30px; } .episode-cards { grid-template-columns: 1fr; } }
 @media(max-width:767px) {
   .detail-banner { height: 170px; }

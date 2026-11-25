@@ -141,8 +141,8 @@ export function DetailsPage() {
       <nav className="detail-section-nav" aria-label={t('media.sections')}><a href="#overview">{t('media.overview')}</a><a href="#episodes">{t(mediaType==='anime'?'media.episodes':'media.chapters')}</a><a href="#your-progress">{t('media.yourProgress')}</a></nav>
     <section id="episodes" className="episode-section"><div className="section-heading"><h2>{t(mediaType==='anime'?'media.episodes':'media.chapters')}</h2>{episodes.data?.source==='AniZip'&&<span className="episode-attribution">{t('media.episodeSource')} AniZip</span>}</div>
       {mediaType==='anime'&&episodes.isPending?<Loading variant="episodes"/>:mediaType==='anime'&&episodes.error?<ErrorState error={episodes.error} retry={()=>{void episodes.refetch()}}/>:mediaType==='anime'&&episodes.data?.data.length?<EpisodeList key={id} episodes={episodes.data.data}/>:<p className="mt-4 text-sm text-muted">{t(mediaType==='anime'?'media.episodesMissing':'media.chaptersMissing')}</p>}
-    </section><section id="your-progress" className="personal-media-section"><PersonalMedia media={media}/></section>
-    </div></div><SimilarShelf media={media} mode={mode}/><div className="source-note"><span>{t('media.source')}: {media.source.name}</span><span>{t('media.updated',{date:formatDate(media.source.retrieved_at)})}</span><a href={media.source.url} target="_blank" rel="noreferrer">{t('media.external')}<ArrowUpRight size={12}/></a></div>
+    </section><SimilarShelf media={media} mode={mode}/><section id="your-progress" className="personal-media-section"><PersonalMedia media={media}/></section>
+    </div></div><div className="source-note"><span>{t('media.source')}: {media.source.name}</span><span>{t('media.updated',{date:formatDate(media.source.retrieved_at)})}</span><a href={media.source.url} target="_blank" rel="noreferrer">{t('media.external')}<ArrowUpRight size={12}/></a></div>
     </div></div>
 }
 

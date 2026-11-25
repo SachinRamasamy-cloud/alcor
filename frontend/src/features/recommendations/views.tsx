@@ -1,5 +1,5 @@
 import {useEffect,useState} from 'react'
-import {useQueryClient} from '@tanstack/react-query'
+import {useQueries,useQueryClient} from '@tanstack/react-query'
 import {Link} from 'react-router-dom'
 import {useAuth} from '../../shared/auth'
 import {useBackend} from '../../shared/api/backend'
@@ -15,7 +15,7 @@ import {tasteParams} from '../discovery/taste'
 import {BrowseShelf} from '../catalogue/shelf'
 import {DiscoveryNotice} from '../catalogue/visibility'
 import type {DiscoveryMode} from '../catalogue/policy'
-import {useRecommendationFeed} from './hooks'
+import {useRecommendationFeed,type RecommendationPage} from './hooks'
 import {recommendationLink,type FeedKind} from './feed'
 
 export function recommendationFilters(preferences:Preferences,type:'anime'|'manga',mode:DiscoveryMode,kind:FeedKind){
@@ -39,24 +39,22 @@ export function RecommendationContext({item,kind,filters}:{item:RecommendationIt
   const reason=recommendationReason(item,kind,filters)
   return <><CardStatus media={item.media}/><div className="card-context"><p className="card-meta" title={reason}>{reason}</p></div></>
 }
-function FeedShelf({kind,type,mode,filters,seeds=[],knownFavorites=[],version,favoriteVersion,favoriteCursor='',title,description,enabled=true}:{
-  kind:FeedKind;type:'anime'|'manga';mode:DiscoveryMode;filters:URLSearchParams;seeds?:Media[];knownFavorites?:Media[];version:number;favoriteVersion?:number;favoriteCursor?:string;title:string;description:string;enabled?:boolean;
+function FeedShelf({kind,type,mode,filters,seeds=[],knownFavorites=[],version,favoriteVersion,favoriteCursor='',title,enabled=true}:{
+  kind:FeedKind;type:'anime'|'manga';mode:DiscoveryMode;filters:URLSearchParams;seeds?:Media[];knownFavorites?:Media[];version:number;favoriteVersion?:number;favoriteCursor?:string;title:string;enabled?:boolean;
 }){
   const query=useRecommendationFeed({kind,type,mode,filters,seeds,knownFavorites,preferenceVersion:version,favoriteVersion,favoriteCursor,enabled})
   if(query.personalUnavailable)return <section className="home-section"><h2>{title}</h2><DiscoveryNotice unavailable refetch={query.refetch}/></section>
   if(query.isPending)return <section className="home-section"><h2>{title}</h2><Loading variant="shelf"/></section>
   if(query.error)return <section className="home-section"><h2>{title}</h2><ErrorState error={query.error} retry={()=>{void query.refetch()}}/></section>
   const items=query.data.items.slice(0,12),to=recommendationLink(kind,type,mode,{filters,seeds:seeds.map(seed=>kind==='similar'?`anilist-${seed.source_ids?.anilist}`:seed.id),version,favoriteCursor})
-  return <><BrowseShelf title={title} description={description} items={items.map(item=>item.media)} to={to} emptyMessage={t('recommendations.empty')} recommendationContext={kind}
+  return <><BrowseShelf title={title} items={items.map(item=>item.media)} to={to} emptyMessage={t('recommendations.empty')} recommendationContext={kind}
     context={media=><RecommendationContext item={items.find(item=>sameTitle(item.media,media))!} kind={kind} filters={filters}/>}/>
     {query.data.limited&&<p className="coverage-note">{t('recommendations.limited')}</p>}</>
 }
-export function DismissedLink(){const {userId}=useAuth();return userId?<Link className="subtle-link" to="/recommendations/dismissed">{t('recommendations.dismissedTitle')}</Link>:null}
 function PersonalFeeds({type,mode,showFavorites=true,showTaste=true,enabled=true}:{type:'anime'|'manga';mode:DiscoveryMode;showFavorites?:boolean;showTaste?:boolean;enabled?:boolean}){
   const {userId}=useAuth(),{ready}=useBackend(),queries=useQueryClient(),preferences=usePreferences()
-  const [window,setWindow]=useState({cursor:'',offset:0,version:0})
-  const version=preferences.data?.version??0,sameVersion=window.version===version,cursor=sameVersion?window.cursor:'',offset=sameVersion?window.offset:0
-  const favorites=useFavorites(cursor)
+  const version=preferences.data?.version??0
+  const favorites=useFavorites()
   const baselineFavorites=useFavorites()
   const preferenceRevision=preferences.data?.version,favoriteRevision=favorites.data?.preferences_version,readFailed=Boolean(preferences.error||favorites.error)
   useEffect(()=>{
@@ -69,14 +67,13 @@ function PersonalFeeds({type,mode,showFavorites=true,showTaste=true,enabled=true
   if(!preferences.data||!favorites.data||preferenceRevision!==favoriteRevision)return <section className="home-section"><h2>{t(showFavorites?'recommendations.favorites':'dashboard.youMayLike')}</h2><Loading variant="shelf"/></section>
   const canonical=preferences.data.data.favorite_media_ids
   const known=favorites.data.data.filter(media=>canonical==null||canonical.includes(media.id))
-  const pool=known.filter(media=>media.media_type===type&&Boolean(media.source_ids?.anilist)),seeds=pool.slice(offset,offset+3)
+  const pool=known.filter(media=>media.media_type===type&&Boolean(media.source_ids?.anilist)),seeds=pool.slice(0,3)
   const taste=tasteParams(preferences.data.data,type,mode)
-  function next(){setWindow({version,cursor:offset+3<pool.length?cursor:favorites.data!.next_cursor??'',offset:offset+3<pool.length?offset+3:0})}
   return <>
-    {showFavorites&&(seeds.length?<><FeedShelf kind="favorites" type={type} mode={mode} filters={recommendationFilters(preferences.data.data,type,mode,'favorites')} seeds={seeds} knownFavorites={known} version={version} favoriteVersion={favorites.data.preferences_version} favoriteCursor={cursor} title={t('recommendations.favorites')} description={t('recommendations.favoriteHelp')} enabled={enabled}/>{(pool.length>3||favorites.data.next_cursor||cursor)&&<Button variant="secondary" onClick={next}>{t('recommendations.nextFavorites')}</Button>}</>:
-      favorites.data.total>0?<section className="home-section"><h2>{t('recommendations.favorites')}</h2><p className="browse-description">{t('recommendations.seedWindowEmpty')}</p>{(favorites.data.next_cursor||cursor)&&<Button variant="secondary" onClick={next}>{t('recommendations.nextFavorites')}</Button>}</section>:
+    {showFavorites&&(seeds.length?<FeedShelf kind="favorites" type={type} mode={mode} filters={recommendationFilters(preferences.data.data,type,mode,'favorites')} seeds={seeds} knownFavorites={known} version={version} favoriteVersion={favorites.data.preferences_version} title={t('recommendations.favorites')} enabled={enabled}/>:
+      favorites.data.total>0?<section className="home-section"><h2>{t('recommendations.favorites')}</h2><p className="browse-description">{t('recommendations.seedWindowEmpty')}</p></section>:
         <section className="home-section"><h2>{t('recommendations.favorites')}</h2><p className="browse-description">{t('recommendations.noFavorites')}</p><Link className="subtle-link" to="/favorites">{t('favorites.title')}</Link></section>)}
-    {showTaste&&taste.personal&&(baselineFavorites.data&&!baselineFavorites.error?<FeedShelf kind="taste" type={type} mode={mode} filters={taste.params} knownFavorites={baselineFavorites.data.data.filter(media=>canonical==null||canonical.includes(media.id))} version={version} favoriteVersion={baselineFavorites.data.preferences_version} title={t('dashboard.youMayLike')} description={t(taste.genres.length?'dashboard.basedOnGenres':'dashboard.basedOnFilters',{genres:taste.genres.join(', ')})} enabled={enabled}/>:<section className="home-section"><h2>{t('dashboard.youMayLike')}</h2>{baselineFavorites.error?<ErrorState error={baselineFavorites.error} retry={()=>{void baselineFavorites.refetch()}}/>:<Loading variant="shelf"/>}</section>)}
+    {showTaste&&taste.personal&&(baselineFavorites.data&&!baselineFavorites.error?<FeedShelf kind="taste" type={type} mode={mode} filters={taste.params} knownFavorites={baselineFavorites.data.data.filter(media=>canonical==null||canonical.includes(media.id))} version={version} favoriteVersion={baselineFavorites.data.preferences_version} title={t('dashboard.youMayLike')} enabled={enabled}/>:<section className="home-section"><h2>{t('dashboard.youMayLike')}</h2>{baselineFavorites.error?<ErrorState error={baselineFavorites.error} retry={()=>{void baselineFavorites.refetch()}}/>:<Loading variant="shelf"/>}</section>)}
   </>
 }
 export function PersonalShelves(props:{type:'anime'|'manga';mode:DiscoveryMode;showFavorites?:boolean;showTaste?:boolean;enabled?:boolean}){
@@ -94,6 +91,24 @@ export function HomePersonalShelves({mode,enabled}:{mode:DiscoveryMode;enabled:b
   const {userId}=useAuth()
   return userId&&enabled?<HomePersonal key={userId} mode={mode}/>:null
 }
+function SimilarCarousel({media,mode,filters,knownFavorites,version,favoriteVersion,title}:{media:Media;mode:DiscoveryMode;filters:URLSearchParams;knownFavorites:Media[];version:number;favoriteVersion:number;title:string}){
+  const [tokens,setTokens]=useState(['']),queries=useQueryClient()
+  const query=useRecommendationFeed({kind:'similar',type:media.media_type,mode,filters,seeds:[media],knownFavorites,preferenceVersion:version,favoriteVersion,token:tokens[tokens.length-1]})
+  const history=useQueries({queries:tokens.slice(0,-1).map(token=>({queryKey:[...query.queryKey.slice(0,-1),token],enabled:false,select:(data:RecommendationPage)=>data}))})
+  const items:RecommendationItem[]=[]
+  for(const page of [...history.map(previous=>previous.data),query.data])for(const item of page?.items??[])if(!items.some(previous=>sameTitle(previous.media,item.media)))items.push(item)
+  const latest=query.data??history[history.length-1]?.data
+  function restart(){const first=[...query.queryKey.slice(0,-1),''];setTokens(['']);void queries.resetQueries({queryKey:first,exact:true})}
+  if(query.personalUnavailable)return <section className="home-section details-similar"><h2>{title}</h2><DiscoveryNotice unavailable refetch={query.refetch}/></section>
+  if(query.error)return <section className="home-section details-similar"><h2>{title}</h2><ErrorState error={query.error} retry={()=>{void query.refetch()}}/><Button variant="secondary" onClick={restart}>{t('recommendations.restart')}</Button></section>
+  if(!items.length&&query.isPending)return <section className="home-section details-similar"><h2>{title}</h2><Loading variant="shelf"/></section>
+  const to=recommendationLink('similar',media.media_type,mode,{filters,seeds:[`anilist-${media.source_ids?.anilist}`],version})
+  return <div className="details-similar"><BrowseShelf title={title} items={items.map(item=>item.media)} to={to} recommendationContext="similar" emptyMessage={t('recommendations.empty')}
+    context={candidate=><RecommendationContext item={items.find(item=>sameTitle(item.media,candidate))!} kind="similar" filters={filters}/>}/>
+    {(latest?.hasMore||tokens.length>1)&&<div className="similar-load-more"><Button variant="secondary" disabled={query.isFetching||!query.data?.nextCursor} aria-busy={query.isFetching} onClick={()=>{const next=query.data?.nextCursor;if(next&&!tokens.includes(next))setTokens(previous=>[...previous,next])}}>{t(query.isFetching?'recommendations.loadingMore':latest?.hasMore?'recommendations.loadMore':'recommendations.noMoreSimilar')}</Button></div>}
+    {query.isPending&&items.length>0&&<p className="coverage-note" role="status">{t('recommendations.loadingMore')}</p>}
+  </div>
+}
 export function SimilarShelf({media,mode}:{media:Media;mode:DiscoveryMode}){
   const preferences=usePreferences(),favorites=useFavorites(),{userId}=useAuth()
   const title=t(media.media_type==='anime'?'recommendations.similarAnime':'recommendations.similarManga')
@@ -101,5 +116,6 @@ export function SimilarShelf({media,mode}:{media:Media;mode:DiscoveryMode}){
   if(userId&&(preferences.error||favorites.error))return <section className="home-section"><h2>{title}</h2><ErrorState error={preferences.error??favorites.error} retry={()=>{void preferences.refetch();void favorites.refetch()}}/></section>
   if(userId&&(!preferences.data||!favorites.data))return <section className="home-section"><h2>{title}</h2><Loading variant="shelf"/></section>
   const filters=preferences.data?recommendationFilters(preferences.data.data,media.media_type,mode,'similar'):new URLSearchParams({mode})
-  return <FeedShelf kind="similar" type={media.media_type} mode={mode} filters={filters} seeds={[media]} knownFavorites={favorites.data?.data??[]} version={preferences.data?.version??0} favoriteVersion={favorites.data?.preferences_version??0} title={title} description={t('recommendations.similarHelp')}/>
+  const version=preferences.data?.version??0,favoriteVersion=favorites.data?.preferences_version??0
+  return <SimilarCarousel key={JSON.stringify([userId,media.id,mode,version,favoriteVersion,filters.toString()])} media={media} mode={mode} filters={filters} knownFavorites={favorites.data?.data??[]} version={version} favoriteVersion={favoriteVersion} title={title}/>
 }

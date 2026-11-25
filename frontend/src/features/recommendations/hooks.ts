@@ -18,7 +18,8 @@ export function useRecommendationFeed({kind,type,mode,filters,seeds=[],knownFavo
   const context={kind,type,mode,filters:normalized.toString(),seeds:seeds.map(seed=>seed.id),preferenceVersion,favoriteVersion,favoriteCursor}
   const fingerprint=JSON.stringify(context),scope=userId?['private',userId]:['public','guest']
   const available=userId?ready:kind==='similar'
-  const query=useQuery({queryKey:[...scope,'recommendations',kind,context,token],enabled:enabled&&available,
+  const queryKey=[...scope,'recommendations',kind,context,token]
+  const query=useQuery({queryKey,enabled:enabled&&available,
     queryFn:async({signal}):Promise<RecommendationPage>=>{
       if(!available)throw new ApiError(503,'BACKEND_WAKING')
       const continuation=token?queries.getQueryData<Continuation>([...scope,'recommendation-cursors',token]):undefined
@@ -48,5 +49,5 @@ export function useRecommendationFeed({kind,type,mode,filters,seeds=[],knownFavo
       if(nextCursor)queries.setQueryData<Continuation>([...scope,'recommendation-cursors',nextCursor],{context:fingerprint,cursor:result.next!})
       return {...result,nextCursor}
     },staleTime:30000,retry:false})
-  return {...query,personalUnavailable:enabled&&!available}
+  return {...query,queryKey,personalUnavailable:enabled&&!available}
 }

@@ -9,7 +9,7 @@ import {usePreferences} from '../features/preferences'
 import {useFavorites,type FavoritesPageData} from '../features/library/favorites'
 import {CardActions} from '../features/library/actions'
 import {useRecommendationFeed} from '../features/recommendations/hooks'
-import {DismissedLink,RecommendationContext,recommendationFilters} from '../features/recommendations/views'
+import {RecommendationContext,recommendationFilters} from '../features/recommendations/views'
 import type {FeedKind} from '../features/recommendations/feed'
 import {useDiscoveryMode,type DiscoveryMode} from '../features/catalogue/policy'
 import {DiscoveryModeControl} from '../features/catalogue/mode-control'
@@ -79,5 +79,5 @@ export function RecommendationsPage(){
     else if(kind==='taste'&&preferences.data&&!tasteParams(preferences.data.data,type,mode).personal)body=<p className="coverage-note">{t('recommendations.noTaste')}</p>
     else body=<FeedResults kind={kind} type={type} mode={mode} filters={filters} seeds={seeds} knownFavorites={known} version={version} favoriteVersion={selected.data?.preferences_version??favorites.data?.preferences_version??0} favoriteCursor={favoriteCursor} restart={()=>restart()}/>
   }
-  return <div className="shell page-body"><div className="page-heading"><h1>{title}</h1><DismissedLink/></div><DiscoveryModeControl mode={mode}/>{body}</div>
+  return <div className="shell page-body"><div className="page-heading"><h1>{title}</h1></div><DiscoveryModeControl mode={mode}/>{body}</div>
 }
