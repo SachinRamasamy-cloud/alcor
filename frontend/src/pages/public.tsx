@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowRight, Bookmark, Plus, Search, SlidersHorizontal, Star, ArrowUpRight } from 'lucide-react'
+import { ArrowRight, Search, SlidersHorizontal, Star, ArrowUpRight } from 'lucide-react'
 import { m } from 'motion/react'
 import { useCatalogue, useEpisodes, useGenres, useHome, useMedia } from '../features/catalogue'
+import { SaveButton } from '../features/library'
 import { MediaGrid, Poster } from '../entities/media'
 import type { Media } from '../shared/api/client'
 import { t, formatDate, unitCount, type MessageKey } from '../shared/content'
-import { useAuth } from '../shared/auth'
 import { Button, ErrorState, Loading, Modal } from '../shared/ui'
 
 function PageTitle({ title }: { title: string }) {
@@ -14,17 +14,13 @@ function PageTitle({ title }: { title: string }) {
   return null
 }
 export function SnapshotNotice() { return <div className="snapshot-notice"><span className="status-dot" /> <strong>{t('catalogue.sample')}</strong><span>{t('catalogue.sampleBody')}</span></div> }
-function WishlistAction({ media }: { media: Media }) {
-  const { requireSignIn } = useAuth()
-  return <button className="card-save" aria-label={t('media.wishlistLabel', { title: media.title })} onClick={() => requireSignIn('wishlist')}><Bookmark size={17} /></button>
-}
+function WishlistAction({ media }: { media: Media }) { return <SaveButton media={media} compact /> }
 function Section({ title, to, items }: { title: MessageKey; to: string; items: Media[] }) {
   if (!items.length) return null
   return <section className="home-section"><div className="section-heading"><h2>{t(title)}</h2><Link className="subtle-link" to={to}>{t('home.all')}<ArrowRight size={14} /></Link></div><MediaGrid items={items} actions={media => <WishlistAction media={media} />} /></section>
 }
 export function HomePage() {
   const home = useHome()
-  const { requireSignIn } = useAuth()
   if (home.isPending) return <Loading />
   if (home.error) return <ErrorState error={home.error} retry={() => { void home.refetch() }} />
   const featured = home.data.featured
@@ -33,7 +29,7 @@ export function HomePage() {
       {featured.original_title && <p className="hero-original">{featured.original_title}</p>}
       <div className="hero-metadata"><span><Star size={14} fill="currentColor" />{featured.score?.toFixed(2) ?? t('media.notRated')}</span><span>{featured.year ?? t('media.notAvailable')}</span><span>{featured.format}</span><span>{unitCount(featured.total_units ?? null, featured.media_type)}</span></div>
       <p className="hero-synopsis">{featured.synopsis}</p><div className="hero-genres">{featured.genres.slice(0, 3).map(g => <Link to={`/anime?genre=${encodeURIComponent(g)}`} key={g}>{g}</Link>)}</div>
-      <div className="hero-actions"><Link className="button button-primary" to={`/anime/${featured.id}`}>{t('home.details')}<ArrowRight size={16} /></Link><Button variant="secondary" onClick={() => requireSignIn('wishlist')}><Bookmark size={16} />{t('media.addWishlist')}</Button></div>
+      <div className="hero-actions"><Link className="button button-primary" to={`/anime/${featured.id}`}>{t('home.details')}<ArrowRight size={16} /></Link><SaveButton media={featured} /></div>
       <a className="hero-source" href={featured.source.url} target="_blank" rel="noreferrer">{featured.source.name}<ArrowUpRight size={11} /></a>
     </div><div className="hero-art"><m.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .25 }} className="hero-poster"><Poster media={featured} priority /></m.div><span className="hero-art-label">{featured.original_title ?? featured.title}</span></div></section>}
     <Section title="home.popularAnime" to="/anime" items={home.data.anime} />
@@ -72,20 +68,13 @@ export function DetailsPage() {
   const mediaType = useLocation().pathname.startsWith('/manga') ? 'manga' : 'anime'
   const detail = useMedia(mediaType, id)
   const episodes = useEpisodes(id, mediaType === 'anime')
-  const { requireSignIn } = useAuth()
   if (detail.isPending) return <Loading />
   if (detail.error) return <ErrorState error={detail.error} retry={() => { void detail.refetch() }} />
   const media = detail.data
-  return <div className="shell page-body"><PageTitle title={media.title} /><SnapshotNotice /><Link className="subtle-link mb-8 inline-flex" to={`/${mediaType}`}>{t('common.back')}</Link><div className="details-layout"><div className="detail-poster"><Poster media={media} priority /></div><div className="detail-main"><p className="eyebrow">{media.format} {media.year && ` / ${media.year}`}</p><h1>{media.title}</h1>{media.original_title && <p className="detail-original">{media.original_title}</p>}<div className="hero-metadata"><span><Star size={14} />{media.score ?? t('media.notRated')}</span><span>{t('media.score')}</span><span>{unitCount(media.total_units ?? null, media.media_type)}</span></div><div className="hero-actions"><Button onClick={() => requireSignIn('library')}><Plus size={16} />{t('media.addLibrary')}</Button><Button variant="secondary" onClick={() => requireSignIn('wishlist')}><Bookmark size={16} />{t('media.addWishlist')}</Button></div><div className="hero-genres">{media.genres.map(g => <Link key={g} to={`/${mediaType}?genre=${encodeURIComponent(g)}`}>{g}</Link>)}</div><section className="synopsis-section"><h2>{t('media.synopsis')}</h2><p>{media.synopsis ?? t('media.noSynopsis')}</p></section><dl className="detail-facts"><div><dt>{t('media.status')}</dt><dd>{media.status ?? t('media.notAvailable')}</dd></div><div><dt>{t('media.studio')}</dt><dd>{media.studios?.join(', ') || t('media.notAvailable')}</dd></div></dl></div></div>
+  return <div className="shell page-body"><PageTitle title={media.title} /><SnapshotNotice /><Link className="subtle-link mb-8 inline-flex" to={`/${mediaType}`}>{t('common.back')}</Link><div className="details-layout"><div className="detail-poster"><Poster media={media} priority /></div><div className="detail-main"><p className="eyebrow">{media.format} {media.year && ` / ${media.year}`}</p><h1>{media.title}</h1>{media.original_title && <p className="detail-original">{media.original_title}</p>}<div className="hero-metadata"><span><Star size={14} />{media.score ?? t('media.notRated')}</span><span>{t('media.score')}</span><span>{unitCount(media.total_units ?? null, media.media_type)}</span></div><div className="hero-actions"><SaveButton media={media} kind="library" /><SaveButton media={media} /></div><div className="hero-genres">{media.genres.map(g => <Link key={g} to={`/${mediaType}?genre=${encodeURIComponent(g)}`}>{g}</Link>)}</div><section className="synopsis-section"><h2>{t('media.synopsis')}</h2><p>{media.synopsis ?? t('media.noSynopsis')}</p></section><dl className="detail-facts"><div><dt>{t('media.status')}</dt><dd>{media.status ?? t('media.notAvailable')}</dd></div><div><dt>{t('media.studio')}</dt><dd>{media.studios?.join(', ') || t('media.notAvailable')}</dd></div></dl></div></div>
     <section className="episode-section"><h2>{t(mediaType === 'anime' ? 'media.episodes' : 'media.chapters')}</h2>{mediaType === 'anime' && episodes.data?.data.length ? <ol className="episode-list">{episodes.data.data.map(ep => <li key={ep.key}><span className="tabular-nums text-muted">{ep.label}</span><span>{ep.title ?? t('media.notAvailable')}</span></li>)}</ol> : <p className="mt-4 text-sm text-muted">{t(mediaType === 'anime' ? 'media.episodesMissing' : 'media.chaptersMissing')}</p>}</section>
     <div className="source-note"><span>{t('media.source')}: {media.source.name}</span><span>{t('media.updated', { date: formatDate(media.source.retrieved_at) })}</span><a href={media.source.url} target="_blank" rel="noreferrer">{t('media.external')}<ArrowUpRight size={12} /></a></div>
   </div>
-}
-
-export function PersonalPage() {
-  const wishlist = useLocation().pathname === '/wishlist'
-  const { requireSignIn } = useAuth()
-  return <div className="shell page-body"><PageTitle title={t(wishlist ? 'nav.wishlist' : 'nav.library')} /><h1 className="page-heading">{t(wishlist ? 'nav.wishlist' : 'nav.library')}</h1><div className="state-box"><Bookmark size={25} /><h2>{t('auth.title')}</h2><p>{t(wishlist ? 'auth.wishlist' : 'auth.library')}</p><Button onClick={() => requireSignIn(wishlist ? 'wishlist' : 'library')}>{t('nav.signIn')}</Button><p className="text-xs">{t('auth.guest')}</p></div></div>
 }
 
 export function InfoPage() {

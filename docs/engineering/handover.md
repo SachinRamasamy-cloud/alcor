@@ -1,6 +1,6 @@
 # Development handover
 
-Date: 24 November 2026, Asia/Calcutta. Session stopped at the owner's request to save battery.
+Updated: 25 November 2026, Asia/Calcutta. Development resumed at the owner's request.
 
 ## Saved work
 
@@ -24,7 +24,7 @@ Tenrai endpoint reachability was tested, but provider selection, usage rights, a
 ## Next ready work
 
 1. Read the full protocol and current source before further changes. Inspect the pushed branch and review the API checkpoint against the work orders.
-2. Complete P3 frontend library/wishlist integration and PKCE callback/pending-action validation. Add real staged OAuth validation when the owner enables Google. Keep private queries account-scoped and clear them on sign-out/account switch.
+2. Review the implemented account frontend and configurable PKCE flow. Add real staged OAuth and signed private browser-to-API validation when the owner enables Google. Unit/component tests cover pending-action rejection, replay deduplication, session cleanup and account-bound requests.
 3. Implement P4 exact sessions/progress and its required gap/skip/rewatch/chapter tests. No episode/chapter tracking implementation exists yet.
 4. Implement import preview/idempotent commit, complete export/restore and recovery. Do not fabricate dates or overwrite richer history.
 5. Continue P5/P6 discovery, organization, release monitoring and notifications only after prerequisites are ready. Unsupported controls remain omitted.

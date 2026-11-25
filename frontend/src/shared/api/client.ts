@@ -6,7 +6,7 @@ export type CataloguePage = components['schemas']['CataloguePage']
 export type HomeResponse = components['schemas']['HomeResponse']
 export type EpisodePage = components['schemas']['EpisodePage']
 const base = import.meta.env.VITE_API_BASE_URL ?? ''
-let tokenProvider: () => Promise<string | null> = async () => null
+let tokenProvider: () => Promise<{ token: string; userId: string } | null> = async () => null
 export function setTokenProvider(provider: typeof tokenProvider) { tokenProvider = provider }
 
 const errorKeys: Record<string, MessageKey> = {
@@ -20,14 +20,16 @@ export class ApiError extends Error {
   }
 }
 
-export async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const token = await tokenProvider()
+export async function api<T>(path: string, options: RequestInit & { accountId?: string } = {}): Promise<T> {
+  const { accountId, ...requestOptions } = options
+  const session = await tokenProvider()
+  if (accountId && session?.userId !== accountId) throw new ApiError(401, 'UNAUTHORIZED')
   const headers = new Headers(options.headers)
   if (options.body) headers.set('Content-Type', 'application/json')
-  if (token) headers.set('Authorization', `Bearer ${token}`)
+  if (session) headers.set('Authorization', `Bearer ${session.token}`)
   let response: Response
   try {
-    response = await fetch(`${base}/api/v1${path}`, { ...options, headers, signal: options.signal ?? AbortSignal.timeout(15000) })
+    response = await fetch(`${base}/api/v1${path}`, { ...requestOptions, headers, signal: options.signal ?? AbortSignal.timeout(15000) })
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') throw error
     throw new Error(t('errors.network'), { cause: error })

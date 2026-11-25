@@ -25,3 +25,8 @@ Actual incidents only. No credentials, tokens, personal notes or raw sensitive p
 
 Final checkpoint: E006–E010 and E012–E014 were resolved by the recorded passing checks. E011 remains an environment limitation. E002 remains a missing optional CLI; ordinary Git push succeeded. No error or warning is evidence of production acceptance.
 
+
+## 25 November follow-up
+
+- E017: Vite warned that the initial uncompressed chunk exceeds 500 KB after adding the Auth SDK. Build succeeded at approximately 199 KB gzip (within the plan's 250 KB initial gzip budget). Warning retained; no limit raised. Production field measurements remain pending.
+- E018: Source inspection found that an account-scoped request could acquire a different account's token while queued. Added expected-account validation before fetch and a regression proving no request is sent after an account switch. Verified in the 16-test frontend suite.

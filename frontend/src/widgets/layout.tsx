@@ -8,7 +8,7 @@ import { Button } from '../shared/ui'
 const links: [string, MessageKey][] = [['/', 'nav.home'], ['/anime', 'nav.anime'], ['/manga', 'nav.manga'], ['/discover', 'nav.discover'], ['/library', 'nav.library']]
 export function Layout() {
   const [menu, setMenu] = useState(false)
-  const { requireSignIn } = useAuth()
+  const { requireSignIn, userId, signOut } = useAuth()
   const location = useLocation()
   const main = useRef<HTMLElement>(null)
   useEffect(() => { main.current?.focus({ preventScroll: true }); window.scrollTo(0, 0) }, [location.pathname])
@@ -18,7 +18,7 @@ export function Layout() {
       <nav className="desktop-nav" aria-label={t('nav.menu')}>{links.map(([to, key]) => <NavLink key={to} to={to} end={to === '/'}>{t(key)}</NavLink>)}</nav>
       <div className="header-actions"><Link to="/search" className="icon-button" aria-label={t('nav.search')}><Search size={19} /></Link>
         <Link to="/wishlist" className="icon-button" aria-label={t('nav.wishlist')}><Bookmark size={18} /></Link>
-        <Button variant="secondary" className="sign-in" onClick={() => requireSignIn()}>{t('nav.signIn')}</Button>
+        <Button variant="secondary" className="sign-in" onClick={() => { if (userId) void signOut(); else requireSignIn() }}>{t(userId ? 'auth.signOut' : 'nav.signIn')}</Button>
         <button className="icon-button mobile-toggle" aria-label={t(menu ? 'nav.close' : 'nav.menu')} aria-expanded={menu} aria-controls="mobile-nav" onClick={() => setMenu(!menu)}>{menu ? <X size={21} /> : <Menu size={21} />}</button>
       </div></div>
       {menu && <nav id="mobile-nav" className="mobile-nav shell" aria-label={t('nav.menu')}>{links.map(([to, key]) => <NavLink key={to} to={to} end={to === '/'} onClick={() => setMenu(false)}>{t(key)}</NavLink>)}</nav>}

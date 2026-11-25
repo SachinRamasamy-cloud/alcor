@@ -10,7 +10,7 @@ Start with the [local development guide](docs/engineering/development.md). The s
 
 Work is on `build/alcor-v1` in reviewable feature commits. A pushed branch is not a production release. Live catalogue rights, dedicated service configuration, independent engineering/security review and rendered editorial approval are release prerequisites.
 
-Development is stopped at the owner's request. [Handover and next tasks](docs/engineering/handover.md) describe the saved checkpoint. The complete roadmap is not yet implemented.
+Development resumed on 25 November 2026. [Handover and next tasks](docs/engineering/handover.md) describe the saved checkpoint. The complete roadmap is not yet implemented.
 
 ## Specifications
 

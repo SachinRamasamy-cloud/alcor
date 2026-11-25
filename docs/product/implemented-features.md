@@ -15,3 +15,5 @@ This record describes actual source behavior. The master plan remains the roadma
 ## Public slice acceptance
 
 Guest browse/search/details and URL reload tested. A failed provider response renders an error, never an empty result. Wishlist invocation performs no unauthenticated write. Closing the dialog restores opener focus. Automated accessibility and overflow checks passed at 320, 375, 768, 1024 and 1440 pixels with reduced motion. Source metadata is development-only and explicitly labelled throughout.
+
+Account frontend (25 November): library/wishlist pages, versioned start/remove, configurable Google PKCE, pending-action validation/replay, account-scoped caching and logout cleanup are implemented. Real Google configuration remains deferred; signed end-to-end private browser validation and human security review remain pending.

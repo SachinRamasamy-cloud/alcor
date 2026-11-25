@@ -18,6 +18,10 @@ Baseline inspected: README-only repository at `12b945b`. Both plans and the full
 
 ## Execution and stop conditions
 
+### A03-F — Account frontend, 25 November 2026
+
+Baseline `bcba4a9` inspected. Risk L4 at session/account boundaries; ordinary UI L2. Authority: existing plan §§8, 10.1 and owner resume request. Scope: frontend auth, library/wishlist, shared transport, copy and tests only; no new dependencies, remote migrations, security-policy changes or live OAuth configuration. Contracts: existing generated LibraryPage/LibraryMutation; Supabase PKCE; no runtime auth bypass. Acceptance: malformed/expired/external pending actions rejected, callback exchange/replay deduplicated, logout/account switch cancels/removes private queries, wishlist writes only after authentication, success feedback only after changed server response, API failures never shown as empty data, version supplied on status changes. Verify unit/component tests, lint/build and existing guest browser regressions. Live Google and independent security/editorial acceptance remain pending; user explicitly deferred credentials.
+
 Branch: `build/alcor-v1`. One integration owner; no parallel implementation agents. Each feature gets source, tests and documentation in its own commit after applicable checks. Generated contracts are reviewed as diffs. All error incidents go in the error log without secrets.
 
 Stop the affected feature for conflicting authoritative requirements, unapproved consequential contract/security/dependency change, missing critical identity evidence, or two unsuccessful repair attempts without diagnostic progress (D-SSBP §8.3). Continue independent authorized work. Human engineering/security/editorial acceptance and production release remain pending until supplied; do not fabricate approval.

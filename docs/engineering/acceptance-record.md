@@ -43,3 +43,12 @@ Per-feature executed commands, results, source commits and limitations will be a
 
 The owner requested a stop because the device battery was low. Remaining source, generated contracts, documentation and error records are committed on the existing review branch and pushed. No claim is made that the full implementation plan is complete. See `docs/engineering/handover.md` for the next ready tasks.
 
+
+## A03-F ? Account frontend, 25 November 2026
+
+- Baseline: `bcba4a9`; authority: master plan ?8/?10.1 and resume request. Frontend auth boundaries L4; library UI L2. No backend contracts, dependencies or production services changed.
+- Implemented: configurable Google PKCE, validated ten-minute pending actions, deduplicated callback exchange/replay, session/account cache cleanup, bearer injection with expected-account checks, library/wishlist pages, status filtering, keyset page navigation, versioned start/remove actions and confirmation dialog. Private queries are keyed by account. Guest writes remain blocked; absent configuration stays visibly unavailable. SDK session persistence removes unneeded provider credentials.
+- Executed: `npm run lint`, `npm run test`, `npm run build`, `npm run test:e2e` in frontend; `git diff --check`. 16 unit/component tests passed; 7 browser regressions passed across 320/375/768/1024/1440px, including accessibility, focus and guest behavior. Callback tests use a mocked SDK; authenticated UI tests use mocked transport, not a runtime bypass. No real Google login was performed.
+- Build: initial entry approximately 199 KB gzip, under the plan's 250 KB gzip budget. Vite warned about the uncompressed chunk exceeding 500 KB; no threshold was relaxed. Field performance is unmeasured.
+- Source review identified a possible queued request/account-switch race; transport now checks the expected account before fetch, with a regression test. Existing published API and protected tests preserved.
+- Status: implemented and locally verified on the review branch. Human security/editorial acceptance, real staged OAuth, signed private browser-to-API workflow and production release remain pending. P3 imports/export, P4 progress and subsequent roadmap features are not complete.
