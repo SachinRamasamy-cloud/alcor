@@ -1,6 +1,5 @@
 # Error log
 
-
 Actual incidents only. No credentials, tokens, personal notes or raw sensitive payloads. Dates use Asia/Calcutta. A resolved development failure does not imply production validation.
 
 | ID / date | Symptom | Cause | Correction | Verification / status |
@@ -30,3 +29,5 @@ Final checkpoint: E006–E010 and E012–E014 were resolved by the recorded pass
 
 - E017: Vite warned that the initial uncompressed chunk exceeds 500 KB after adding the Auth SDK. Build succeeded at approximately 199 KB gzip (within the plan's 250 KB initial gzip budget). Warning retained; no limit raised. Production field measurements remain pending.
 - E018: Source inspection found that an account-scoped request could acquire a different account's token while queued. Added expected-account validation before fetch and a regression proving no request is sent after an account switch. Verified in the 16-test frontend suite.
+
+- E019: Browser regression reproduced a 503 episode fetch falling through to the missing-metadata branch, without contextual error or Retry. Added loading/error branches ahead of successful episode rendering. The original failing assertion is retained; verification recorded in acceptance evidence.

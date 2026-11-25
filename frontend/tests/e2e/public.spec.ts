@@ -40,3 +40,13 @@ test('upstream error is not presented as empty results', async ({ page }) => {
   await expect(page.getByRole('alert')).toContainText('The service is temporarily unavailable.')
   await expect(page.getByText('No matching titles', { exact: true })).toHaveCount(0)
 })
+
+test('episode lookup failure offers a contextual retry', async ({ page }) => {
+  await page.route('**/api/v1/anime/*/episodes', route => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: { code: 'UPSTREAM_UNAVAILABLE', retryable: true } }) }))
+  await page.goto('/')
+  await page.getByRole('link', { name: 'View details', exact: true }).click()
+  const section = page.locator('.episode-section')
+  await expect(section.getByRole('alert')).toContainText('temporarily unavailable')
+  await expect(section.getByRole('button', { name: 'Retry', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Synopsis', exact: true })).toBeVisible()
+})

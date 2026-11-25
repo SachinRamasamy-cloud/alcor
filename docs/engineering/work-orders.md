@@ -26,3 +26,7 @@ Branch: `build/alcor-v1`. One integration owner; no parallel implementation agen
 
 Stop the affected feature for conflicting authoritative requirements, unapproved consequential contract/security/dependency change, missing critical identity evidence, or two unsuccessful repair attempts without diagnostic progress (D-SSBP §8.3). Continue independent authorized work. Human engineering/security/editorial acceptance and production release remain pending until supplied; do not fabricate approval.
 
+
+### B01 ? Episode error feedback, 25 November 2026
+
+Risk L2. Scope: details episode section and its browser test. Authority: product ?11 and editorial error/empty-state rules. Reproduced at 7d75845: HTTP 503 episode lookup renders the missing-metadata branch with no error or retry. Expected: keep title/synopsis visible, show contextual error and Retry for failed episode fetch, show loading during actual fetch; successful missing coverage still uses the existing missing-metadata message. No API/schema changes or altered assertions.

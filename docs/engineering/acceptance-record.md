@@ -52,3 +52,11 @@ The owner requested a stop because the device battery was low. Remaining source,
 - Build: initial entry approximately 199 KB gzip, under the plan's 250 KB gzip budget. Vite warned about the uncompressed chunk exceeding 500 KB; no threshold was relaxed. Field performance is unmeasured.
 - Source review identified a possible queued request/account-switch race; transport now checks the expected account before fetch, with a regression test. Existing published API and protected tests preserved.
 - Status: implemented and locally verified on the review branch. Human security/editorial acceptance, real staged OAuth, signed private browser-to-API workflow and production release remain pending. P3 imports/export, P4 progress and subsequent roadmap features are not complete.
+
+## B01 ? Episode lookup failure feedback
+
+- Baseline `7d75845`; risk L2. Required behavior and failing regression recorded before the fix in work-orders B01.
+- Reproduction: `npx playwright test --grep 'episode lookup'` failed because the episode section contained no alert/retry after HTTP 503. The title synopsis remained available.
+- Fix: handle pending/error states before the successful missing-coverage branch. Retry refetches only the episode query. No provider, API or schema changes.
+- Verification: frontend `npm run lint` and `npm run build` passed; `npm run test:e2e` passed all 8 tests with the original failure assertion preserved. The preceding account frontend suite passed 16 unit/component tests. Diff whitespace check passed. Vite's known size warning remains documented in E017.
+- Status: implementation/local verification complete on the review branch. Human review and production acceptance pending. This fix does not supply missing episode metadata.
