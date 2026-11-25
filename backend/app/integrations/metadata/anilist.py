@@ -71,7 +71,14 @@ async def fetch_media(source_id: int) -> Media:
                 "https://graphql.anilist.co", json={"query": QUERY, "variables": {"id": source_id}}
             )
         if response.status_code == 429:
-            raise AppError(429, "RATE_LIMITED", "Try again later.", retryable=True)
+            retry = response.headers.get("Retry-After", "")
+            raise AppError(
+                429,
+                "RATE_LIMITED",
+                "Try again later.",
+                retryable=True,
+                retry_after=int(retry) if retry.isdigit() else None,
+            )
         response.raise_for_status()
         body = response.json()
         item = body.get("data", {}).get("Media")

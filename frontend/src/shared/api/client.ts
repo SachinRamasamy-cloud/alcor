@@ -19,7 +19,7 @@ const errorKeys: Record<string, MessageKey> = {
   BACKEND_WAKING: 'backend.actionUnavailable', PROVIDER_NOT_CONFIGURED: 'catalogue.providerPending',
 }
 export class ApiError extends Error {
-  constructor(public status: number, public code: string, public requestId?: string) {
+  constructor(public status: number, public code: string, public requestId?: string, public retryAfterSeconds?: number) {
     super(t(errorKeys[code] ?? 'errors.generic'))
   }
 }
@@ -44,7 +44,9 @@ export async function api<T>(path: string, options: RequestInit & { accountId?: 
     if (path.startsWith('/me') && [502, 504].includes(response.status)) window.dispatchEvent(new Event('alcor:backend-unavailable'))
     const body = await response.json().catch(() => ({}))
     if (path.startsWith('/me') && ['BACKEND_WAKING','LIMITER_UNAVAILABLE'].includes(body.error?.code)) window.dispatchEvent(new Event('alcor:backend-unavailable'))
-    throw new ApiError(response.status, body.error?.code ?? 'UNKNOWN', body.error?.request_id)
+    const retry=response.headers.get('Retry-After')
+    const seconds=retry&&/^\d+$/.test(retry)?Number(retry):retry?Math.max(0,Math.ceil((Date.parse(retry)-Date.now())/1000)):undefined
+    throw new ApiError(response.status, body.error?.code ?? 'UNKNOWN', body.error?.request_id,seconds!==undefined&&Number.isFinite(seconds)?seconds:undefined)
   }
   return response.status === 204 ? undefined as T : response.json()
 }

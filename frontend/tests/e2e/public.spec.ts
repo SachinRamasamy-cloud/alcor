@@ -4,6 +4,26 @@ import { mockCatalogue, snapshots, titles } from './catalogue-fixture'
 
 test.beforeEach(async ({page}) => { await mockCatalogue(page) })
 
+test('favorite identity lookups honor cooldown and pace requests before setup can save',async({page})=>{
+  const calls:{id:number;at:number}[]=[]
+  await page.route('**/api/v1/me/media/resolve',async route=>{
+    const id=route.request().postDataJSON().anilist_id
+    calls.push({id,at:Date.now()})
+    if(calls.length===1)return route.fulfill({status:429,headers:{'Retry-After':'1'},contentType:'application/json',body:'{"error":{"code":"RATE_LIMITED"}}'})
+    return route.fulfill({contentType:'application/json',body:JSON.stringify({id:`verified-${id}`})})
+  })
+  await page.goto('/tests/e2e/setup-preview.html')
+  const resolved=await page.evaluate(async()=>{
+    // Test-only transport identity; every private request above is intercepted.
+    // This is not a Supabase session and never reaches the actual API.
+    const {resolveTestFavorites}=await import('/tests/e2e/setup-preview.tsx')
+    return resolveTestFavorites()
+  })
+  expect(resolved).toEqual(['verified-1','verified-2','verified-3'])
+  expect(calls.map(call=>call.id)).toEqual([1,1,2,3])
+  for(let index=1;index<calls.length;index++)expect(calls[index].at-calls[index-1].at).toBeGreaterThanOrEqual(2500)
+})
+
 for(const width of [320,375,768,1440]) {
   test(`account controls share one aligned column at ${width}px`,async({page})=>{
     await page.route('**/api/v1/ready',route=>route.fulfill({contentType:'application/json',body:'{"status":"ready"}'}))

@@ -18,6 +18,8 @@ In `frontend`, run `npm ci` once and `npm run dev`. Open `http://127.0.0.1:5173`
 
 The browser queue respects provider cooldowns and spaces reads. Episode display now fetches AniZip independently after a valid title loads; individual provider failures keep the rest of the page usable. See [browser-first architecture](../architecture/browser-first-catalogue.md) for cache, identity and source limitations. Production provider clearance remains separate from development; `VITE_ANILIST_USE_APPROVED=false` and `VITE_ANIZIP_USE_APPROVED=false` are the example defaults. The [three-provider addendum](../product/MULTI_PROVIDER_METADATA_PLAN.md) tracks the remaining trusted episode reconciliation and server-side TMDB enrichment.
 
+Identity lookups used by setup/save/details share a paced browser queue and honor server Retry-After. See [current limits and setup behavior](rate-limits.md). Selecting several favorites takes time to verify; keep the page open while saving. The API still enforces its unchanged shared 24/minute and 1/second resolver guard.
+
 ## Local database migration and integration tests
 
 From `backend`, after starting compose:

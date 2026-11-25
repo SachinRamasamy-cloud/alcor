@@ -32,7 +32,7 @@ async def resolve(
         raise AppError(503, "PROVIDER_NOT_CONFIGURED", "Provider clearance is required.")
     retry = await request.app.state.limiter.check("anilist:resolve", 24, 1)
     if retry:
-        raise AppError(429, "RATE_LIMITED", "Try again later.", retryable=True)
+        raise AppError(429, "RATE_LIMITED", "Try again later.", retryable=True, retry_after=retry)
     return await resolve_media(request.app.state.database, user, body.anilist_id)
 
 

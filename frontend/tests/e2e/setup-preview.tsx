@@ -5,6 +5,14 @@ import { MemoryRouter } from 'react-router-dom'
 import { LazyMotion,MotionConfig,domAnimation } from 'motion/react'
 import { ProfileSetupWizard } from '../../src/widgets/profile-setup'
 import type { SetupRead } from '../../src/features/profile'
+import {setBackendReady,setTokenProvider} from '../../src/shared/api/client'
+import {resolveMediaId} from '../../src/shared/api/identity'
 import '../../src/styles.css'
+// Only used by the intercepted browser transport test; never an account session.
+export async function resolveTestFavorites(){
+  setBackendReady(true);setTokenProvider(async()=>({token:'test-only-intercepted',userId:'paced-test'}))
+  try{const ids=[];for(const id of [1,2,3])ids.push(await resolveMediaId(`anilist-${id}`,'paced-test'));return ids}
+  finally{setTokenProvider(async()=>null)}
+}
 const initial:SetupRead={profile:{display_name:'',version:0},preferences:{version:0,data:{timezone:'UTC',motion:'system',notifications:false,include_planned:true,spoiler_mode:false,preferred_genres:[],preferred_themes:[],preferred_studios:[],positive_rating_min:null,minimum_rating_votes:null,preferred_max_units:null,intelligence_profile:null}},favorites:[]}
 createRoot(document.getElementById('root')!).render(<QueryClientProvider client={new QueryClient()}><MemoryRouter><LazyMotion features={domAnimation}><MotionConfig reducedMotion="always"><div className="shell page-body"><ProfileSetupWizard initial={initial} genres={['Action','Adventure','Fantasy','Romance','Comedy']} onSave={(draft,skip)=>{document.getElementById('result')!.textContent=JSON.stringify({name:draft.displayName,genres:draft.genres,favorites:draft.favorites.map(item=>item.id),answers:draft.answers,skip})}}/><pre id="result" hidden/></div></MotionConfig></LazyMotion></MemoryRouter></QueryClientProvider>)
