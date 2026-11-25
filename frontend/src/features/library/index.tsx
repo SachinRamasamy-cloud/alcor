@@ -39,7 +39,16 @@ export function useLibraryWrite() {
       const canonical = await resolveMediaId(id, userId)
       return api<Result>(remove ? `/me/${removeLibrary?'library':'wishlist'}/${canonical}?expected_version=${version}` : `/me/library/${canonical}`, { accountId: userId, method: remove ? 'DELETE' : 'PUT', body: remove ? undefined : JSON.stringify({ status, expected_version: version }) })
     },
-    onSuccess: (result,variables,context) => { if(!context.accountId||context.accountId!==currentAccount.current)return;if (result.changed){notify(t(result.entry.deleted_at ? (variables.removeLibrary?'library.removed':'wishlist.removed') : result.entry.status === 'planned' ? 'wishlist.added' : 'library.saved'));if(!result.entry.deleted_at&&!variables.remove&&['planned','in_progress'].includes(result.entry.status))flyToTarget({scopeKey:context.accountId,target:result.entry.status==='planned'?'wishlist':'library',origin:variables.origin,image:result.entry.media.image_url})} },
+    onSuccess: (result,variables,context) => {
+      if(!context.accountId||context.accountId!==currentAccount.current)return
+      const entry=result.entry
+      const references=[variables.id,entry.media.id,...(entry.media.source_ids?.anilist?[`anilist-${entry.media.source_ids.anilist}`]:[])]
+      queries.setQueriesData<Entry|null>({predicate:query=>query.queryKey[0]==='private'&&query.queryKey[1]===context.accountId&&query.queryKey[2]==='media-status'&&query.queryKey[3]===entry.media.media_type&&references.includes(String(query.queryKey[4]))},entry.deleted_at?null:entry)
+      if(result.changed){
+        notify(t(entry.deleted_at?(variables.removeLibrary?'library.removed':'wishlist.removed'):entry.status==='planned'?'wishlist.added':'library.saved'))
+        if(!entry.deleted_at&&!variables.remove&&['planned','in_progress'].includes(entry.status))flyToTarget({scopeKey:context.accountId,target:entry.status==='planned'?'wishlist':'library',origin:variables.origin,image:entry.media.image_url})
+      }
+    },
     onError: (error: Error,_variables,context) => {if(context?.accountId===currentAccount.current)notify(error.message)},
     onSettled: () => { void queries.invalidateQueries({ queryKey: ['private', userId] }) },
   })

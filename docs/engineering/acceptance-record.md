@@ -320,3 +320,11 @@ The delayed-preflight test failed before correction at 2464ms and passed after a
 ### A26 follow-up ? Account-scoped management state
 
 Two independent lifecycle regressions failed before correction: open management state surviving account change, and a late completion callback announcing/closing under the new account. Library content now remounts per account; completion captures its account, rejects mismatched confirmation and suppresses callbacks after switch/unmount. All 12 account tests passed, including both unchanged failing assertions and prior save/start/confirmation/version cases. Lint/build passed. Existing server auth/RLS are unchanged; human security review remains pending.
+
+### A26 final cache correction and regression evidence
+
+The held-refresh test failed before correction and now passes: a confirmed mutation publishes its entry to current-account canonical/AniList status-cache aliases immediately, without touching another account. Background reads remain enabled. This removes the stale Add label on navigation while refresh is pending; no optimistic feedback was introduced.
+
+Final frontend `npm run test`: 104 passed in 33 files. `npm run lint` and `npm run build` passed; initial entry plus auth modulepreload is 246.15 KB gzip. Full browser run `npm run test:e2e -- --workers=1`: 72 passed before this final private-cache patch. After the patch, the five affected guest/confirmation-motion/filter browser cases passed again with unchanged animation bounds and accessibility assertions. The earlier concurrent run's motion-start timing cause remains unproven; serial verification does not establish load performance. Reviewed mobile browse and account-menu artifacts; source artwork/session behavior in fixtures is synthetic.
+
+Backend Ruff and 45 local Postgres/Redis tests passed; no subsequent backend change. Refreshed API/proxy return ready JSON, expose the additive bounded status lookup, and reject anonymous status reads with 401. One live bounded public provider smoke accepted all five shelf shapes. No migration or remote private write was necessary. Human code/security/visual review, physical-device acceptance, production provider clearance and release remain pending. User-facing behavior and current preset limitations are documented in docs/product/catalogue-and-library.md.

@@ -31,3 +31,7 @@ L2 follow-up to the existing A22 quota contract. A full browser run observed arr
 ## A26 follow-up ? Account lifecycle
 
 Preserve the existing account boundary in the new completion UI. Scope library dialog state to the current account's component lifetime; capture completion account/version at confirmation, suppress late callbacks after account change/unmount, and never send a captured confirmation for a different user. No authorization policy or storage change. Acceptance: open-dialog account-switch regression and delayed-completion response test, in addition to existing save account-switch tests. Human security review remains pending.
+
+## A26 follow-up ? Confirmed cache publication
+
+Server-confirmed writes must update existing status-cache aliases for that account immediately, before background invalidation. This is confirmed state, not optimistic success. Preserve no-op/failure motion rules and other accounts' caches. Acceptance: hold the refresh response, verify the saved label and inactive AniList alias cache already reflect the committed result, and verify a second account stays untouched.

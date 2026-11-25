@@ -20,6 +20,26 @@ function mount(child = <LibraryPage />) {
 beforeEach(() => { history.replaceState(null, '', '/wishlist'); state.userId = 'account-a'; vi.clearAllMocks(); setTokenProvider(async () => state.userId ? { token: 'test-only', userId: state.userId } : null) })
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 describe('library integration', () => {
+  it('publishes confirmed saved state to cached aliases before a slow background refresh',async()=>{
+    let reads=0,refresh!:(response:Response)=>void
+    const confirmed={...entry,media:{...media,source_ids:{anilist:'123'}}}
+    vi.stubGlobal('fetch',vi.fn(async(_url,init)=>{
+      if(init.method==='PUT')return new Response(JSON.stringify({entry:confirmed,changed:true}))
+      if(++reads===1)return new Response('[]')
+      return new Promise<Response>(resolve=>{refresh=resolve})
+    }))
+    const queries=mount(<SaveButton media={media}/>)
+    const alias=['private','account-a','media-status','anime','anilist-123']
+    const other=['private','account-b','media-status','anime','anilist-123']
+    queries.setQueryData(alias,null);queries.setQueryData(other,null)
+    await waitFor(()=>expect(screen.getByRole('button',{name:'Add to wishlist'})).not.toBeDisabled())
+    fireEvent.click(screen.getByRole('button',{name:'Add to wishlist'}))
+    await waitFor(()=>expect(refresh).toBeTypeOf('function'))
+    expect(screen.getByRole('button',{name:'In wishlist'})).toHaveAttribute('aria-pressed','true')
+    expect(queries.getQueryData(alias)).toEqual(confirmed)
+    expect(queries.getQueryData(other)).toBeNull()
+    await act(async()=>refresh(new Response(JSON.stringify([confirmed]))))
+  })
   it('hides a previous account management dialog on account switch',async()=>{
     vi.stubGlobal('fetch',vi.fn(async()=>new Response(JSON.stringify(state.userId==='account-a'?{data:[entry],total:1}:{data:[],total:0}))))
     const queries=new QueryClient({defaultOptions:{queries:{retry:false}}})
