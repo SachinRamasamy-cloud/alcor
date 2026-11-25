@@ -2,7 +2,18 @@ from sqlalchemy import text
 
 from app.core.errors import AppError
 from app.modules.library import public as library
-from app.modules.preferences.schemas import Preferences, PreferencesRead, ProfileRead
+from app.modules.preferences.schemas import Preferences, PreferencesRead, ProfileRead, SetupRead
+
+
+async def verified_favorites(session, data):
+    ids = data.intelligence_profile.favorite_anime_ids if data.intelligence_profile else []
+    favorites = []
+    for media_id in ids:
+        media = await library.stored_media(session, media_id)
+        if media is None or media.media_type != "anime":
+            raise AppError(422, "INVALID_REQUEST", "Choose a verified anime favorite.")
+        favorites.append(media)
+    return favorites
 
 
 class PreferenceService:
@@ -49,6 +60,15 @@ class PreferenceService:
             current = row["version"] if row else 0
             if current != body.expected_version:
                 raise AppError(409, "CONFLICT", "Review the latest preferences.")
+            if row and "intelligence_profile" not in body.data.model_fields_set:
+                body.data = body.data.model_copy(
+                    update={
+                        "intelligence_profile": Preferences.model_validate(
+                            row["payload"]
+                        ).intelligence_profile
+                    }
+                )
+            await verified_favorites(session, body.data)
             if row and Preferences.model_validate(row["payload"]) == body.data:
                 return PreferencesRead(data=body.data, version=current)
             await session.execute(
@@ -62,6 +82,94 @@ class PreferenceService:
             )
             result = PreferencesRead(data=body.data, version=current + 1)
         return result
+
+    async def setup(self, user):
+        profile, preferences = await self.profile(user), await self.read(user)
+        async with self.database.transaction(user) as session:
+            favorites = await verified_favorites(session, preferences.data)
+        return SetupRead(profile=profile, preferences=preferences, favorites=favorites)
+
+    async def save_setup(self, user, body):
+        async with self.database.transaction(user) as session:
+            for scope in ("preferences", "profile"):
+                await session.execute(
+                    text("SELECT pg_advisory_xact_lock(hashtextextended(:key,0))"),
+                    {"key": scope + ":" + str(user)},
+                )
+            profile = (
+                (
+                    await session.execute(
+                        text(
+                            "SELECT display_name,version FROM personal.profiles WHERE user_id=:user FOR UPDATE"
+                        ),
+                        {"user": user},
+                    )
+                )
+                .mappings()
+                .one_or_none()
+            )
+            preferences = (
+                (
+                    await session.execute(
+                        text(
+                            "SELECT payload,version FROM personal.user_preferences WHERE user_id=:user FOR UPDATE"
+                        ),
+                        {"user": user},
+                    )
+                )
+                .mappings()
+                .one_or_none()
+            )
+            profile_version, preferences_version = (
+                (profile["version"] if profile else 0),
+                (preferences["version"] if preferences else 0),
+            )
+            if (
+                profile_version != body.expected_profile_version
+                or preferences_version != body.expected_preferences_version
+            ):
+                raise AppError(409, "CONFLICT", "Review the latest profile before saving setup.")
+            favorites = await verified_favorites(session, body.data)
+            name = body.display_name.strip()
+            if (
+                profile
+                and preferences
+                and profile["display_name"] == name
+                and Preferences.model_validate(preferences["payload"]) == body.data
+            ):
+                return SetupRead(
+                    profile=ProfileRead(display_name=name, version=profile_version),
+                    preferences=PreferencesRead(data=body.data, version=preferences_version),
+                    favorites=favorites,
+                )
+            await session.execute(
+                text(
+                    "INSERT INTO personal.profiles(user_id,display_name,version) VALUES(:user,:name,1) ON CONFLICT(user_id) DO UPDATE SET display_name=excluded.display_name,version=personal.profiles.version+1"
+                ),
+                {"user": user, "name": name},
+            )
+            await session.execute(
+                text(
+                    "INSERT INTO personal.user_preferences(user_id,payload,version) VALUES(:user,CAST(:payload AS jsonb),1) ON CONFLICT(user_id) DO UPDATE SET payload=excluded.payload,version=personal.user_preferences.version+1"
+                ),
+                {"user": user, "payload": body.data.model_dump_json()},
+            )
+            await library.record_activity(
+                session,
+                user,
+                None,
+                "profile.setup",
+                None,
+                {
+                    "profile_version": profile_version + 1,
+                    "preferences_version": preferences_version + 1,
+                },
+            )
+            return SetupRead(
+                profile=ProfileRead(display_name=name, version=profile_version + 1),
+                preferences=PreferencesRead(data=body.data, version=preferences_version + 1),
+                favorites=favorites,
+            )
 
     async def profile(self, user):
         async with self.database.transaction(user) as session:

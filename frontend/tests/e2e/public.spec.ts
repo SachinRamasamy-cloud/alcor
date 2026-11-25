@@ -38,6 +38,30 @@ for (const width of [320, 375, 640, 768, 1024, 1280, 1440, 1600, 1920]) {
 }
 
 for(const width of [375,1440]) {
+  test(`three-step profile setup is usable at ${width}px`,async({page})=>{
+    await page.setViewportSize({width,height:1000})
+    await page.goto('/tests/e2e/setup-preview.html')
+    await expect(page.getByRole('heading',{level:1})).toHaveText('Make room for your kind of story.')
+    const questions:string[]=[]
+    for(let step=0;step<3;step++){
+      await expect(page.locator('fieldset')).toHaveCount(3)
+      questions.push(...await page.locator('legend').allTextContents())
+      expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
+      const accessibility=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()
+      expect(accessibility.violations.map(v=>v.id)).toEqual([])
+      await page.screenshot({path:test.info().outputPath(`setup-step-${step+1}.png`),fullPage:true})
+      if(step===0){await page.getByLabel('Display name',{exact:true}).fill('Reader');await page.getByLabel('Year you started watching',{exact:true}).fill('2020')}
+      if(step===1){await page.getByRole('group',{name:'Anime to choose as favorites'}).getByRole('button').first().click();await page.getByRole('group',{name:/5\./}).getByRole('button',{name:'Fantasy',exact:true}).click()}
+      if(step<2)await page.getByRole('button',{name:'Continue',exact:true}).click()
+    }
+    expect(questions).toHaveLength(9)
+    await page.getByRole('button',{name:'Strictly exclude',exact:true}).click()
+    await page.getByRole('button',{name:'Romance',exact:true}).click()
+    await page.getByLabel('Maximum anime episodes',{exact:true}).fill('24')
+    await page.getByRole('button',{name:'Save my profile',exact:true}).click()
+    const result=JSON.parse((await page.locator('#result').textContent())!)
+    expect(result.name).toBe('Reader');expect(result.answers.excluded_genres).toEqual(['Romance']);expect(result.favorites).toHaveLength(1)
+  })
   test(`email account forms fit and preserve private input at ${width}px`,async({page})=>{
     await page.route('**/api/v1/ready',route=>route.fulfill({contentType:'application/json',body:'{"status":"ready"}'}))
     await page.setViewportSize({width,height:900});await page.goto('/')

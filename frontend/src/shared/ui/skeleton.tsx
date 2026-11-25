@@ -1,7 +1,7 @@
 import { useLocation } from 'react-router-dom'
 import { t } from '../content'
 
-export type SkeletonKind = 'home' | 'catalogue' | 'details' | 'library' | 'wishlist' | 'collections' | 'collection-detail' | 'history' | 'statistics' | 'profile' | 'settings' | 'tracking' | 'episodes' | 'info' | 'panel'
+export type SkeletonKind = 'home' | 'catalogue' | 'details' | 'library' | 'wishlist' | 'collections' | 'collection-detail' | 'history' | 'statistics' | 'profile' | 'settings' | 'setup' | 'tracking' | 'episodes' | 'info' | 'panel'
 const Block = ({ className = '' }: { className?: string }) => <div className={`skeleton-block ${className}`} />
 function Lines({ count = 3 }: { count?: number }) { return <div className="skeleton-lines">{Array.from({ length: count }, (_, i) => <Block key={i} className={i === count - 1 ? 'skeleton-short' : ''} />)}</div> }
 function Cards({ mobileScroll = false }: { mobileScroll?: boolean }) {
@@ -13,6 +13,7 @@ function Detail() {
 }
 
 export function Loading({ variant = 'panel', page = false }: { variant?: SkeletonKind; page?: boolean }) {
+  if(variant==='setup')return <div role="status" aria-busy="true" className={`${page?'shell page-body ':''}skeleton-region skeleton-setup`}><span className="sr-only">{t('common.loading')}</span><div className="setup-shell" aria-hidden="true"><header className="setup-heading"><Block className="skeleton-short"/><Block className="skeleton-title"/><Lines count={2}/></header><div className="setup-steps">{[1,2,3].map(step=><Block key={step} className="skeleton-input"/>)}</div><div className="setup-panel"><Block className="skeleton-heading"/>{[1,2,3].map(question=><div key={question} className="skeleton-setup-question"><Block className="skeleton-short"/><Block className="skeleton-input"/></div>)}<div className="setup-actions"><Block className="skeleton-input skeleton-short"/><Block className="skeleton-input skeleton-short"/></div></div></div></div>
   if(variant==='details'&&page)return <div role="status" aria-busy="true" className="details-page skeleton-region skeleton-details"><span className="sr-only">{t('common.loading')}</span><div aria-hidden="true"><Block className="detail-banner"/><div className="shell detail-body"><div className="detail-intro"><div className="detail-sidebar"><Block className="skeleton-poster detail-poster"/><div className="detail-save-actions"><Block className="skeleton-input"/><Block className="skeleton-input"/></div><div className="detail-info-panel"><Lines count={7}/></div></div><div className="detail-main skeleton-detail-copy"><Block className="skeleton-short"/><Block className="skeleton-title"/><Lines count={2}/><div className="skeleton-buttons"><Block/><Block/></div><Lines count={4}/><div className="episode-section"><Block className="skeleton-heading"/><Lines count={6}/></div></div></div></div></div></div>
   const cards = ['catalogue', 'library', 'wishlist', 'collection-detail'].includes(variant)
   const personal = ['library','wishlist','collections','collection-detail','history','statistics','profile','settings'].includes(variant)
@@ -36,6 +37,6 @@ export function Loading({ variant = 'panel', page = false }: { variant?: Skeleto
 export function RouteSkeleton() {
   const path = useLocation().pathname
   const segment = path.split('/')[1]
-  const variant: SkeletonKind = path === '/' ? 'home' : /^(anime|manga)$/.test(segment) && path.split('/').length > 2 ? 'details' : ['anime', 'manga', 'discover', 'search'].includes(segment) ? 'catalogue' : segment === 'collections' && path.split('/').length > 2 ? 'collection-detail' : ['library', 'wishlist', 'collections', 'history', 'statistics', 'profile', 'settings'].includes(segment) ? segment as SkeletonKind : segment === 'auth' ? 'profile' : 'info'
+  const variant: SkeletonKind = path === '/' ? 'home' : /^(anime|manga)$/.test(segment) && path.split('/').length > 2 ? 'details' : ['anime', 'manga', 'discover', 'search'].includes(segment) ? 'catalogue' : segment === 'collections' && path.split('/').length > 2 ? 'collection-detail' : ['library', 'wishlist', 'collections', 'history', 'statistics', 'profile', 'settings','setup'].includes(segment) ? segment as SkeletonKind : segment === 'auth' ? 'profile' : 'info'
   return <Loading variant={variant} page />
 }

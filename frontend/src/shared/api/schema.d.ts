@@ -593,6 +593,24 @@ export interface paths {
         patch: operations["update_filter_api_v1_me_saved_filters__filter_id__patch"];
         trace?: never;
     };
+    "/api/v1/me/setup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Setup */
+        get: operations["setup_api_v1_me_setup_get"];
+        /** Save Setup */
+        put: operations["save_setup_api_v1_me_setup_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/statistics": {
         parameters: {
             query?: never;
@@ -1067,6 +1085,41 @@ export interface components {
             /** Manga */
             manga: components["schemas"]["Media"][];
         };
+        /** IntelligenceProfile */
+        IntelligenceProfile: {
+            /** Disliked Genres */
+            disliked_genres?: string[];
+            /** Excluded Genres */
+            excluded_genres?: string[];
+            /** Favorite Anime Ids */
+            favorite_anime_ids?: string[];
+            /** Max Anime Episodes */
+            max_anime_episodes?: number | null;
+            /** Media Types */
+            media_types?: ("anime" | "manga" | "manhwa" | "manhua" | "light_novel")[];
+            /**
+             * Schema Version
+             * @default 1
+             * @constant
+             */
+            schema_version: 1;
+            /**
+             * Series Status
+             * @default any
+             * @enum {string}
+             */
+            series_status: "any" | "finished" | "ongoing";
+            /**
+             * Setup Status
+             * @default completed
+             * @enum {string}
+             */
+            setup_status: "completed" | "skipped";
+            /** Started Year */
+            started_year?: number | null;
+            /** Story Traits */
+            story_traits?: string[];
+        };
         /** ItemWrite */
         ItemWrite: {
             /** Expected Version */
@@ -1418,6 +1471,7 @@ export interface components {
              * @default true
              */
             include_planned: boolean;
+            intelligence_profile?: components["schemas"]["IntelligenceProfile"] | null;
             /** Minimum Rating Votes */
             minimum_rating_votes?: number | null;
             /**
@@ -1563,6 +1617,26 @@ export interface components {
         SessionVersion: {
             /** Expected Version */
             expected_version: number;
+        };
+        /** SetupRead */
+        SetupRead: {
+            /**
+             * Favorites
+             * @default []
+             */
+            favorites: components["schemas"]["Media"][];
+            preferences: components["schemas"]["PreferencesRead"];
+            profile: components["schemas"]["ProfileRead"];
+        };
+        /** SetupWrite */
+        SetupWrite: {
+            data: components["schemas"]["Preferences"];
+            /** Display Name */
+            display_name: string;
+            /** Expected Preferences Version */
+            expected_preferences_version: number;
+            /** Expected Profile Version */
+            expected_profile_version: number;
         };
         /** Source */
         Source: {
@@ -3193,6 +3267,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FilterRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    setup_api_v1_me_setup_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupRead"];
+                };
+            };
+        };
+    };
+    save_setup_api_v1_me_setup_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetupWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupRead"];
                 };
             };
             /** @description Validation Error */

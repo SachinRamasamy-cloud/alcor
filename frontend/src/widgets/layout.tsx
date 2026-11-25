@@ -13,7 +13,7 @@ export function Layout() {
   const { requireSignIn, userId, signOut } = useAuth()
   const location = useLocation()
   const { ready } = useBackend()
-  const privatePage = /^\/(library|wishlist|collections|history|statistics|profile|settings|auth)(\/|$)/.test(location.pathname)
+  const privatePage = /^\/(library|wishlist|collections|history|statistics|profile|settings|setup|auth)(\/|$)/.test(location.pathname)
   const main = useRef<HTMLElement>(null)
   useEffect(() => { main.current?.focus({ preventScroll: true }); window.scrollTo(0, 0) }, [location.pathname])
   return <><a className="skip-link" href="#main">{t('nav.skip')}</a>

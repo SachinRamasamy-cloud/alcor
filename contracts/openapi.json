@@ -757,6 +757,112 @@
         "title": "HomeResponse",
         "type": "object"
       },
+      "IntelligenceProfile": {
+        "additionalProperties": false,
+        "properties": {
+          "disliked_genres": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Disliked Genres",
+            "type": "array"
+          },
+          "excluded_genres": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Excluded Genres",
+            "type": "array"
+          },
+          "favorite_anime_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Favorite Anime Ids",
+            "type": "array"
+          },
+          "max_anime_episodes": {
+            "anyOf": [
+              {
+                "maximum": 100000.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Anime Episodes"
+          },
+          "media_types": {
+            "items": {
+              "enum": [
+                "anime",
+                "manga",
+                "manhwa",
+                "manhua",
+                "light_novel"
+              ],
+              "type": "string"
+            },
+            "maxItems": 5,
+            "title": "Media Types",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": 1,
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "series_status": {
+            "default": "any",
+            "enum": [
+              "any",
+              "finished",
+              "ongoing"
+            ],
+            "title": "Series Status",
+            "type": "string"
+          },
+          "setup_status": {
+            "default": "completed",
+            "enum": [
+              "completed",
+              "skipped"
+            ],
+            "title": "Setup Status",
+            "type": "string"
+          },
+          "started_year": {
+            "anyOf": [
+              {
+                "maximum": 9999.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started Year"
+          },
+          "story_traits": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Story Traits",
+            "type": "array"
+          }
+        },
+        "title": "IntelligenceProfile",
+        "type": "object"
+      },
       "ItemWrite": {
         "properties": {
           "expected_version": {
@@ -1784,6 +1890,16 @@
             "title": "Include Planned",
             "type": "boolean"
           },
+          "intelligence_profile": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IntelligenceProfile"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "minimum_rating_votes": {
             "anyOf": [
               {
@@ -2173,6 +2289,61 @@
           "expected_version"
         ],
         "title": "SessionVersion",
+        "type": "object"
+      },
+      "SetupRead": {
+        "properties": {
+          "favorites": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/Media"
+            },
+            "title": "Favorites",
+            "type": "array"
+          },
+          "preferences": {
+            "$ref": "#/components/schemas/PreferencesRead"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/ProfileRead"
+          }
+        },
+        "required": [
+          "profile",
+          "preferences"
+        ],
+        "title": "SetupRead",
+        "type": "object"
+      },
+      "SetupWrite": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Preferences"
+          },
+          "display_name": {
+            "maxLength": 80,
+            "title": "Display Name",
+            "type": "string"
+          },
+          "expected_preferences_version": {
+            "minimum": 0.0,
+            "title": "Expected Preferences Version",
+            "type": "integer"
+          },
+          "expected_profile_version": {
+            "minimum": 0.0,
+            "title": "Expected Profile Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "display_name",
+          "expected_profile_version",
+          "expected_preferences_version",
+          "data"
+        ],
+        "title": "SetupWrite",
         "type": "object"
       },
       "Source": {
@@ -6141,6 +6312,66 @@
         "summary": "Update Filter",
         "tags": [
           "discovery"
+        ]
+      }
+    },
+    "/api/v1/me/setup": {
+      "get": {
+        "operationId": "setup_api_v1_me_setup_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Setup",
+        "tags": [
+          "preferences"
+        ]
+      },
+      "put": {
+        "operationId": "save_setup_api_v1_me_setup_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetupWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Save Setup",
+        "tags": [
+          "preferences"
         ]
       }
     },

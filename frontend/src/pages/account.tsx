@@ -58,7 +58,7 @@ export function AuthCallbackPage() {
     const complete=params.get('recovery')==='1'
       ?finishRecovery(code)
       :finishCallback(code)
-    void complete.then(path => { if (active) { void queries.invalidateQueries({ queryKey: ['private'] }); navigate(params.get('setup')==='1'&&params.get('recovery')!=='1'?'/profile?setup=1':path, { replace: true }) } }).catch(error => { if (active) setError(error instanceof Error ? error : new Error(t('errors.auth'))) })
+    void complete.then(path => { if (active) { void queries.invalidateQueries({ queryKey: ['private'] }); navigate(params.get('setup')==='1'&&params.get('recovery')!=='1'?'/setup':path, { replace: true }) } }).catch(error => { if (active) setError(error instanceof Error ? error : new Error(t('errors.auth'))) })
     return () => { active = false }
   }, [params, navigate, queries,ready])
   return error ? <ErrorState error={error} /> : <Loading variant="profile" page />
@@ -73,7 +73,7 @@ export function AuthCompletePage(){
     if(loading||!ready||!userId)return
     let active=true
     if(completion.current?.user!==userId)completion.current={user:userId,promise:finishSignedIn(userId,'/library')}
-    void completion.current.promise.then(path=>{if(active)navigate(params.get('setup')==='1'?'/profile?setup=1':path,{replace:true})}).catch(cause=>{if(active)setError(cause instanceof Error?cause:new Error(t('errors.auth')))})
+    void completion.current.promise.then(path=>{if(active)navigate(params.get('setup')==='1'?'/setup':path,{replace:true})}).catch(cause=>{if(active)setError(cause instanceof Error?cause:new Error(t('errors.auth')))})
     return()=>{active=false}
   },[userId,loading,ready,params,navigate])
   if(!loading&&!userId)return <div className="shell page-body state-box"><p>{t('auth.library')}</p><Link className="button button-primary" to="/">{t('nav.home')}</Link></div>

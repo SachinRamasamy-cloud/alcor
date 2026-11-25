@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useMutation,useQuery,useQueryClient } from '@tanstack/react-query'
 import { api } from '../shared/api/client'
 import type { components } from '../shared/api/schema'
@@ -8,6 +9,7 @@ import { t } from '../shared/content'
 import { Button,ErrorState,Loading } from '../shared/ui'
 import { PersonalNav } from '../widgets/personal-nav'
 import { usePreferences,type PreferencesRead } from '../features/preferences'
+import { useSetup } from '../features/profile'
 
 function PreferenceForm({saved,userId}:{saved:PreferencesRead;userId:string}){
   const [draft,setDraft]=useState(saved)
@@ -30,6 +32,7 @@ function ProfileForm({profile,userId}:{profile:Profile;userId:string}){
 }
 export function ProfilePage(){
   const {userId,requireSignIn}=useAuth()
+  const setup=useSetup()
   const profile=useQuery({queryKey:['private',userId,'profile'],enabled:Boolean(userId),queryFn:({signal})=>api<Profile>('/me',{signal,accountId:userId!})})
-  return <div className="shell page-body"><PersonalNav/><div className="page-heading"><h1>{t('settings.profile')}</h1></div>{!userId?<div className="state-box"><Button onClick={()=>requireSignIn()}>{t('nav.signIn')}</Button></div>:profile.isPending?<Loading variant="profile"/>:profile.error?<ErrorState error={profile.error} retry={()=>{void profile.refetch()}}/>:<ProfileForm key={userId} userId={userId} profile={profile.data}/>}</div>
+  return <div className="shell page-body"><PersonalNav/><div className="page-heading"><h1>{t('settings.profile')}</h1></div>{!userId?<div className="state-box"><Button onClick={()=>requireSignIn()}>{t('nav.signIn')}</Button></div>:profile.isPending?<Loading variant="profile"/>:profile.error?<ErrorState error={profile.error} retry={()=>{void profile.refetch()}}/>:<><section className="profile-taste-card"><div><h2>{t('setup.taste')}</h2><p>{t('setup.profileHelp')}</p>{setup.data&&<p>{t('setup.favoritesCount',{count:setup.data.favorites?.length??0})}{setup.data.preferences.data.preferred_genres?.length?` · ${setup.data.preferences.data.preferred_genres.join(', ')}`:''}</p>}</div><Link className="button button-secondary" to="/setup">{t('setup.edit')}</Link></section><ProfileForm key={userId} userId={userId} profile={profile.data}/></>}</div>
 }

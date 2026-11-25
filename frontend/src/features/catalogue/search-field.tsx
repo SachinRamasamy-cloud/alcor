@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ArrowRight, Search, X } from 'lucide-react'
 import { t } from '../../shared/content'
 
-export function SearchField({ value, onCommit, busy = false }: { value: string; onCommit: (value: string) => void; busy?: boolean }) {
+export function SearchField({ value, onCommit, busy = false, label=t('catalogue.searchPlaceholder') }: { value: string; onCommit: (value: string) => void; busy?: boolean;label?:string }) {
   const [state,setState]=useState({ source:value, draft:value })
   const timer=useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const composing=useRef(false)
@@ -16,7 +16,7 @@ export function SearchField({ value, onCommit, busy = false }: { value: string; 
   }
   return <div className="search-input-group"><form className="search-field" role="search" onSubmit={event=>{event.preventDefault();clearTimeout(timer.current);onCommit(state.draft)}}>
     <Search size={20} aria-hidden="true"/>
-    <input ref={input} name="query" type="search" autoComplete="off" maxLength={200} aria-label={t('catalogue.searchPlaceholder')} placeholder={t('catalogue.searchPlaceholder')} value={state.draft}
+    <input ref={input} name="query" type="search" autoComplete="off" maxLength={200} aria-label={label} placeholder={label} value={state.draft}
       onChange={event=>{const draft=event.target.value;setState(previous=>({...previous,draft}));schedule(draft)}}
       onCompositionStart={()=>{composing.current=true;clearTimeout(timer.current)}} onCompositionEnd={event=>{composing.current=false;schedule(event.currentTarget.value)}}/>
     {state.draft&&<button className="search-clear icon-button" type="button" aria-label={t('catalogue.clear')} onClick={()=>{clearTimeout(timer.current);setState(previous=>({...previous,draft:''}));onCommit('');input.current?.focus()}}><X size={16}/></button>}
