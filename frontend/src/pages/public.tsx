@@ -18,7 +18,8 @@ import type { Media } from '../shared/api/client'
 import { t, formatDate, unitCount, type MessageKey } from '../shared/content'
 import { useCataloguePagination } from '../features/catalogue/pagination'
 import { Button, ErrorState, Loading, Pagination } from '../shared/ui'
-import {discoveryLink,useDiscoveryVisibility,DiscoveryNotice} from '../features/catalogue/visibility'
+import {discoveryLink,DiscoveryNotice} from '../features/catalogue/visibility'
+import {useDiscoveryShelves} from '../features/catalogue/shelf-refill'
 import {useDiscoveryMode} from '../features/catalogue/policy'
 
 function PageTitle({ title }: { title: string }) {
@@ -46,14 +47,12 @@ function filterLabel(key:string,value:string):string {
 export function HomePage() {
   const home = useHome()
   const [params]=useSearchParams(),mode=useDiscoveryMode(params)
-  const candidates=home.data?[...(home.data.featured?[home.data.featured]:[]),...home.data.anime,...home.data.manga]:[]
-  const visibility=useDiscoveryVisibility(candidates,mode)
+  const visibility=useDiscoveryShelves('home',home.data?{anime:home.data.anime,manga:home.data.manga}:{},mode,home.data?.is_partial??false)
   if (home.isPending) return <Loading variant="home" page />
   if (home.error) return <ErrorState error={home.error} retry={() => { void home.refetch() }} />
   if(visibility.pending)return <Loading variant="home" page/>
-  const eligible=(items:Media[])=>items.filter(item=>visibility.items.some(candidate=>candidate.id===item.id))
-  const anime=eligible(home.data.anime),manga=eligible(home.data.manga)
-  const featured = home.data.featured&&eligible([home.data.featured]).length?home.data.featured:anime[0]??null
+  const anime=visibility.shelves.anime??[],manga=visibility.shelves.manga??[]
+  const featured = home.data.featured&&visibility.items.some(item=>item.id===home.data.featured?.id)?home.data.featured:anime[0]??null
   return <div className="shell"><PageTitle title={t('nav.home')} />
     <DiscoveryNotice unavailable={visibility.unavailable} refetch={visibility.refetch}/>
     {featured && <section data-media-source="" className="hero"><div className="hero-copy"><p className="eyebrow"><span className="tiny-rule" />{t('home.featured')}</p><h1>{featured.title}</h1>
@@ -64,7 +63,9 @@ export function HomePage() {
       <a className="hero-source" href={featured.source.url} target="_blank" rel="noreferrer">{featured.source.name}<ArrowUpRight size={11} /></a>
     </div><div className="hero-art"><m.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .25 }} className="hero-poster"><Poster media={featured} priority /></m.div><span className="hero-art-label">{featured.original_title ?? featured.title}</span></div></section>}
     <ContinueSections />
-    {visibility.personal&&!visibility.unavailable&&anime.length+manga.length<home.data.anime.length+home.data.manga.length&&<p className="coverage-note">{t('discovery.partialPersonal')} <Link to={discoveryLink('/search',mode)}>{t('home.all')}</Link></p>}
+    {visibility.refilling&&<p className="coverage-note" role="status">{t('discovery.refilling')}</p>}
+    {visibility.refillError&&<ErrorState error={visibility.refillError} retry={()=>{void visibility.retryRefill()}}/>}
+    {visibility.limited.length>0&&<p className="coverage-note">{t('discovery.shelfWindow')} <Link to={discoveryLink('/search',mode)}>{t('home.all')}</Link></p>}
     <Section title="home.popularAnime" to={discoveryLink('/search?type=anime&sort=popular',mode)} items={anime} />
     <section className="home-section genre-section"><div className="section-heading"><h2>{t('home.genres')}</h2></div><div className="genre-grid">{home.data.genres.slice(0, 8).map((genre, i) => <Link key={genre} to={discoveryLink(`/anime?genre=${encodeURIComponent(genre)}`,mode)}><span className="genre-number">{String(i + 1).padStart(2, '0')}</span><span>{genre}</span><ArrowRight size={17} /></Link>)}</div></section>
     <Section title="home.popularManga" to={discoveryLink('/search?type=manga&sort=popular',mode)} items={manga} />

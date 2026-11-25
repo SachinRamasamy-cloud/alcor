@@ -3,6 +3,25 @@ import { aniHome,aniBrowse,aniCatalogue,browseSections, AniListTransport, fromAn
 
 afterEach(() => {vi.useRealTimers();vi.unstubAllEnvs();vi.unstubAllGlobals()})
 describe('public AniList transport', () => {
+  it('batches bounded refill windows with source continuation and unchanged shelf filters',async()=>{
+    vi.resetModules()
+    const {aniShelfWindow}=await import('./anilist')
+    const fetcher=vi.fn<typeof fetch>(async(_url,options)=>{
+      const body=JSON.parse(String(options?.body))
+      expect(body.variables.page).toBe(1)
+      expect(body.query.match(/Page\(page: \$page, perPage: 24\)/g)).toHaveLength(5)
+      expect(body.query).toContain('sort: SCORE_DESC')
+      expect(body.query).toContain('sort: TRENDING_DESC')
+      expect(body.query).toContain('status: NOT_YET_RELEASED')
+      expect(body.query).toContain('status_not: NOT_YET_RELEASED, startDate_lesser: $tomorrow')
+      expect(new Headers(options?.headers).has('Authorization')).toBe(false)
+      return new Response(JSON.stringify({data:Object.fromEntries(browseSections('anime').map(({key})=>[key,{media:[],pageInfo:{hasNextPage:key==='popular'}}]))}))
+    });vi.stubGlobal('fetch',fetcher)
+    const result=await aniShelfWindow('anime',1)
+    expect(result.popular.hasMore).toBe(true);expect(result.top.hasMore).toBe(false)
+    await expect(aniShelfWindow('anime',4)).rejects.toMatchObject({code:'INVALID_CURSOR'})
+    expect(fetcher).toHaveBeenCalledOnce()
+  })
   it('loads five shelves in one request and preserves their View all filters',async()=>{
     vi.useFakeTimers()
     const fetcher=vi.fn<typeof fetch>().mockImplementation(async(_url,options)=>{

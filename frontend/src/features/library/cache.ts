@@ -2,6 +2,7 @@ import type {QueryClient} from '@tanstack/react-query'
 import type {components} from '../../shared/api/schema'
 import type {CataloguePage} from '../../shared/api/client'
 import {sameTitle} from '../../shared/api/identity'
+import type {ShelfPools} from '../catalogue/shelf-refill'
 type Entry=components['schemas']['LibraryEntry']
 type PreferencesRead=components['schemas']['PreferencesRead']
 type LibraryPage=components['schemas']['LibraryPage']
@@ -24,7 +25,7 @@ export function publishLibraryEntry(queries:QueryClient,owner:string,serverEntry
   const previous=previousStatus??listQueries.flatMap(query=>(query.state.data as LibraryPage|undefined)?.data??[]).find(item=>sameTitle(item.media,entry.media))
   if(previous&&previous.version>entry.version)return false
   const known=previousStatus!==undefined||Boolean(previous)
-  const relevant=new Set(['media-status','discovery-exclusions','anilist-catalogue','library','wishlist'])
+  const relevant=new Set(['media-status','discovery-exclusions','anilist-catalogue','shelf-refill','library','wishlist'])
   void queries.cancelQueries({predicate:query=>query.queryKey[0]==='private'&&query.queryKey[1]===owner&&relevant.has(String(query.queryKey[2]))})
   queries.setQueriesData<Entry|null>({predicate:query=>query.queryKey[0]==='private'&&query.queryKey[1]===owner&&query.queryKey[2]==='media-status'&&query.queryKey[3]===entry.media.media_type&&aliases.includes(String(query.queryKey[4]))},entry.deleted_at?null:entry)
   queries.setQueriesData<Entry[]>({predicate:query=>query.queryKey[0]==='private'&&query.queryKey[1]===owner&&query.queryKey[2]==='media-status'&&aliases.includes(String(query.queryKey[3]))},previous=>previous?entry.deleted_at?previous.filter(item=>!sameTitle(item.media,entry.media)):[...previous.filter(item=>!sameTitle(item.media,entry.media)),entry]:previous)
@@ -36,6 +37,11 @@ export function publishLibraryEntry(queries:QueryClient,owner:string,serverEntry
   for(const query of queries.getQueryCache().findAll({queryKey:[...scope,'anilist-catalogue']})){
     const mode=new URLSearchParams(String(query.queryKey[4])).get('mode')??'all'
     if(excludesEntry(entry,mode,includePlanned))queries.setQueryData<CataloguePage>(query.queryKey,previous=>previous?{...previous,data:previous.data.filter(item=>!sameTitle(item,entry.media)),total:null,total_pages:null}:previous)
+  }
+  for(const query of queries.getQueryCache().findAll({queryKey:[...scope,'shelf-refill']})){
+    if(excludesEntry(entry,String(query.queryKey[3]),includePlanned))queries.setQueryData<ShelfPools>(query.queryKey,previous=>previous?{
+      ...previous,pools:Object.fromEntries(Object.entries(previous.pools).map(([key,items])=>[key,items.filter(item=>!sameTitle(item,entry.media))])),
+    }:previous)
   }
   for(const query of listQueries){
     const status=query.queryKey[2]==='wishlist'?'planned':String(query.queryKey[4]??'')

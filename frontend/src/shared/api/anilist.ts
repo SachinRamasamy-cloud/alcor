@@ -144,6 +144,27 @@ export async function aniBrowse(type:'anime'|'manga',signal?:AbortSignal):Promis
   return Object.fromEntries(browseSections(type).map(({key})=>[key,result[key].media.filter(item=>!item.isAdult).map(fromAniList)])) as BrowseData
 }
 
+export type ShelfKind='home'|'anime'|'manga'
+export type ShelfWindow=Record<string,{items:Media[];hasMore:boolean}>
+// Public metadata only. No account identifiers, saved titles or credentials.
+export async function aniShelfWindow(kind:ShelfKind,page:number,signal?:AbortSignal):Promise<ShelfWindow>{
+  if(!Number.isSafeInteger(page)||page<1||page>3)throw new ApiError(422,'INVALID_CURSOR')
+  const sections=kind==='home'?['anime','manga'].map(key=>({key,params:new URLSearchParams({type:key,sort:'popular'})})):browseSections(kind)
+  const queries=sections.map(({key,params})=>{
+    const sort=params.get('sort')==='year'?'START_DATE_DESC':params.get('sort')==='score'?'SCORE_DESC':params.get('sort')==='trending'?'TRENDING_DESC':'POPULARITY_DESC'
+    const extra=params.get('released')==='true'?', status_not: NOT_YET_RELEASED, startDate_lesser: $tomorrow':params.has('status')?`, status: ${params.get('status')}`:''
+    return `${key}: Page(page: $page, perPage: 24) { pageInfo { hasNextPage } media(type: ${params.get('type')!.toUpperCase()}, isAdult: false, sort: ${sort}${extra}) { ${fields} } }`
+  })
+  const result=await publicQuery<Record<string,{media:AniMedia[];pageInfo:{hasNextPage:boolean}}>>(
+    `query AlcorShelfWindow($page: Int${kind==='home'?'':', $tomorrow: FuzzyDateInt'}) { ${queries.join('\n')} }`,
+    {page,...(kind==='home'?{}:{tomorrow:tomorrowDate()})},signal)
+  return Object.fromEntries(sections.map(({key})=>{
+    const shelf=result[key]
+    if(!Array.isArray(shelf?.media)||typeof shelf.pageInfo?.hasNextPage!=='boolean')throw new ApiError(503,'UPSTREAM_UNAVAILABLE')
+    return [key,{items:shelf.media.filter(item=>!item.isAdult).map(fromAniList),hasMore:shelf.pageInfo.hasNextPage}]
+  }))
+}
+
 export async function aniDetails(type: string, id: string, signal?: AbortSignal): Promise<Media> {
   const match = /^(anilist|mal)-(\d+)$/.exec(id)
   if (!match || Number(match[2]) < 1) throw new ApiError(404, 'NOT_FOUND')
