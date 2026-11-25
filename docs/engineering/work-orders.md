@@ -18,6 +18,10 @@ Baseline inspected: README-only repository at `12b945b`. Both plans and the full
 
 ## Execution and stop conditions
 
+### A18 - Consistent account-dialog alignment
+
+25 November 2026; owner reports mixed alignment in the create-account dialog. Risk L1 layout/L2 form feedback. Scope: account form field grouping, mode title, auth-only spacing/width tokens, message placement and browser geometry checks; retain all auth/SDK contracts. Use one content column, equal control widths/heights, consistent label/field gaps and symmetric mode controls. Show recovery only in login/reset, align errors with the form, and keep one guest footer. Verify actual bounding boxes at narrow/desktop widths, short-viewport scrolling, focus/Axe, and the completed A17 profile/dashboard regressions. Commit independently from dashboard work. Human visual/security acceptance remains pending.
+
 ### A17 - Email accounts, short profile setup and dashboard
 
 25 November 2026; baseline `ae75f83`, clean tree. Owner explicitly authorizes normal account creation/login, removal of the Google setup paragraph, and a three-step profile with at most ten questions using the supplied attachment. The owner will configure Supabase later. Contract: product/PROFILE_ONBOARDING_PLAN.md, nine optional questions, existing Supabase/session/identity/RLS boundaries and deferred scoring contract. Risk L4 authentication/ownership, L2 questionnaire/dashboard. Scope: existing auth and callback UI, profile/preferences schema/service/routes as needed, setup/dashboard pages/widgets, generated contracts, tests and documentation. No password storage, new auth service/dependency, hidden bypass, remote configuration/migration, invented watch history or scoring formula. Use verified catalogue UUID favorites, preserve owner/version checks and private-query keys; make setup skippable/editable. Implement and commit verified email access, then profile setup, then dashboard slices. Require source diff review, local database integration evidence, SDK mocks, browser accessibility/responsive checks and explicit remaining live-auth/security acceptance limits.

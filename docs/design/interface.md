@@ -13,3 +13,5 @@ Below 768px, the homepage's popular anime and manga sections use native horizont
 `content/en/common.json` owns interface copy. `shared/content` supplies typed keys, named interpolation, locale-aware counts and dates. Metadata and user values remain plain data. Errors map centrally from stable codes; raw provider/server exception text is never displayed.
 
 All copy follows the owner's editorial plan. Production editorial review and manual screen-reader validation remain pending even when automated accessibility checks pass.
+
+Account dialogs use one content column: 28px desktop/24px mobile padding, 48px fields and primary/provider controls, 8px label gaps and 16px field-group gaps. Mode buttons share equal columns and keep 44px targets. Mode headings match the active form; recovery is absent from signup. Errors stay with the relevant form, and one centered guest footer closes the dialog. Narrow horizontal shelves align their card edges with page headings instead of offsetting them outside the content baseline.

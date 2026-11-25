@@ -36,6 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState(false)
   const [emailError,setEmailError]=useState<import('../content').MessageKey|null>(null)
   const [notice,setNotice]=useState<'confirm'|'reset'|null>(null)
+  const [emailMode,setEmailMode]=useState<EmailMode>('login')
   const [signingIn, setSigningIn] = useState(false)
   const [authMethod,setAuthMethod]=useState<'email'|'google'>('google')
   const backend = useBackend()
@@ -59,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [queries])
   const requireSignIn: AuthState['requireSignIn'] = (value = 'library', action) => {
     signInAttempt.current++
-    clearPending(); setError(false); setEmailError(null); setNotice(null); setSigningIn(false)
+    clearPending(); setError(false); setEmailError(null); setNotice(null); setEmailMode('login'); setSigningIn(false)
     if (!backend.ready) backend.retry()
     if (action) savePending(action.kind, action.mediaId, location.pathname + location.search)
     setReason(value)
@@ -74,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!authClient || !backend.ready || signingIn) return
     const attempt = ++signInAttempt.current
     setAuthMethod('google')
-    setSigningIn(true); setError(false)
+    setSigningIn(true); setError(false);setEmailError(null)
     try {
       const result = await authClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + '/auth/callback', scopes: 'openid email profile' } })
       if (result.error) throw result.error
@@ -85,7 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
   async function emailAccess(mode:EmailMode,email:string,password:string) {
     if(signingIn||!backend.ready)return
-    if(!authClient){setEmailError('auth.unconfigured');return}
+    if(!authClient){setEmailError('auth.accountUnavailable');return}
     const attempt=++signInAttempt.current
     setAuthMethod('email')
     setSigningIn(true);setError(false);setEmailError(null)
@@ -111,14 +112,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {if(attempt===signInAttempt.current)setSigningIn(false)}
   }
   return <AuthContext.Provider value={{ userId, loading, requireSignIn, signOut }}>{children}
-    <Modal open={reason !== null} onOpenChange={open => { if (!open) { signInAttempt.current++; setReason(null); setSigningIn(false); clearPending() } }} title={t('auth.title')} description={t(reason === 'wishlist' ? 'auth.wishlist' : reason === 'progress' ? 'auth.progress' : 'auth.library')} className="auth-dialog">
-      <EmailForm busy={signingIn} ready={backend.ready} notice={notice} onSubmit={emailAccess} onChange={()=>{signInAttempt.current++;setError(false);setEmailError(null);setNotice(null)}}/>
+    <Modal open={reason !== null} onOpenChange={open => { if (!open) { signInAttempt.current++; setReason(null); setSigningIn(false); clearPending() } }} title={t(emailMode==='signup'?'auth.createAccount':emailMode==='reset'?'auth.resetTitle':'auth.title')} description={t(emailMode==='signup'?'auth.signupIntro':emailMode==='reset'?'auth.resetIntro':reason === 'wishlist' ? 'auth.wishlist' : reason === 'progress' ? 'auth.progress' : 'auth.library')} className="auth-dialog">
+      <div className="auth-access-layout"><EmailForm busy={signingIn} ready={backend.ready} notice={notice} error={emailError?t(emailError):null} onSubmit={emailAccess} onChange={mode=>{signInAttempt.current++;setEmailMode(mode);setError(false);setEmailError(null);setNotice(null)}}/>
       <div className="auth-divider">{t('auth.or')}</div><div className="auth-provider-options"><Button variant="secondary" className="auth-provider-button" disabled={!authClient || !backend.ready || signingIn} aria-busy={signingIn} onClick={() => { void signIn() }}><span className="auth-provider-mark" aria-hidden="true">G</span>{t('auth.google')}</Button></div>
       {backend.phase === 'waking' && <div className="auth-startup" role="status" aria-busy="true"><div className="auth-startup-preview" aria-hidden="true"><div className="skeleton-block auth-startup-icon"/><div className="skeleton-lines"><div className="skeleton-block"/><div className="skeleton-block skeleton-short"/></div></div><p>{t('auth.starting')}</p><p className="auth-startup-note">{t('auth.startingBody')}</p></div>}
       {backend.phase === 'offline' && <div className="auth-startup" role="alert"><p>{t('auth.offline')}</p><Button variant="secondary" onClick={backend.retry}>{t('common.retry')}</Button></div>}
       {signingIn && <p role="status" className="auth-setup-note">{t(authMethod==='google'?'auth.redirecting':'auth.working')}</p>}
-      {error && <p role="alert">{t('auth.failed')}</p>}<p className="mt-3 text-xs text-muted">{t('auth.guest')}</p>
-      {emailError&&<p role="alert" className="auth-setup-note">{t(emailError)}</p>}
+      {error && <p role="alert" className="auth-field-error">{t('auth.failed')}</p>}<p className="auth-guest-note">{t('auth.guest')}</p></div>
     </Modal>
   </AuthContext.Provider>
 }

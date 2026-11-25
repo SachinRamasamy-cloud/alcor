@@ -4,6 +4,43 @@ import { mockCatalogue, snapshots, titles } from './catalogue-fixture'
 
 test.beforeEach(async ({page}) => { await mockCatalogue(page) })
 
+for(const width of [320,375,768,1440]) {
+  test(`account controls share one aligned column at ${width}px`,async({page})=>{
+    await page.route('**/api/v1/ready',route=>route.fulfill({contentType:'application/json',body:'{"status":"ready"}'}))
+    await page.setViewportSize({width,height:1000});await page.emulateMedia({reducedMotion:'reduce'});await page.goto('/')
+    await page.locator('.site-header').getByRole('button',{name:'Sign in',exact:true}).click()
+    const dialog=page.getByRole('dialog')
+    for(const mode of ['login','signup','reset'] as const){
+      if(mode==='signup')await dialog.locator('.auth-mode-tabs').getByRole('button',{name:'Create account',exact:true}).click()
+      if(mode==='reset'){await dialog.locator('.auth-mode-tabs').getByRole('button',{name:'Sign in',exact:true}).click();await dialog.getByRole('button',{name:'Forgot password?',exact:true}).click()}
+      await expect(dialog.getByRole('heading',{level:2})).toHaveText(mode==='signup'?'Create account':mode==='reset'?'Reset password':'Sign in')
+      const controls=dialog.locator('.auth-email-form input, .auth-email-form > span > button, .auth-provider-button')
+      const boxes=await controls.evaluateAll(nodes=>nodes.map(node=>{const rect=node.getBoundingClientRect();return{x:rect.x,right:rect.right,height:rect.height}}))
+      for(const box of boxes){expect(Math.abs(box.x-boxes[0].x)).toBeLessThan(1);expect(Math.abs(box.right-boxes[0].right)).toBeLessThan(1);expect(Math.abs(box.height-48)).toBeLessThan(1)}
+      const gaps=await dialog.locator('.auth-form-field').evaluateAll(nodes=>nodes.map(node=>{const label=node.querySelector('label')!.getBoundingClientRect(),input=node.querySelector('input')!.getBoundingClientRect();return input.top-label.bottom}))
+      for(const gap of gaps)expect(Math.abs(gap-8)).toBeLessThan(1)
+      if(mode==='signup')await expect(dialog.getByRole('button',{name:'Forgot password?',exact:true})).toHaveCount(0)
+      const title=await dialog.getByRole('heading',{level:2}).boundingBox(),close=await dialog.getByRole('button',{name:'Close',exact:true}).boundingBox()
+      expect(Math.abs(title!.y+title!.height/2-close!.y-close!.height/2)).toBeLessThan(3)
+      const accessibility=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()
+      expect(accessibility.violations.map(v=>v.id)).toEqual([])
+      expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
+      await dialog.screenshot({path:test.info().outputPath(`aligned-${mode}.png`)})
+    }
+  })
+}
+
+test('account dialog stays within a short mobile viewport and can close after scrolling',async({page})=>{
+  await page.route('**/api/v1/ready',route=>route.fulfill({contentType:'application/json',body:'{"status":"ready"}'}))
+  await page.setViewportSize({width:375,height:560});await page.goto('/')
+  const trigger=page.locator('.site-header').getByRole('button',{name:'Sign in',exact:true});await trigger.click()
+  const dialog=page.getByRole('dialog');await dialog.locator('.auth-mode-tabs').getByRole('button',{name:'Create account',exact:true}).click()
+  const box=await dialog.boundingBox();expect(box!.y).toBeGreaterThanOrEqual(15);expect(box!.y+box!.height).toBeLessThanOrEqual(545)
+  expect(await dialog.evaluate(node=>node.scrollHeight>node.clientHeight)).toBeTruthy()
+  await dialog.getByLabel('Confirm password',{exact:true}).fill('example-only')
+  await page.keyboard.press('Escape');await expect(dialog).toHaveCount(0);await expect(trigger).toBeFocused()
+})
+
 test('guest browses details and search; wishlist prompts without writing', async ({ page }) => {
   const writes: string[] = []
   page.on('request', request => { if (request.url().includes('/api/') && ['PUT', 'POST', 'DELETE', 'PATCH'].includes(request.method())) writes.push(request.url()) })
@@ -44,6 +81,8 @@ for(const width of [375,1440]) {
     await expect(page.getByRole('heading',{name:'Your dashboard',exact:true})).toBeVisible()
     await expect(page.getByRole('region',{name:'You may like',exact:true})).toBeVisible()
     await expect(page.getByRole('region',{name:'Your favorites',exact:true})).toBeVisible()
+    const title=await page.getByRole('heading',{name:'Your dashboard',exact:true}).boundingBox(),firstCard=await page.locator('.media-card').first().boundingBox()
+    expect(Math.abs(title!.x-firstCard!.x)).toBeLessThan(1)
     const accessibility=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()
     expect(accessibility.violations.map(v=>v.id)).toEqual([])
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
