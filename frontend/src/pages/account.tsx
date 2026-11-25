@@ -1,5 +1,5 @@
 import { PersonalNav } from '../widgets/personal-nav'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth, authClient } from '../shared/auth'
@@ -10,8 +10,28 @@ import { useLibrary, useLibraryWrite, type Entry } from '../features/library'
 import { MediaCard } from '../entities/media'
 import { t } from '../shared/content'
 import { Button, ErrorState, Loading, Modal, Pagination } from '../shared/ui'
+import { useBackend } from '../shared/api/backend'
+
+export async function finishSignedIn(userId:string,fallback='/library') {
+  const pending=readPending(true)
+  if(pending){
+    const current=(await authClient?.auth.getSession())?.data.session
+    if(current?.user.id!==userId)throw new Error(t('errors.auth'))
+    const canonical=await resolveMediaId(pending.mediaId,userId)
+    await api(`/me/library/${canonical}`,{accountId:userId,method:'PUT',headers:{'Idempotency-Key':pending.nonce},body:JSON.stringify({status:pending.kind==='wishlist'?'planned':'in_progress'})})
+  }
+  return pending?.returnPath??fallback
+}
 
 const callbacks = new Map<string, Promise<string>>()
+export function finishRecovery(code:string){
+  const key=`recovery:${code}`
+  if(!callbacks.has(key)){
+    callbacks.clear()
+    callbacks.set(key,(async()=>{if(!authClient)throw new Error(t('auth.unconfigured'));const result=await authClient.auth.exchangeCodeForSession(code);if(result.error||!result.data.session)throw new Error(t('errors.auth'));clearPending();return '/auth/password'})())
+  }
+  return callbacks.get(key)!
+}
 export function finishCallback(code: string) {
   if (!callbacks.has(code)) {
     callbacks.clear()
@@ -19,14 +39,7 @@ export function finishCallback(code: string) {
       if (!authClient) throw new Error(t('auth.unconfigured'))
       const { data, error } = await authClient.auth.exchangeCodeForSession(code)
       if (error || !data.session) { clearPending(); throw new Error(t('errors.auth')) }
-      const pending = readPending(true)
-      if (pending) {
-        const current = (await authClient.auth.getSession()).data.session
-        if (current?.user.id !== data.session.user.id) throw new Error(t('errors.auth'))
-        const canonical = await resolveMediaId(pending.mediaId, data.session.user.id)
-        await api(`/me/library/${canonical}`, { accountId: data.session.user.id, method: 'PUT', headers: { 'Idempotency-Key': pending.nonce }, body: JSON.stringify({ status: pending.kind === 'wishlist' ? 'planned' : 'in_progress' }) })
-      }
-      return pending?.returnPath ?? '/library'
+      return finishSignedIn(data.session.user.id)
     })())
   }
   return callbacks.get(code)!
@@ -36,14 +49,42 @@ export function AuthCallbackPage() {
   const navigate = useNavigate()
   const queries = useQueryClient()
   const [error, setError] = useState<Error | null>(null)
+  const {ready}=useBackend()
   useEffect(() => {
+    if(!ready)return
     const code = params.get('code')
     if (!code) { clearPending(); navigate('/', { replace: true }); return }
     let active = true
-    void finishCallback(code).then(path => { if (active) { void queries.invalidateQueries({ queryKey: ['private'] }); navigate(path, { replace: true }) } }).catch(error => { if (active) setError(error instanceof Error ? error : new Error(t('errors.auth'))) })
+    const complete=params.get('recovery')==='1'
+      ?finishRecovery(code)
+      :finishCallback(code)
+    void complete.then(path => { if (active) { void queries.invalidateQueries({ queryKey: ['private'] }); navigate(params.get('setup')==='1'&&params.get('recovery')!=='1'?'/profile?setup=1':path, { replace: true }) } }).catch(error => { if (active) setError(error instanceof Error ? error : new Error(t('errors.auth'))) })
     return () => { active = false }
-  }, [params, navigate, queries])
+  }, [params, navigate, queries,ready])
   return error ? <ErrorState error={error} /> : <Loading variant="profile" page />
+}
+
+export function AuthCompletePage(){
+  const {userId,loading}=useAuth(),{ready}=useBackend()
+  const [params]=useSearchParams(),navigate=useNavigate()
+  const [error,setError]=useState<Error|null>(null)
+  const completion=useRef<{user:string;promise:Promise<string>}|null>(null)
+  useEffect(()=>{
+    if(loading||!ready||!userId)return
+    let active=true
+    if(completion.current?.user!==userId)completion.current={user:userId,promise:finishSignedIn(userId,'/library')}
+    void completion.current.promise.then(path=>{if(active)navigate(params.get('setup')==='1'?'/profile?setup=1':path,{replace:true})}).catch(cause=>{if(active)setError(cause instanceof Error?cause:new Error(t('errors.auth')))})
+    return()=>{active=false}
+  },[userId,loading,ready,params,navigate])
+  if(!loading&&!userId)return <div className="shell page-body state-box"><p>{t('auth.library')}</p><Link className="button button-primary" to="/">{t('nav.home')}</Link></div>
+  return error?<ErrorState error={error}/>:<Loading variant="profile" page/>
+}
+
+export function PasswordPage(){
+  const {userId,requireSignIn}=useAuth()
+  const [password,setPassword]=useState(''),[confirmation,setConfirmation]=useState('')
+  const [busy,setBusy]=useState(false),[error,setError]=useState(false),[saved,setSaved]=useState(false)
+  return <div className="shell page-body"><div className="page-heading"><h1>{t('auth.updatePassword')}</h1></div>{!userId?<Button onClick={()=>requireSignIn()}>{t('nav.signIn')}</Button>:saved?<p role="status">{t('auth.passwordUpdated')}</p>:<form className="auth-email-form max-w-xl" onSubmit={async event=>{event.preventDefault();if(password!==confirmation){setError(true);return}if(!authClient)return;setBusy(true);setError(false);try{const result=await authClient.auth.updateUser({password});if(result.error)throw result.error;setPassword('');setConfirmation('');setSaved(true)}catch{setError(true)}finally{setBusy(false)}}}><label htmlFor="new-password">{t('auth.newPassword')}</label><input id="new-password" type="password" autoComplete="new-password" required value={password} disabled={busy} onChange={event=>setPassword(event.target.value)}/><label htmlFor="confirm-new-password">{t('auth.confirmPassword')}</label><input id="confirm-new-password" type="password" autoComplete="new-password" required value={confirmation} disabled={busy} onChange={event=>setConfirmation(event.target.value)}/>{error&&<p role="alert">{t(password!==confirmation?'auth.passwordMismatch':'auth.emailFailed')}</p>}<Button disabled={busy}>{t('auth.updatePassword')}</Button></form>}</div>
 }
 export function LibraryPage() {
   const wishlist = useLocation().pathname === '/wishlist'

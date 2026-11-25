@@ -1,5 +1,6 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { BackendContext, type BackendState } from '../api/backend-state'
 import { clearPending, readPending } from './pending'
@@ -17,7 +18,7 @@ const retry=vi.fn()
 function Trigger(){const {requireSignIn}=useAuth();return <button onClick={()=>requireSignIn('wishlist',{kind:'wishlist',mediaId:'anilist-1'})}>Save a title</button>}
 function mount(phase:BackendState['phase']){
   const queries=new QueryClient()
-  const tree=(next:BackendState['phase'])=><QueryClientProvider client={queries}><BackendContext.Provider value={{phase:next,ready:next==='ready',retry}}><AuthProvider><Trigger/></AuthProvider></BackendContext.Provider></QueryClientProvider>
+  const tree=(next:BackendState['phase'])=><QueryClientProvider client={queries}><MemoryRouter><BackendContext.Provider value={{phase:next,ready:next==='ready',retry}}><AuthProvider><Trigger/></AuthProvider></BackendContext.Provider></MemoryRouter></QueryClientProvider>
   const view=render(tree(phase))
   const trigger=screen.getByRole('button',{name:'Save a title'})
   trigger.focus();fireEvent.click(trigger)

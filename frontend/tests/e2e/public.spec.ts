@@ -38,6 +38,25 @@ for (const width of [320, 375, 640, 768, 1024, 1280, 1440, 1600, 1920]) {
 }
 
 for(const width of [375,1440]) {
+  test(`email account forms fit and preserve private input at ${width}px`,async({page})=>{
+    await page.route('**/api/v1/ready',route=>route.fulfill({contentType:'application/json',body:'{"status":"ready"}'}))
+    await page.setViewportSize({width,height:900});await page.goto('/')
+    await page.getByRole('button',{name:'Sign in',exact:true}).click()
+    const dialog=page.getByRole('dialog')
+    await dialog.locator('.auth-mode-tabs').getByRole('button',{name:'Create account',exact:true}).click()
+    await dialog.getByLabel('Email address',{exact:true}).fill('reader@example.com')
+    await dialog.getByLabel('Password',{exact:true}).fill('example-password')
+    await dialog.getByLabel('Confirm password',{exact:true}).fill('different-password')
+    await dialog.getByRole('button',{name:'Show password',exact:true}).click()
+    await expect(dialog.getByLabel('Password',{exact:true})).toHaveAttribute('type','text')
+    await dialog.locator('form').getByRole('button',{name:'Create account',exact:true}).click()
+    await expect(dialog.getByRole('alert')).toContainText("passwords don't match")
+    expect(await page.evaluate(()=>JSON.stringify({...localStorage,...sessionStorage}).includes('example-password'))).toBeFalsy()
+    const accessibility=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()
+    expect(accessibility.violations.map(v=>v.id)).toEqual([])
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
+    await dialog.screenshot({path:test.info().outputPath('create-account.png')})
+  })
   test(`sign-in keeps Google visible during backend startup at ${width}px`,async({page})=>{
     const gate={onDemand:false,release:undefined as undefined|(()=>void)}
     await page.route('**/api/v1/ready',async route=>{
@@ -65,8 +84,9 @@ for(const width of [375,1440]) {
     gate.release!()
     await expect(dialog.locator('.auth-startup')).toHaveCount(0)
     await expect(google).toBeVisible()
-    if(await dialog.getByText("Google sign-in hasn't been enabled yet.",{exact:true}).count())await expect(google).toBeDisabled()
-    else await expect(google).toBeEnabled()
+    await expect(dialog.getByText("Google sign-in hasn't been enabled yet.",{exact:true})).toHaveCount(0)
+    await expect(dialog.getByLabel('Email address',{exact:true})).toBeVisible()
+    await expect(dialog.getByRole('button',{name:'Create account',exact:true})).toBeVisible()
     await dialog.screenshot({path:test.info().outputPath('sign-in-options.png')})
     await page.keyboard.press('Escape')
     await expect(dialog).toHaveCount(0)

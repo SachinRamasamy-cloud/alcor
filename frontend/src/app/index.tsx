@@ -15,6 +15,8 @@ const Catalogue = lazy(() => import('../pages/public').then(m => ({ default: m.C
 const Details = lazy(() => import('../pages/public').then(m => ({ default: m.DetailsPage })))
 const Personal = lazy(() => import('../pages/account').then(m => ({ default: m.LibraryPage })))
 const Callback = lazy(() => import('../pages/account').then(m => ({ default: m.AuthCallbackPage })))
+const Complete = lazy(() => import('../pages/account').then(m => ({ default: m.AuthCompletePage })))
+const Password = lazy(() => import('../pages/account').then(m => ({ default: m.PasswordPage })))
 const Collections = lazy(() => import('../pages/collections').then(m => ({default:m.CollectionsPage})))
 const History = lazy(() => import('../pages/reports').then(m=>({default:m.HistoryPage})))
 const Statistics = lazy(() => import('../pages/reports').then(m=>({default:m.StatisticsPage})))
@@ -31,6 +33,7 @@ export function App() {
   return <Boundary><QueryClientProvider client={queryClient}><LazyMotion features={domAnimation}><MotionConfig reducedMotion="user"><BrowserRouter><FeedbackProvider><BackendProvider><AuthProvider><PreferenceEffects><Routes><Route element={<Layout />}>
     <Route index element={<Home />} />{['anime', 'manga', 'search', 'discover'].map(path => <Route key={path} path={path} element={<Catalogue />} />)}
     <Route path="anime/:id" element={<Details />} /><Route path="manga/:id" element={<Details />} />
+    <Route path="auth/complete" element={<Complete/>}/><Route path="auth/password" element={<Password/>}/>
     <Route path="auth/callback" element={<Callback />} /><Route path="settings" element={<Settings />} /><Route path="profile" element={<Profile />} /><Route path="history" element={<History />} /><Route path="statistics" element={<Statistics />} /><Route path="collections" element={<Collections />} /><Route path="collections/:id" element={<Collections />} /><Route path="library" element={<Personal />} /><Route path="wishlist" element={<Personal />} /><Route path="*" element={<Info />} />
   </Route></Routes></PreferenceEffects></AuthProvider></BackendProvider></FeedbackProvider></BrowserRouter></MotionConfig></LazyMotion></QueryClientProvider></Boundary>
 }

@@ -2,7 +2,7 @@ import { beforeEach, expect, it, vi } from 'vitest'
 const mocks = vi.hoisted(() => ({ exchange: vi.fn(), getSession: vi.fn(), api: vi.fn() }))
 vi.mock('../shared/auth', () => ({ authClient: { auth: { exchangeCodeForSession: mocks.exchange, getSession: mocks.getSession } }, useAuth: vi.fn() }))
 vi.mock('../shared/api/client', () => ({ api: mocks.api }))
-import { finishCallback } from './account'
+import { finishCallback,finishRecovery } from './account'
 import { savePending } from '../shared/auth/pending'
 beforeEach(() => {
   vi.clearAllMocks(); sessionStorage.clear()
@@ -23,5 +23,11 @@ it('does not mutate after a canceled intent or a switched account', async () => 
   savePending('wishlist', '76aaad3c-0eb9-5e5c-a47c-d190a2b1300f', '/anime')
   mocks.getSession.mockResolvedValue({ data: { session: { user: { id: 'b' } } } })
   await expect(finishCallback('code-switched')).rejects.toThrow()
+  expect(mocks.api).not.toHaveBeenCalled()
+})
+it('exchanges recovery only once and does not replay a pending library write',async()=>{
+  savePending('wishlist','76aaad3c-0eb9-5e5c-a47c-d190a2b1300f','/anime')
+  expect(await Promise.all([finishRecovery('recovery-one'),finishRecovery('recovery-one')])).toEqual(['/auth/password','/auth/password'])
+  expect(mocks.exchange).toHaveBeenCalledOnce()
   expect(mocks.api).not.toHaveBeenCalled()
 })

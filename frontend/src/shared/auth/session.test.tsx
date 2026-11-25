@@ -1,5 +1,6 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { MemoryRouter } from 'react-router-dom'
 import { afterEach, expect, it, vi } from 'vitest'
 const mock = vi.hoisted(() => ({ listener: undefined as undefined | ((event: string, session: { user: { id: string } } | null) => void) }))
 vi.mock('@supabase/supabase-js', () => ({ createClient: () => ({ auth: {
@@ -14,7 +15,7 @@ function Controls() { const auth = useAuth(); return <button onClick={() => { vo
 afterEach(() => { cleanup(); vi.unstubAllEnvs() })
 it('removes private cache on account switch and sign-out while retaining public metadata', async () => {
   const queries = new QueryClient()
-  render(<QueryClientProvider client={queries}><AuthProvider><Controls /></AuthProvider></QueryClientProvider>)
+  render(<QueryClientProvider client={queries}><MemoryRouter><AuthProvider><Controls /></AuthProvider></MemoryRouter></QueryClientProvider>)
   act(() => mock.listener?.('SIGNED_IN', { user: { id: 'a' } }))
   queries.setQueryData(['public', 'home'], { title: 'public' })
   queries.setQueryData(['private', 'a', 'library'], { notes: 'private-a' })

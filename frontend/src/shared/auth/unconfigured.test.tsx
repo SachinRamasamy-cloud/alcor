@@ -1,5 +1,6 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { MemoryRouter } from 'react-router-dom'
 import { afterEach, expect, it, vi } from 'vitest'
 import { BackendContext } from '../api/backend-state'
 
@@ -12,10 +13,10 @@ function Trigger(){const {requireSignIn}=useAuth();return <button onClick={()=>r
 afterEach(()=>{cleanup();vi.unstubAllEnvs()})
 it('keeps Google visible but disabled without real configuration, independently of warmup',()=>{
   const retry=vi.fn()
-  render(<QueryClientProvider client={new QueryClient()}><BackendContext.Provider value={{phase:'waking',ready:false,retry}}><AuthProvider><Trigger/></AuthProvider></BackendContext.Provider></QueryClientProvider>)
+  render(<QueryClientProvider client={new QueryClient()}><MemoryRouter><BackendContext.Provider value={{phase:'waking',ready:false,retry}}><AuthProvider><Trigger/></AuthProvider></BackendContext.Provider></MemoryRouter></QueryClientProvider>)
   fireEvent.click(screen.getByRole('button',{name:'Open sign-in'}))
   expect(screen.getByRole('button',{name:'Continue with Google'})).toBeDisabled()
-  expect(screen.getByText("Google sign-in hasn't been enabled yet.")).toBeVisible()
+  expect(screen.queryByText("Google sign-in hasn't been enabled yet.")).not.toBeInTheDocument()
   expect(screen.getByRole('status')).toHaveTextContent('Getting sign-in ready')
   expect(mock.createClient).not.toHaveBeenCalled()
   expect(retry).toHaveBeenCalledOnce()
