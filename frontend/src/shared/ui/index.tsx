@@ -14,8 +14,8 @@ export function Modal({ open, onOpenChange, title, description, children, classN
   return <Dialog.Root open={open} onOpenChange={onOpenChange}><Dialog.Portal><Dialog.Overlay className="dialog-overlay" /><Dialog.Content className={`dialog-content ${className}`} aria-describedby={description ? descriptionId : undefined} onOpenAutoFocus={() => { returnFocus.current = document.activeElement as HTMLElement }} onCloseAutoFocus={event => { event.preventDefault(); if (returnFocus.current?.isConnected) returnFocus.current.focus() }}>
     <Dialog.Title className="text-xl font-semibold">{title}</Dialog.Title>
     {description && <Dialog.Description id={descriptionId} className="mt-3 text-sm leading-6 text-muted">{description}</Dialog.Description>}
-    <Dialog.Close className="icon-button absolute right-3 top-3" aria-label={t('common.close')}><X size={19} /></Dialog.Close>
-    <div className="mt-6">{children}</div>
+    <Dialog.Close className="dialog-close icon-button absolute right-3 top-3" aria-label={t('common.close')}><X size={19} /></Dialog.Close>
+    <div className="modal-body mt-6">{children}</div>
   </Dialog.Content></Dialog.Portal></Dialog.Root>
 }
 

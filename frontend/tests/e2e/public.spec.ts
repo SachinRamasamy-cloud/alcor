@@ -403,6 +403,51 @@ test('discovery options stay in a keyboard-accessible popup',async({page})=>{
   await expect(page.locator('.backend-notice')).toHaveCount(0)
 })
 
+for(const width of [320,375,768,1440]){
+  test(`advanced filter fields align and retain their values at ${width}px`,async({page})=>{
+    await page.setViewportSize({width,height:900})
+    await page.goto('/anime?q=test&page=2')
+    const trigger=page.getByRole('button',{name:'Discovery options',exact:true})
+    await trigger.click()
+    const dialog=page.getByRole('dialog')
+    const geometry=await dialog.locator('.discovery-filter-form > .discovery-field').evaluateAll(fields=>fields.map(field=>{
+      const label=field.querySelector('span')!.getBoundingClientRect(),control=field.querySelector('input,select')!.getBoundingClientRect()
+      return{x:control.x,right:control.right,y:control.y,height:control.height,gap:control.top-label.bottom}
+    }))
+    expect(geometry).toHaveLength(12)
+    for(const control of geometry){expect(Math.abs(control.height-48)).toBeLessThan(1);expect(Math.abs(control.gap-8)).toBeLessThan(1)}
+    for(let index=0;index<geometry.length;index++){
+      const column=width<700?0:index%2
+      expect(Math.abs(geometry[index].x-geometry[column].x)).toBeLessThan(1)
+      expect(Math.abs(geometry[index].right-geometry[column].right)).toBeLessThan(1)
+      if(width>=700&&index%2)expect(Math.abs(geometry[index].y-geometry[index-1].y)).toBeLessThan(1)
+    }
+    const title=await dialog.getByRole('heading',{name:'Discovery options',exact:true}).boundingBox(),close=await dialog.getByRole('button',{name:'Close',exact:true}).boundingBox()
+    expect(Math.abs(title!.y+title!.height/2-close!.y-close!.height/2)).toBeLessThan(2)
+    expect(await dialog.evaluate(node=>node.scrollWidth<=node.clientWidth)).toBeTruthy()
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
+    expect(await page.locator('body').evaluate(node=>getComputedStyle(node).fontFamily)).toContain('Inter')
+    await dialog.screenshot({path:test.info().outputPath('advanced-filters-top.png')})
+    await dialog.locator('[name="include_genres"]').fill('Action, Comedy')
+    await dialog.locator('[name="year_from"]').fill('2000')
+    await dialog.locator('[name="year_to"]').fill('2025')
+    await dialog.locator('[name="genre_match"]').selectOption('any')
+    await dialog.locator('[name="has_score"]').check()
+    const accessibility=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()
+    expect(accessibility.violations.map(v=>v.id)).toEqual([])
+    await dialog.getByRole('button',{name:'Apply filters',exact:true}).scrollIntoViewIfNeeded()
+    await dialog.screenshot({path:test.info().outputPath('advanced-filters-bottom.png')})
+    await dialog.getByRole('button',{name:'Apply filters',exact:true}).click()
+    await expect(dialog).toHaveCount(0)
+    const params=new URL(page.url()).searchParams
+    expect(params.getAll('include_genres')).toEqual(['Action','Comedy'])
+    expect(params.get('q')).toBe('test');expect(params.get('page')).toBeNull()
+    expect(params.get('year_from')).toBe('2000');expect(params.get('year_to')).toBe('2025')
+    expect(params.get('genre_match')).toBe('any');expect(params.get('has_score')).toBe('true')
+    await expect(trigger).toBeFocused()
+  })
+}
+
 test('footer has the generated brand, complete navigation and owner links',async({page})=>{
   await page.goto('/')
   const footer=page.getByRole('contentinfo')
@@ -495,7 +540,8 @@ for(const [path,kind] of [['/','home'],['/anime','catalogue'],['/anime/anilist-1
     await page.goto(path)
     const skeleton=page.locator(`.skeleton-${kind}`)
     await expect(skeleton).toBeVisible()
-    await expect(skeleton.getByText('Loading…',{exact:true})).toHaveClass('sr-only')
+    await expect(skeleton).toHaveAccessibleName('Loading…')
+    await expect(skeleton.getByText('Loading…',{exact:true})).toHaveCount(0)
     if(kind==='home') {
       const shelves=skeleton.locator('.mobile-media-rail')
       await expect(shelves).toHaveCount(2)
