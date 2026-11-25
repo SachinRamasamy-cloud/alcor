@@ -58,6 +58,8 @@ The current head is migration 007. `/api/v1/health` checks process liveness; `/a
 
 No automatic script applies migrations to the supplied remote database. Inspect and test them locally first. Keep migration credentials separate from the restricted application role; do not use the Supabase administrative connection as the API runtime identity.
 
+The owner-authorized Supabase migration was applied through `007_source_identity` on 25 November 2026. See the [execution and verification record](supabase-migration.md). Local startup still selects the local database; remote migration does not configure authentication or a deployed API login.
+
 Stop local dependencies without deleting data: `docker compose -f compose.dev.yml stop`. Do not remove volumes unless a deliberate local reset is intended.
 
 ## Account frontend configuration
