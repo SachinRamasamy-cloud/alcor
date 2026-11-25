@@ -18,6 +18,10 @@ Baseline inspected: README-only repository at `12b945b`. Both plans and the full
 
 ## Execution and stop conditions
 
+### A19 - Verify supplied Supabase database access
+
+25 November 2026; baseline `9058c56`. Owner explicitly requests connection using the supplied database credentials. Risk L4 remote credentials/access. Scope: existing stdin-based database inspector, bounded TLS connection and read-only role/schema metadata; no remote mutation, migration, account creation or authentication bypass. Never print or commit credentials. Accept connection only with actual server evidence; inspect superuser/RLS-bypass flags before considering runtime wiring. The existing restricted-runtime contract remains binding. Browser signup still requires its separate publishable key. Record actual connection outcome and any missing prerequisite; do not replace the running local API with an administrative database identity.
+
 ### A18 - Consistent account-dialog alignment
 
 25 November 2026; owner reports mixed alignment in the create-account dialog. Risk L1 layout/L2 form feedback. Scope: account form field grouping, mode title, auth-only spacing/width tokens, message placement and browser geometry checks; retain all auth/SDK contracts. Use one content column, equal control widths/heights, consistent label/field gaps and symmetric mode controls. Show recovery only in login/reset, align errors with the form, and keep one guest footer. Verify actual bounding boxes at narrow/desktop widths, short-viewport scrolling, focus/Axe, and the completed A17 profile/dashboard regressions. Commit independently from dashboard work. Human visual/security acceptance remains pending.
