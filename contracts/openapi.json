@@ -387,13 +387,45 @@
       },
       "Episode": {
         "properties": {
+          "air_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Air Date"
+          },
           "filler": {
             "default": false,
             "title": "Filler",
             "type": "boolean"
           },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
           "key": {
             "title": "Key",
+            "type": "string"
+          },
+          "kind": {
+            "default": "unknown",
+            "enum": [
+              "regular",
+              "extra",
+              "unknown"
+            ],
+            "title": "Kind",
             "type": "string"
           },
           "label": {
@@ -420,6 +452,50 @@
               }
             ],
             "title": "Released At"
+          },
+          "runtime_minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Runtime Minutes"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "source_episode_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Episode Id"
+          },
+          "synopsis": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Synopsis"
           },
           "title": {
             "anyOf": [
@@ -1124,6 +1200,17 @@
             },
             "title": "Aliases",
             "type": "array"
+          },
+          "banner_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Banner Url"
           },
           "content_rating": {
             "anyOf": [

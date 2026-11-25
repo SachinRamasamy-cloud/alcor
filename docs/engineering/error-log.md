@@ -73,3 +73,8 @@ Final checkpoint: E006–E010 and E012–E014 were resolved by the recorded pass
 
 - E049: Footer patch expected a differently ordered CSS declaration and was rejected without changes. Reapplied against the actual rule. A screenshot preview also guessed a Playwright output hash and used an incorrect root-relative path from `frontend`; located the real artifact with `rg --files` and inspected it successfully.
 - E050: Axe identified a footer provider link distinguished from adjacent text only by a subtle color difference. Added persistent underlining to footer credit links; all original zero-violation assertions passed at five widths. No accessibility rule was disabled.
+
+- E051: Details extraction left an unused `useState` import in the page module. Lint/typecheck rejected it; removed the import and reran the complete frontend checks successfully.
+- E052: Screenshot inspection exposed episode key `2` preceding preserved key `001` because JavaScript enumerates integer object keys first. Sort numeric display labels while retaining exact source keys and distinct records. Added parser and browser first-episode regressions; all 54 unit/component and 25 browser tests passed afterward.
+
+- E053: A documentation patch assumed an incorrect provider-report heading and was rejected without changing files. Removed the unnecessary heading edit and appended the bounded evidence directly; implementation and test state were unaffected.

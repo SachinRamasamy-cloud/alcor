@@ -4,21 +4,21 @@ Updated: 25 November 2026, Asia/Calcutta. Review branch: `build/alcor-v1`.
 
 ## Implemented checkpoint
 
-- Public AniList home, anime/manga browsing, search and provider-reference details work independently of the personal backend. Read scheduling, cancellation, deduplication and 429 cooldowns use a separate credential-free transport.
+- Public AniList home, anime/manga browsing, stable centered search and modern provider-reference details work independently of the personal backend. AniZip now supplies separate episode display data after a valid title loads. Read scheduling, cancellation, deduplication and 429 cooldowns use a separate credential-free transport.
 - Personal services have explicit PostgreSQL/Redis readiness. Saves do not queue or claim success while the server wakes up.
-- Page-shaped skeletons cover public and account routes; mobile/desktop alignment and device/app reduced-motion behavior are supported.
+- Page-shaped skeletons cover public and account routes. Added numbered/custom pagination, compact discovery popup, condensed hover/touch synopsis, generated celestial logo and black footer with the supplied social links. Mobile/desktop alignment and reduced-motion behavior are supported.
 - JWT/RLS-backed library/wishlist, exact tracking sessions and manual targets, collections, ratings/notes, private history/statistics, bounded undo, profile/preferences, owned saved filters and saved-note search are implemented.
 - Local migrations 001-007 are applied. Namespaced provider references preserve existing MAL identities and personal history. No remote Supabase migration or data write occurred.
 
 ## Verification
 
-Latest backend checkpoint: 39 Python tests passed with real local PostgreSQL/Redis, formatter/lint passed. Frontend: 44 unit/component tests, lint and production build passed. Public browser checks passed 17 tests, including API-off browsing, source errors, legacy episode retry, five widths and loading skeletons. Exact final evidence and any later rerun belong in acceptance-record.md.
+Latest backend checkpoint: 40 Python tests passed with real local PostgreSQL/Redis, formatter/lint passed. Frontend: 54 unit/component tests, lint and production build passed. Public browser checks passed 25 tests, including API-off browsing, source errors, legacy episode retry, five widths and loading skeletons. Exact final evidence and any later rerun belong in acceptance-record.md.
 
-Browser screenshots use explicit mocked AniList responses and deterministic test artwork; they are layout evidence, not live-provider completeness or licensing evidence. A bounded live AniList query succeeded; a separate AniZip mapping probe succeeded. TMDB authenticated integration was not exercised. Initial entry gzip is 205.92 KB; the existing uncompressed chunk-size warning remains.
+Browser screenshots use explicit mocked AniList responses and deterministic test artwork; they are layout evidence, not live-provider completeness or licensing evidence. A bounded live AniList query succeeded; a separate AniZip mapping probe succeeded. TMDB authenticated integration was not exercised. Initial entry gzip is 207.71 KB; the existing uncompressed chunk-size warning remains.
 
 ## Next work
 
-Follow product/MULTI_PROVIDER_METADATA_PLAN.md: establish provider conditions and freeze the episode contract, implement AniZip normalization and browser episode display, verify server identities without changing old marks, then add optional TMDB enrichment and permitted caching. AniList/AniZip/TMDB usage conditions, TMDB secret configuration and episode mapping references remain prerequisites for those respective stages.
+Follow product/MULTI_PROVIDER_METADATA_PLAN.md: settle provider-use/cache conditions, reconcile verified episode identities into tracking without changing old marks, then add optional TMDB enrichment and permitted shared caching. Public AniZip display is implemented; it deliberately does not assert complete release coverage or rewrite private tracking targets. AniList/AniZip/TMDB usage conditions, TMDB secret configuration and episode mapping references remain prerequisites for those respective stages.
 
 The full roadmap remains incomplete. remaining-scope.md records unfinished organization/discovery, release monitoring, privacy/account deletion and operational work. Google configuration, import, export and personalized scoring remain deferred by the owner.
 

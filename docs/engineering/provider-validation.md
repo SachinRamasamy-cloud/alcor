@@ -17,3 +17,10 @@ The plan's Jikan discontinuation reference was checked against the [maintainer i
 - Select the production provider explicitly. Production fixtures are rejected by configuration.
 
 Discovery must not be publicly released until these gates are satisfied. Publicly reachable endpoints alone do not grant redistribution rights.
+
+
+## 25 November browser provider update
+
+The owner selected AniList discovery with AniZip episode display and planned TMDB enrichment. Bounded checks of the public AniZip mapping endpoint returned 200 for AniList IDs 1 and 7054, with matching mapping keys, CORS `*` and a 900-second public cache header. ID 7054 declares 26 episodes and 2 specials but contains 31 episode-map records; entries include opening/extra keys. Do not derive completion or regular totals from the array length. Date-only release data remains date-only.
+
+The updated AniList query for ID 7054 returned 200, no GraphQL errors, a matching ID and available banner/cover fields. No authenticated TMDB request ran. These checks establish reachability and sample shape, not complete mapping validity, usage rights or a quota entitlement. Browser adapter and error/identity tests are recorded in acceptance-record.md. Trusted episode reconciliation and TMDB remain in product/MULTI_PROVIDER_METADATA_PLAN.md.

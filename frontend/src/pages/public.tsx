@@ -1,16 +1,18 @@
 import { DiscoveryControls } from '../features/discovery'
 import { SpoilerText } from '../features/preferences'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowRight, Star, ArrowUpRight } from 'lucide-react'
 import { m } from 'motion/react'
 import { useCatalogue, useEpisodes, useGenres, useHome, useMedia, SearchField } from '../features/catalogue'
 import { ContinueSections } from '../widgets/continue'
+import { EpisodeList } from '../features/catalogue/episode-list'
+import { ExpandableSynopsis } from '../features/catalogue/synopsis'
 import { PersonalMedia } from '../features/catalogue/personal'
 import { mediaPath } from '../shared/api/anilist'
 import { SaveButton } from '../features/library'
 import { MediaGrid, Poster } from '../entities/media'
-import type { EpisodePage, Media } from '../shared/api/client'
+import type { Media } from '../shared/api/client'
 import { t, formatDate, unitCount, type MessageKey } from '../shared/content'
 import { useCataloguePagination } from '../features/catalogue/pagination'
 import { Button, ErrorState, Loading, Pagination } from '../shared/ui'
@@ -24,10 +26,6 @@ function WishlistAction({ media }: { media: Media }) { return <SaveButton media=
 function Section({ title, to, items }: { title: MessageKey; to: string; items: Media[] }) {
   if (!items.length) return null
   return <section className="home-section"><div className="section-heading"><h2>{t(title)}</h2><Link className="subtle-link" to={to}>{t('home.all')}<ArrowRight size={14} /></Link></div><MediaGrid items={items} actions={media => <WishlistAction media={media} />} /></section>
-}
-function EpisodeList({ episodes }: { episodes: EpisodePage['data'] }) {
-  const [page,setPage]=useState(1)
-  return <><ol className="episode-list">{episodes.slice((page-1)*24,page*24).map(ep=><li key={ep.key}><span className="tabular-nums text-muted">{ep.label}</span><span>{ep.title??t('media.notAvailable')}</span></li>)}</ol><Pagination page={page} totalPages={Math.ceil(episodes.length/24)} onChange={setPage}/></>
 }
 function filterLabel(key:string,value:string):string {
   if(key==='has_score')return t('discovery.ratedOnly')
@@ -90,15 +88,28 @@ export function DetailsPage() {
   const { id = '' } = useParams()
   const mediaType = useLocation().pathname.startsWith('/manga') ? 'manga' : 'anime'
   const detail = useMedia(mediaType, id)
-  const episodes = useEpisodes(id, mediaType === 'anime')
+  const episodes = useEpisodes(id, mediaType === 'anime' && Boolean(detail.data))
   if (detail.isPending) return <Loading variant="details" page />
   if (detail.error) return <ErrorState error={detail.error} retry={() => { void detail.refetch() }} />
   const media = detail.data
-  return <div className="shell page-body"><PageTitle title={media.title} /><Link className="subtle-link mb-8 inline-flex" to={`/${mediaType}`}>{t('common.back')}</Link><div className="details-layout"><div className="detail-poster"><Poster media={media} priority /></div><div className="detail-main"><p className="eyebrow">{media.format} {media.year && ` / ${media.year}`}</p><h1>{media.title}</h1>{media.original_title && <p className="detail-original">{media.original_title}</p>}<div className="hero-metadata"><span><Star size={14} />{media.score ?? t('media.notRated')}</span><span>{media.source.name} {t('media.sourceScore')}</span><span>{unitCount(media.total_units ?? null, media.media_type)}</span></div><div className="hero-actions"><SaveButton media={media} kind="library" /><SaveButton media={media} /></div><div className="hero-genres">{media.genres.map(g => <Link key={g} to={`/${mediaType}?genre=${encodeURIComponent(g)}`}>{g}</Link>)}</div><section className="synopsis-section"><h2>{t('media.synopsis')}</h2><SpoilerText><p>{media.synopsis ?? t('media.noSynopsis')}</p></SpoilerText></section><dl className="detail-facts"><div><dt>{t('media.status')}</dt><dd>{media.status ?? t('media.notAvailable')}</dd></div><div><dt>{t('media.studio')}</dt><dd>{media.studios?.join(', ') || t('media.notAvailable')}</dd></div></dl></div></div>
-    <section className="episode-section"><h2>{t(mediaType === 'anime' ? 'media.episodes' : 'media.chapters')}</h2>{mediaType === 'anime' && episodes.isPending ? <Loading variant="episodes" /> : mediaType === 'anime' && episodes.error ? <ErrorState error={episodes.error} retry={() => { void episodes.refetch() }} /> : mediaType === 'anime' && episodes.data?.data.length ? <EpisodeList key={id} episodes={episodes.data.data}/> : <p className="mt-4 text-sm text-muted">{t(mediaType === 'anime' ? 'media.episodesMissing' : 'media.chaptersMissing')}</p>}</section>
-    <PersonalMedia media={media} />
-    <div className="source-note"><span>{t('media.source')}: {media.source.name}</span><span>{t('media.updated', { date: formatDate(media.source.retrieved_at) })}</span><a href={media.source.url} target="_blank" rel="noreferrer">{t('media.external')}<ArrowUpRight size={12} /></a></div>
-  </div>
+  const releaseKey=`release.${media.status}` as MessageKey
+  const status=media.status&&['FINISHED','RELEASING','NOT_YET_RELEASED','HIATUS','CANCELLED'].includes(media.status)?t(releaseKey):media.status??t('media.notAvailable')
+  const facts=<dl className="detail-info-panel"><div><dt>{t('catalogue.format')}</dt><dd>{media.format??t('media.notAvailable')}</dd></div><div><dt>{t('media.status')}</dt><dd>{status}</dd></div><div><dt>{t('catalogue.year')}</dt><dd>{media.year??t('media.notAvailable')}</dd></div><div><dt>{t(mediaType==='anime'?'media.episodes':'media.chapters')}</dt><dd>{media.total_units??t('media.notAvailable')}</dd></div><div><dt>{t('media.studio')}</dt><dd>{media.studios?.join(', ')||t('media.notAvailable')}</dd></div></dl>
+  return <div className="details-page"><PageTitle title={media.title}/>
+    <div className={`detail-banner${media.banner_url?' has-image':''}`} style={media.banner_url?{backgroundImage:`url("${media.banner_url}")`}:undefined}><div className="detail-banner-shade"/><div className="shell detail-banner-inner"><Link className="detail-back" to={`/${mediaType}`}>{t('common.back')}</Link></div></div>
+    <div className="shell detail-body"><div className="detail-intro" id="overview"><aside className="detail-sidebar"><div className="detail-poster"><Poster media={media} priority/></div><div className="detail-save-actions"><SaveButton media={media} kind="library"/><SaveButton media={media}/></div>
+      {facts}
+    </aside><div className="detail-main"><p className="eyebrow">{media.format}{media.year&&` / ${media.year}`}</p><h1>{media.title}</h1>{media.original_title&&<p className="detail-original">{media.original_title}</p>}
+      <div className="detail-highlights"><span className="detail-score"><Star size={16} fill="currentColor"/>{media.score?.toFixed(1)??t('media.notRated')}<small>{media.source.name} {t('media.sourceScore')}</small></span><span>{status}</span><span>{unitCount(media.total_units??null,media.media_type)}</span></div>
+      <section className="synopsis-section"><h2>{t('media.synopsis')}</h2><SpoilerText><ExpandableSynopsis text={media.synopsis??t('media.noSynopsis')}/></SpoilerText></section>
+      <div className="hero-genres">{media.genres.map(genre=><Link key={genre} to={`/${mediaType}?genre=${encodeURIComponent(genre)}`}>{genre}</Link>)}</div>
+      <details className="detail-mobile-facts"><summary>{t('media.relatedInfo')}</summary>{facts}</details>
+      <nav className="detail-section-nav" aria-label={t('media.sections')}><a href="#overview">{t('media.overview')}</a><a href="#episodes">{t(mediaType==='anime'?'media.episodes':'media.chapters')}</a><a href="#your-progress">{t('media.yourProgress')}</a></nav>
+    <section id="episodes" className="episode-section"><div className="section-heading"><h2>{t(mediaType==='anime'?'media.episodes':'media.chapters')}</h2>{episodes.data?.source==='AniZip'&&<span className="episode-attribution">{t('media.episodeSource')} AniZip</span>}</div>
+      {mediaType==='anime'&&episodes.isPending?<Loading variant="episodes"/>:mediaType==='anime'&&episodes.error?<ErrorState error={episodes.error} retry={()=>{void episodes.refetch()}}/>:mediaType==='anime'&&episodes.data?.data.length?<EpisodeList key={id} episodes={episodes.data.data}/>:<p className="mt-4 text-sm text-muted">{t(mediaType==='anime'?'media.episodesMissing':'media.chaptersMissing')}</p>}
+    </section><section id="your-progress" className="personal-media-section"><PersonalMedia media={media}/></section>
+    </div></div><div className="source-note"><span>{t('media.source')}: {media.source.name}</span><span>{t('media.updated',{date:formatDate(media.source.retrieved_at)})}</span><a href={media.source.url} target="_blank" rel="noreferrer">{t('media.external')}<ArrowUpRight size={12}/></a></div>
+    </div></div>
 }
 
 export function InfoPage() {

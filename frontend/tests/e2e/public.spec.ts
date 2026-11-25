@@ -133,6 +133,51 @@ test('footer has the generated brand, complete navigation and owner links',async
   await footer.screenshot({path:test.info().outputPath('footer.png')})
 })
 
+test('direct episode details load without the personal API and separate extras',async({page})=>{
+  await page.goto('/anime/anilist-152991')
+  const section=page.locator('#episodes')
+  await expect(section.getByRole('heading',{name:'Arrival',exact:true})).toBeVisible()
+  await expect(section.locator('.episode-card h3').first()).toHaveText('Arrival')
+  await expect(section.getByText('Episode 1',{exact:true})).toBeVisible()
+  await expect(section.getByText('Episode information unavailable',{exact:true})).toHaveCount(0)
+  await section.getByRole('button',{name:/^Extras/}).click()
+  await expect(section.getByRole('heading',{name:'An Extra Story',exact:true})).toBeVisible()
+  await expect(section.getByRole('heading',{name:'Arrival',exact:true})).toHaveCount(0)
+})
+
+test('episode source failures keep title details visible and offer retry',async({page})=>{
+  await page.route('https://api.ani.zip/**',route=>route.fulfill({status:503,body:'{}'}))
+  await page.goto('/anime/anilist-152991')
+  await expect(page.getByRole('heading',{name:'Synopsis',exact:true})).toBeVisible()
+  await expect(page.locator('#episodes').getByRole('alert')).toContainText('temporarily unavailable')
+  await expect(page.locator('#episodes').getByRole('button',{name:'Retry',exact:true})).toBeVisible()
+})
+
+test('synopsis starts condensed and supports touch-friendly read more and show less',async({page})=>{
+  await page.setViewportSize({width:375,height:900})
+  await page.goto('/anime/anilist-152991')
+  const button=page.getByRole('button',{name:'Read more',exact:true})
+  await expect(button).toBeVisible()
+  const paragraph=page.locator('.synopsis-copy')
+  const collapsed=(await paragraph.boundingBox())!.height
+  await button.click()
+  await expect(page.getByRole('button',{name:'Show less',exact:true})).toHaveAttribute('aria-expanded','true')
+  expect((await paragraph.boundingBox())!.height).toBeGreaterThan(collapsed)
+  await page.getByRole('button',{name:'Show less',exact:true}).click()
+  await expect(button).toHaveAttribute('aria-expanded','false')
+  expect((await paragraph.boundingBox())!.height).toBeLessThanOrEqual(collapsed+1)
+})
+
+test('desktop synopsis expands on hover and collapses after leaving',async({page})=>{
+  await page.setViewportSize({width:1440,height:1000})
+  await page.goto('/anime/anilist-152991')
+  await expect(page.getByRole('button',{name:'Read more',exact:true})).toBeVisible()
+  await page.locator('.expandable-synopsis').hover()
+  await expect(page.getByRole('button',{name:'Show less',exact:true})).toHaveAttribute('aria-expanded','true')
+  await page.mouse.move(0,0)
+  await expect(page.getByRole('button',{name:'Read more',exact:true})).toHaveAttribute('aria-expanded','false')
+})
+
 for(const width of [320,375,768,1024,1440]) {
   test(`catalogue and details align at ${width}px`,async({page})=>{
     await page.setViewportSize({width,height:1000})

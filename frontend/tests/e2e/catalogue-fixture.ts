@@ -25,4 +25,9 @@ export async function mockCatalogue(page: Page) {
     else data = { Page: { pageInfo: { hasNextPage: false }, media: titles.filter(m => (!variables.type || m.type === variables.type) && (!variables.search || JSON.stringify(m.title).toLowerCase().includes(variables.search.toLowerCase()))) } }
     return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ data }) })
   })
+  await page.route('https://api.ani.zip/**',route=>{
+    const query=new URL(route.request().url()).searchParams
+    const namespace=query.has('anilist_id')?'anilist':'mal'
+    return route.fulfill({contentType:'application/json',body:JSON.stringify({mappings:{[`${namespace}_id`]:Number(query.get(`${namespace}_id`))},episodes:{'001':{episode:'1',title:{en:'Arrival'},overview:'A new journey begins.',airDate:'2020-01-01'},'2':{episode:'2',title:{en:'The Journey Continues'}},'S1':{episode:'S1',title:{en:'An Extra Story'}}},episodeCount:2,specialCount:1})})
+  })
 }

@@ -925,13 +925,23 @@ export interface components {
         };
         /** Episode */
         Episode: {
+            /** Air Date */
+            air_date?: string | null;
             /**
              * Filler
              * @default false
              */
             filler: boolean;
+            /** Image Url */
+            image_url?: string | null;
             /** Key */
             key: string;
+            /**
+             * Kind
+             * @default unknown
+             * @enum {string}
+             */
+            kind: "regular" | "extra" | "unknown";
             /** Label */
             label: string;
             /** Order */
@@ -943,6 +953,14 @@ export interface components {
             recap: boolean;
             /** Released At */
             released_at?: string | null;
+            /** Runtime Minutes */
+            runtime_minutes?: number | null;
+            /** Source */
+            source?: string | null;
+            /** Source Episode Id */
+            source_episode_id?: string | null;
+            /** Synopsis */
+            synopsis?: string | null;
             /** Title */
             title?: string | null;
         };
@@ -1207,6 +1225,8 @@ export interface components {
              * @default []
              */
             aliases: string[];
+            /** Banner Url */
+            banner_url?: string | null;
             /** Content Rating */
             content_rating?: string | null;
             /** External Id */

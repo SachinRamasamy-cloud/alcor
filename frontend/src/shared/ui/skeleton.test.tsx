@@ -11,7 +11,8 @@ it.each([
 ])('keeps %s loading content in its page layout', (path, kind) => {
   const {container}=render(<MemoryRouter initialEntries={[path]}><RouteSkeleton/></MemoryRouter>)
   expect(screen.getByRole('status')).toHaveAttribute('aria-busy','true')
-  expect(container.querySelector(`.shell.skeleton-${kind}`)).toBeInTheDocument()
+  expect(container.querySelector(`.skeleton-${kind}`)).toBeInTheDocument()
+  expect(container.querySelector('.shell')).toBeInTheDocument()
   expect(screen.getByText(/Loading/)).toHaveClass('sr-only')
   expect(container.querySelector('.skeleton-block')).toBeInTheDocument()
   expect(container.querySelector('button,input,a')).not.toBeInTheDocument()

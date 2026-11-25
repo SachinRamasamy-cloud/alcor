@@ -15,7 +15,7 @@ Public pages now fetch AniList directly in the browser. The legacy API catalogue
 
 In `frontend`, run `npm ci` once and `npm run dev`. Open `http://127.0.0.1:5173`. Home, anime/manga search and provider-reference detail links do not require FastAPI, PostgreSQL or Redis. Internet access and an available provider are still needed. The banner describes personal-service readiness; saves and tracking wait for those services and actual authentication. Nothing is saved by a dummy login.
 
-The browser queue respects provider cooldowns and spaces reads. See [browser-first architecture](../architecture/browser-first-catalogue.md) for cache, identity and source limitations. Production provider clearance remains separate from development; `VITE_ANILIST_USE_APPROVED=false` is the example default. The [three-provider addendum](../product/MULTI_PROVIDER_METADATA_PLAN.md) plans AniZip episode coverage and server-side TMDB enrichment; these adapters are not implemented yet.
+The browser queue respects provider cooldowns and spaces reads. Episode display now fetches AniZip independently after a valid title loads; individual provider failures keep the rest of the page usable. See [browser-first architecture](../architecture/browser-first-catalogue.md) for cache, identity and source limitations. Production provider clearance remains separate from development; `VITE_ANILIST_USE_APPROVED=false` and `VITE_ANIZIP_USE_APPROVED=false` are the example defaults. The [three-provider addendum](../product/MULTI_PROVIDER_METADATA_PLAN.md) tracks the remaining trusted episode reconciliation and server-side TMDB enrichment.
 
 ## Local database migration and integration tests
 

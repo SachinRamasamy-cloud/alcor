@@ -8,7 +8,7 @@ Owner-authorized change: 25 November 2026. Risk L2 public integration/L4 private
 | Personal library, progress, notes, collections, saved searches | Browser to ALCOR API | Wait for readiness; no write is queued or reported successful |
 | Personal discovery exclusions | AniList results plus account-scoped API overlay | Unavailable; the interface explains that personal filtering is not applied |
 | Saved synopsis/private-note search | Account-scoped API and saved metadata | Requires personal services; never leaks notes into public requests |
-| Complete episode metadata | Next provider milestone | Current AniList integration does not invent episode titles or coverage |
+| Episode details | Browser to AniZip after a valid title loads | Available if AniZip responds; missing/failed data has its own state; full coverage is not assumed |
 
 ## Transport and readiness
 
@@ -24,6 +24,6 @@ Personal discovery filters run before constructing a displayed page. Each reques
 
 ## Source limits and release
 
-AniList popularity is not a MAL popularity rank or rating-vote count. Scores retain their AniList label. Metadata descriptions render as text; source image hosts are constrained. Adult entries are excluded. App-side studio/all-or-any-genre/known-score/cover-art filtering scans bounded source windows and retains unread offsets; it does not claim a complete global result count. Individual episode titles are not supplied by the AniList adapter; AniZip episode display is the next integration task.
+AniList popularity is not a MAL popularity rank or rating-vote count. Scores retain their AniList label. Metadata descriptions render as text; source image hosts are constrained. Adult entries are excluded. App-side studio/all-or-any-genre/known-score/cover-art filtering scans bounded source windows and retains unread offsets; it does not claim a complete global result count. AniZip supplies separate episode display metadata with exact source keys; authoritative reconciliation into existing tracking sessions and TMDB enrichment remain later milestones.
 
 The owner reports personal use, not written provider clearance. [AniList terms](https://docs.anilist.co/guide/terms-of-use) include a separate restriction on competing trackers; the noncommercial clause does not remove it. Production reads require recorded clearance (`VITE_ANILIST_USE_APPROVED` and server `ANILIST_USE_APPROVED`). Development and mocked tests do not constitute clearance or release acceptance. [Rate limits](https://docs.anilist.co/guide/rate-limiting) currently document a temporary 30 requests/minute limit.

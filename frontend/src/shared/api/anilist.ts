@@ -2,7 +2,7 @@ import { ApiError, type CataloguePage, type HomeResponse, type Media } from './c
 
 export const ANILIST_ENDPOINT = 'https://graphql.anilist.co'
 const fields = `id idMal type title { romaji english native } synonyms description(asHtml: false)
-  coverImage { large } format status season seasonYear startDate { year } episodes chapters
+  coverImage { large } bannerImage format status season seasonYear startDate { year } episodes chapters
   averageScore popularity genres tags { name isAdult isGeneralSpoiler isMediaSpoiler }
   studios(isMain: true) { nodes { name } } siteUrl isAdult`
 
@@ -10,7 +10,7 @@ export type AniMedia = {
   id: number; idMal?: number | null; type: 'ANIME' | 'MANGA'
   title: { romaji?: string | null; english?: string | null; native?: string | null }
   synonyms?: string[]; description?: string | null; coverImage?: { large?: string | null }
-  format?: string | null; status?: string | null; season?: string | null
+  bannerImage?: string | null; format?: string | null; status?: string | null; season?: string | null
   seasonYear?: number | null; startDate?: { year?: number | null }
   episodes?: number | null; chapters?: number | null; averageScore?: number | null
   popularity?: number | null; genres?: string[]; tags?: { name: string; isAdult?: boolean; isGeneralSpoiler?: boolean; isMediaSpoiler?: boolean }[]
@@ -94,7 +94,7 @@ function publicQuery<T>(query: string, variables?: Record<string, unknown>, sign
 function plainText(value: string | null | undefined) {
   const document = new DOMParser().parseFromString((value ?? '').replace(/<br\s*\/?>/gi, '\n'), 'text/html')
   document.querySelectorAll('script,style').forEach(node => node.remove())
-  return document.body.textContent?.trim() || null
+  return document.body.textContent?.replace(/\n{3,}/g,'\n\n').trim() || null
 }
 export function fromAniList(item: AniMedia): Media {
   const image = item.coverImage?.large
@@ -104,7 +104,7 @@ export function fromAniList(item: AniMedia): Media {
     media_type: item.type === 'MANGA' ? 'manga' : 'anime',
     title: item.title.english || item.title.romaji || item.title.native || String(item.id),
     original_title: item.title.native, aliases: [item.title.romaji, ...(item.synonyms ?? [])].filter((s): s is string => Boolean(s)),
-    synopsis: plainText(item.description), image_url: safeImage,
+    synopsis: plainText(item.description), image_url: safeImage, banner_url: item.bannerImage && /^https:\/\/s4\.anilist\.co\//.test(item.bannerImage)?item.bannerImage:null,
     format: item.format === 'NOVEL' ? 'Light Novel' : item.format === 'MANGA' ? 'Manga' : item.format === 'MOVIE' ? 'Movie' : item.format === 'SPECIAL' ? 'Special' : item.format,
     status: item.status, season: item.season?.toLowerCase() as Media['season'], year: item.seasonYear ?? item.startDate?.year,
     score: item.averageScore == null ? null : item.averageScore / 10,

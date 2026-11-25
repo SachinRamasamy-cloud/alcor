@@ -5,6 +5,7 @@ import { useAuth } from '../../shared/auth'
 import { useBackend } from '../../shared/api/backend'
 import { personalPage } from './personal-page'
 export { SearchField } from './search-field'
+import { aniZipEpisodes } from '../../shared/api/anizip'
 import { needsLocalFilters } from './custom-filters'
 
 export const homeOptions = { queryKey: ['public', 'anilist', 'home'], queryFn: ({signal}: {signal:AbortSignal}) => aniHome(signal), staleTime: 300000, retry: false as const }
@@ -31,6 +32,6 @@ export const useMedia = (mediaType: string, id: string) => useQuery({
   queryKey: ['public', 'anilist', mediaType, id], queryFn: ({ signal }) => /^(anilist|mal)-/.test(id) ? aniDetails(mediaType, id, signal) : api<Media>(`/${mediaType}/${id}`, { signal }), staleTime: 900000, retry: false,
 })
 export const useEpisodes = (id: string, enabled: boolean) => useQuery({
-  queryKey: ['public', 'episodes', id], queryFn: ({ signal }) => /^(anilist|mal)-/.test(id) ? Promise.resolve<EpisodePage>({ data: [], coverage_complete: false, confirmed_final_total: null, source: 'AniList' }) : api<EpisodePage>(`/anime/${id}/episodes`, { signal }), enabled, staleTime: 600000,
+  queryKey: ['public', 'episodes', id], queryFn: ({ signal }) => /^(anilist|mal)-/.test(id) ? aniZipEpisodes(id,signal) : api<EpisodePage>(`/anime/${id}/episodes`, { signal }), enabled, staleTime: 900000, retry:false,
 })
 export const useGenres = () => useQuery({ ...homeOptions, select: home => home.genres })

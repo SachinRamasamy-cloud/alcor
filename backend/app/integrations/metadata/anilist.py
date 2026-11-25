@@ -13,7 +13,7 @@ from app.integrations.metadata.schemas import Media, Source
 QUERY = """query AlcorResolve($id: Int!) {
   Media(id: $id, isAdult: false) {
     id idMal type title { romaji english native } synonyms description(asHtml: false)
-    coverImage { large } format status season seasonYear startDate { year }
+    coverImage { large } bannerImage format status season seasonYear startDate { year }
     episodes chapters averageScore genres studios(isMain: true) { nodes { name } } isAdult
   }
 }"""
@@ -39,6 +39,9 @@ def map_media(item: dict) -> Media:
         aliases=[t for t in [titles.get("romaji"), *(item.get("synonyms") or [])] if t],
         synopsis=unescape(re.sub(r"<[^>]*>", "", item.get("description") or "")) or None,
         image_url=image if image and image.startswith("https://s4.anilist.co/") else None,
+        banner_url=item.get("bannerImage")
+        if (item.get("bannerImage") or "").startswith("https://s4.anilist.co/")
+        else None,
         format={
             "NOVEL": "Light Novel",
             "MANGA": "Manga",

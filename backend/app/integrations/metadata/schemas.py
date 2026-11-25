@@ -22,6 +22,7 @@ class Media(BaseModel):
     aliases: list[str] = []
     synopsis: str | None = None
     image_url: str | None = None
+    banner_url: str | None = None
     format: str | None = None
     status: str | None = None
     year: int | None = None
@@ -42,6 +43,13 @@ class Episode(BaseModel):
     order: int
     label: str
     title: str | None = None
+    synopsis: str | None = None
+    image_url: str | None = None
+    air_date: str | None = None
+    runtime_minutes: int | None = None
+    source: str | None = None
+    source_episode_id: str | None = None
+    kind: Literal["regular", "extra", "unknown"] = "unknown"
     released_at: datetime | None = None
     filler: bool = False
     recap: bool = False

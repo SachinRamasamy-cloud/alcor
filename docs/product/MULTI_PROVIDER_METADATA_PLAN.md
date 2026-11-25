@@ -1,6 +1,6 @@
 # ALCOR metadata plan update
 
-Date: 25 November 2026. Status: implementation plan; AniZip/TMDB integration is not implemented.
+Date: 25 November 2026. Status: plan with a locally verified browser AniZip episode-display slice. Trusted server episode reconciliation, TMDB enrichment and production provider clearance remain pending.
 
 Authority: owner's three-provider diagram and request to revise the plan. This is an addendum to the original master and editorial plans, which remain unchanged. Google configuration, import, export and personalized recommendation scoring remain deferred. D-SSBP applies: L2 metadata integration, L4 credential/private-state boundaries.
 
@@ -111,4 +111,4 @@ Test cases must include a finished single season, split cours, a long runner, sp
 | Provider rights | TMDB documents [noncommercial use with attribution](https://developer.themoviedb.org/docs/faq); required logo/notice belongs in About/Credits | Verify each source's conditions separately; an aggregator does not automatically grant upstream rights |
 | Fribb | Primary README documents mapping structure and offsets | Confirm applicable data licence and pinned-source refresh policy before adopting it |
 
-No AniZip/TMDB runtime adapter, production deployment, independent review or full-coverage claim is implied by this plan.
+Current implementation: bounded browser AniZip adapter and episode display, additive display fields, source errors, numeric presentation order preserving exact keys, extras, pagination and condensed title details. It deliberately leaves final coverage unknown and does not rewrite private tracking targets. M0 provider conditions, M3 server reconciliation, M4 TMDB and subsequent release work remain open. No production deployment, independent review or full-coverage claim is implied.

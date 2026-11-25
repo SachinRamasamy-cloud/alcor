@@ -111,7 +111,7 @@
   "info.helpTitle": "Help",
   "info.help": "Browse titles without an account. Sign in to save anime and manga, track your progress and organize your library. Scores and release details are credited to their sources.",
   "info.sourcesTitle": "Data sources",
-  "info.sources": "Anime and manga information comes from AniList. Each title links to its source. Some episode and chapter details may be missing. Your library, notes and progress are kept separately from public title information.",
+  "info.sources": "Anime and manga information comes from AniList. Episode titles, descriptions and images come through AniZip. Some details may be missing. Each title links to its source. Your library, notes and progress are kept separately from public title information.",
   "info.privacyTitle": "Privacy",
   "info.privacy": "Your library, notes and progress are private. A full privacy notice and account deletion controls are not available yet.",
   "info.termsTitle": "Terms",
@@ -343,5 +343,18 @@
   "footer.linkedin": "LinkedIn",
   "footer.copyright": "\u00a9 {year} ALCOR.",
   "footer.creator": "Built by",
-  "footer.metadata": "Catalogue metadata by"
+  "footer.metadata": "Catalogue metadata by",
+  "media.readMore": "Read more",
+  "media.showLess": "Show less",
+  "media.overview": "Overview",
+  "media.yourProgress": "Your progress",
+  "media.extras": "Extras",
+  "media.episodeLabel": "Episode {number}",
+  "media.episodeSource": "Episode details from",
+  "media.episodeOverviewMissing": "No description available.",
+  "media.minutes": "{count} min",
+  "media.relatedInfo": "Title information",
+  "media.backTo": "Back to {type}",
+  "media.episodeType": "Episode type",
+  "media.sections": "Title sections"
 }

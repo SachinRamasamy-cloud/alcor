@@ -12,6 +12,7 @@ function Detail() {
 }
 
 export function Loading({ variant = 'panel', page = false }: { variant?: SkeletonKind; page?: boolean }) {
+  if(variant==='details'&&page)return <div role="status" aria-busy="true" className="details-page skeleton-region skeleton-details"><span className="sr-only">{t('common.loading')}</span><div aria-hidden="true"><Block className="detail-banner"/><div className="shell detail-body"><div className="detail-intro"><div className="detail-sidebar"><Block className="skeleton-poster detail-poster"/><div className="detail-save-actions"><Block className="skeleton-input"/><Block className="skeleton-input"/></div><div className="detail-info-panel"><Lines count={7}/></div></div><div className="detail-main skeleton-detail-copy"><Block className="skeleton-short"/><Block className="skeleton-title"/><Lines count={2}/><div className="skeleton-buttons"><Block/><Block/></div><Lines count={4}/><div className="episode-section"><Block className="skeleton-heading"/><Lines count={6}/></div></div></div></div></div></div>
   const cards = ['catalogue', 'library', 'wishlist', 'collection-detail'].includes(variant)
   const personal = ['library','wishlist','collections','collection-detail','history','statistics','profile','settings'].includes(variant)
   return <div role="status" aria-busy="true" className={`${page ? `shell page-body ${variant === 'info' ? 'prose-page ' : ''}` : ''}skeleton-region skeleton-${variant}`}>
