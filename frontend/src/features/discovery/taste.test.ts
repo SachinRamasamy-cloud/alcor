@@ -4,7 +4,7 @@ import { defaultAnswers } from '../profile'
 import { fromAniList } from '../../shared/api/anilist'
 import { sameTitle } from '../../shared/api/identity'
 import type { components } from '../../shared/api/schema'
-const preferences:components['schemas']['Preferences']={timezone:'UTC',motion:'system',notifications:false,include_planned:true,spoiler_mode:false,preferred_genres:['Fantasy','Romance'],intelligence_profile:{...defaultAnswers(),excluded_genres:['Romance'],disliked_genres:['Comedy'],series_status:'finished',max_anime_episodes:24}}
+const preferences:components['schemas']['Preferences']={timezone:'UTC',motion:'system',notifications:false,include_planned:true,discovery_mode:'new_to_me',spoiler_mode:false,preferred_genres:['Fantasy','Romance'],intelligence_profile:{...defaultAnswers(),excluded_genres:['Romance'],disliked_genres:['Comedy'],series_status:'finished',max_anime_episodes:24}}
 const media=(id:number,genres:string[],episodes:number|null=12)=>fromAniList({id,type:'ANIME',title:{english:`Title ${id}`},genres,episodes,status:'FINISHED'})
 it('does not apply an anime episode limit as a manga chapter limit',()=>{
   const manga=fromAniList({id:33,type:'MANGA',title:{english:'Manga'},genres:['Fantasy'],chapters:300,status:'FINISHED'})

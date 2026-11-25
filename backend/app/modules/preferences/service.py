@@ -68,6 +68,10 @@ class PreferenceService:
                         ).intelligence_profile
                     }
                 )
+            if row and "discovery_mode" not in body.data.model_fields_set:
+                body.data = body.data.model_copy(
+                    update={"discovery_mode": Preferences.model_validate(row["payload"]).discovery_mode}
+                )
             await verified_favorites(session, body.data)
             if row and Preferences.model_validate(row["payload"]) == body.data:
                 return PreferencesRead(data=body.data, version=current)
@@ -129,6 +133,12 @@ class PreferenceService:
                 or preferences_version != body.expected_preferences_version
             ):
                 raise AppError(409, "CONFLICT", "Review the latest profile before saving setup.")
+            if preferences and "discovery_mode" not in body.data.model_fields_set:
+                body.data = body.data.model_copy(
+                    update={
+                        "discovery_mode": Preferences.model_validate(preferences["payload"]).discovery_mode
+                    }
+                )
             favorites = await verified_favorites(session, body.data)
             name = body.display_name.strip()
             if (

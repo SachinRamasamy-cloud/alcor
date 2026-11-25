@@ -1885,6 +1885,16 @@
       "Preferences": {
         "additionalProperties": false,
         "properties": {
+          "discovery_mode": {
+            "default": "new_to_me",
+            "enum": [
+              "all",
+              "hide_watched",
+              "new_to_me"
+            ],
+            "title": "Discovery Mode",
+            "type": "string"
+          },
           "include_planned": {
             "default": true,
             "title": "Include Planned",

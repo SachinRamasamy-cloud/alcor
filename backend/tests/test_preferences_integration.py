@@ -155,3 +155,35 @@ async def test_setup_rejects_unverified_favorites_through_both_write_paths():
             IntelligenceProfile(started_year=date.today().year + 1)
     finally:
         await db.close()
+
+
+async def test_discovery_mode_is_owned_versioned_and_preserved_for_older_clients():
+    db = Database("postgresql+asyncpg://alcor_app:alcor_local@127.0.0.1:55432/alcor")
+    try:
+        owner, other = uuid4(), uuid4()
+        service = PreferenceService(db)
+        assert (await service.read(owner)).data.discovery_mode == "new_to_me"
+        saved = await service.write(
+            owner, PreferencesWrite(expected_version=0, data=Preferences(discovery_mode="hide_watched"))
+        )
+        assert saved.version == 1
+        assert (await service.read(owner)).data.discovery_mode == "hide_watched"
+        assert (await service.read(other)).data.discovery_mode == "new_to_me"
+        legacy = await service.write(
+            owner, PreferencesWrite(expected_version=1, data=Preferences(timezone="Asia/Kolkata"))
+        )
+        assert legacy.data.discovery_mode == "hide_watched"
+        setup = await service.save_setup(owner, SetupWrite(
+            display_name="Reader", expected_profile_version=0,
+            expected_preferences_version=legacy.version,
+            data=Preferences(intelligence_profile=IntelligenceProfile()),
+        ))
+        assert setup.preferences.data.discovery_mode == "hide_watched"
+        with pytest.raises(AppError) as conflict:
+            await service.write(owner, PreferencesWrite(expected_version=0, data=Preferences(discovery_mode="all")))
+        assert conflict.value.status == 409
+        assert (await service.read(owner)).data.discovery_mode == "hide_watched"
+        with pytest.raises(ValidationError):
+            Preferences(discovery_mode="invalid")
+    finally:
+        await db.close()

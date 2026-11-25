@@ -11,7 +11,8 @@ import type {Media} from '../shared/api/client'
 import {t} from '../shared/content'
 import {ErrorState,Loading} from '../shared/ui'
 import {CataloguePage} from './public'
-import {discoveryMode,discoveryLink,useDiscoveryVisibility,DiscoveryNotice} from '../features/catalogue/visibility'
+import {discoveryLink,useDiscoveryVisibility,DiscoveryNotice} from '../features/catalogue/visibility'
+import {useDiscoveryMode} from '../features/catalogue/policy'
 
 export function BrowseShelf({title,items,to,description}:{title:string;items:Media[];to:string;description?:string}){
   const rail=useRef<HTMLDivElement>(null)
@@ -24,12 +25,13 @@ function Suggestions({setup,type}:{setup:SetupRead;type:'anime'|'manga'}){
   const params=new URLSearchParams(taste.params);params.set('type',type)
   const items=query.data?tasteItems(query.data.data,setup.preferences.data,setup.favorites??[],type).slice(0,12):[]
   if(query.isPending)return <section className="home-section"><h2>{t('dashboard.youMayLike')}</h2><Loading variant="shelf"/></section>
+  if(query.personalUnavailable)return <section className="home-section"><DiscoveryNotice unavailable refetch={query.refetch}/></section>
   if(query.error)return <section className="home-section"><h2>{t('dashboard.youMayLike')}</h2><ErrorState error={query.error} retry={()=>{void query.refetch()}}/></section>
   return <BrowseShelf title={t(taste.personal?'dashboard.youMayLike':'browse.trending')} description={t(taste.personal?'dashboard.basedOnFilters':'dashboard.generalPicks')} items={items} to={`/search?${params}`}/>
 }
 function Shelves({type}:{type:'anime'|'manga'}){
   const browse=useBrowse(type),setup=useSetup()
-  const [params]=useSearchParams(),mode=discoveryMode(params.get('mode'))
+  const [params]=useSearchParams(),mode=useDiscoveryMode(params)
   const visibility=useDiscoveryVisibility(browse.data?Object.values(browse.data).flat():[],mode)
   useEffect(()=>{document.title=`${t(type==='anime'?'nav.anime':'nav.manga')} · ALCOR`},[type])
   if(browse.isPending)return <Loading variant="browse" page/>

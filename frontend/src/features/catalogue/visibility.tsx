@@ -6,13 +6,9 @@ import {useBackend} from '../../shared/api/backend'
 import {t} from '../../shared/content'
 import {Button} from '../../shared/ui'
 import {exclusions} from './personal-page'
+import type {DiscoveryMode} from './policy'
 
-export type DiscoveryMode='all'|'hide_watched'|'new_to_me'
-export function discoveryMode(value:string|null):DiscoveryMode {
-  return value==='hide_watched'||value==='new_to_me'?value:'all'
-}
 export function discoveryLink(to:string,mode:DiscoveryMode){
-  if(mode==='all')return to
   const [path,query]=to.split('?'),params=new URLSearchParams(query)
   params.set('mode',mode)
   return `${path}?${params}`

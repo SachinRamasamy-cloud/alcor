@@ -1,5 +1,5 @@
 import {supportsSavedFilters} from '../catalogue/custom-filters'
-import { useState } from 'react'
+import { useLayoutEffect,useRef,useState } from 'react'
 import { SlidersHorizontal } from 'lucide-react'
 import { useMutation,useQuery,useQueryClient } from '@tanstack/react-query'
 import { useLocation,useNavigate } from 'react-router-dom'
@@ -10,6 +10,8 @@ import { useAuth } from '../../shared/auth'
 import { useFeedback } from '../../shared/feedback'
 import { t } from '../../shared/content'
 import { Button,ErrorState,Modal } from '../../shared/ui'
+import {usePreferences,type PreferencesRead} from '../preferences'
+import type {DiscoveryMode} from '../catalogue/policy'
 
 type Preset=components['schemas']['FilterRead']
 const arrays=['include_genres','exclude_genres','include_themes','exclude_themes']
@@ -28,12 +30,23 @@ export function paramsFromQuery(query:Preset['query']){
   for(const [key,value] of Object.entries(query)){if(value===null||value===undefined||value===''||key==='cursor'||key==='page'||key==='media_type')continue;if(Array.isArray(value))value.forEach(v=>params.append(key,String(v)));else params.set(key,String(value))}
   return params
 }
-export function DiscoveryControls({params,onChange,items=[]}:{params:URLSearchParams;onChange:(params:URLSearchParams)=>void;items?:Media[]}){
+export function DiscoveryControls({params,onChange,items=[],mode}:{params:URLSearchParams;onChange:(params:URLSearchParams)=>void;items?:Media[];mode?:DiscoveryMode}){
   const {userId,requireSignIn}=useAuth()
   const multi=!supportsSavedFilters(params)
   const {ready}=useBackend()
   const location=useLocation(),navigate=useNavigate()
   const queries=useQueryClient(),notify=useFeedback()
+  const preferences=usePreferences(),account=useRef(userId)
+  useLayoutEffect(()=>{account.current=userId;return()=>{account.current=null}},[userId])
+  const remember=useMutation({mutationFn:({value,saved,owner}:{value:DiscoveryMode;saved:PreferencesRead;owner:string})=>api<PreferencesRead>('/me/preferences',{method:'PATCH',accountId:owner,body:JSON.stringify({expected_version:saved.version,data:{...saved.data,discovery_mode:value}})}),
+    onSuccess:(value,variables)=>{if(account.current===variables.owner)queries.setQueryData(['private',variables.owner,'preferences'],value)},
+    onError:(error:Error,variables)=>{if(account.current===variables.owner)notify(error.message)},
+    onSettled:(_value,_error,variables)=>{void queries.invalidateQueries({queryKey:['private',variables.owner,'preferences']})}})
+  function selectMode(value:DiscoveryMode){
+    const next=new URLSearchParams(params);next.set('mode',value);next.delete('cursor');next.delete('page');onChange(next);setOpen(false)
+    if(userId&&preferences.data)remember.mutate({value,saved:preferences.data,owner:userId})
+    else if(userId)notify(t('discovery.preferenceUnavailable'))
+  }
   const [name,setName]=useState(''),[selected,setSelected]=useState(''),[deleting,setDeleting]=useState(false),[random,setRandom]=useState<Media|null>(null)
   const presets=useQuery({queryKey:['private',userId,'saved-filters'],enabled:Boolean(userId&&ready),queryFn:({signal})=>api<Preset[]>('/me/saved-filters',{signal,accountId:userId!})})
   const [open,setOpen]=useState(false)
@@ -42,7 +55,7 @@ export function DiscoveryControls({params,onChange,items=[]}:{params:URLSearchPa
   const pick = () => { if(items.length){setOpen(false);setRandom(items[Math.floor(Math.random()*items.length)])} }
   function applyPreset(id:string){setSelected(id);const value=presets.data?.find(p=>p.id===id);if(!value)return;setName(value.name);const target=value.query.media_type?`/${value.query.media_type}`:'/discover';navigate(`${target}?${paramsFromQuery(value.query)}`)}
   return <><button type="button" className="discovery-toggle icon-button" title={t('discovery.options')} aria-label={t('discovery.options')} aria-haspopup="dialog" aria-expanded={open} onClick={()=>setOpen(true)}><SlidersHorizontal size={19}/></button><Modal open={open} onOpenChange={setOpen} title={t('discovery.options')} className="discovery-dialog"><div className="discovery-controls">
-    <div className="discovery-mode-row"><label className="discovery-field"><span>{t('discovery.mode')}</span><select value={params.get('mode')??'all'} onChange={e=>{const next=new URLSearchParams(params);next.set('mode',e.target.value);next.delete('cursor');next.delete('page');onChange(next);setOpen(false)}}><option value="all">{t('discovery.all')}</option><option disabled={!userId||!ready} value="hide_watched">{t('discovery.hideWatched')}</option><option disabled={!userId||!ready} value="new_to_me">{t('discovery.newToMe')}</option></select></label><Button variant="secondary" disabled={!items.length} onClick={pick}>{t('discovery.randomScope')}</Button></div>
+    <div className="discovery-mode-row"><label className="discovery-field"><span>{t('discovery.mode')}</span><select disabled={remember.isPending} value={mode??params.get('mode')??'all'} onChange={e=>selectMode(e.target.value as DiscoveryMode)}><option value="all">{t('discovery.all')}</option><option disabled={!userId||!ready} value="hide_watched">{t('discovery.hideWatched')}</option><option disabled={!userId||!ready} value="new_to_me">{t('discovery.newToMe')}</option></select></label><Button variant="secondary" disabled={!items.length} onClick={pick}>{t('discovery.randomScope')}</Button></div>
     {(!userId||!ready)&&params.get('mode')&&params.get('mode')!=='all'&&<div className="flex flex-wrap items-center gap-3 text-sm"><p>{t(userId?'discovery.backendFilter':'discovery.guestFilter')}</p><Button variant="secondary" onClick={()=>requireSignIn()}>{t('nav.signIn')}</Button></div>}
     <section className="discovery-advanced"><h2>{t('discovery.advanced')}</h2><p className="discovery-help">{t('discovery.sourceLimits')}</p><form key={params.toString()} className="discovery-filter-form" onSubmit={e=>{e.preventDefault();const values=new FormData(e.currentTarget),next=new URLSearchParams(params);for(const key of [...arrays,'year_from','year_to','score_min','units_max','studio','status','season','memory','genre_match','has_score','has_image']){next.delete(key);const value=String(values.get(key)??'');if(arrays.includes(key)||key==='season'||key==='status')value.split(',').map(v=>v.trim()).filter(Boolean).forEach(v=>next.append(key,v));else if(value)next.set(key,value)}next.delete('cursor');next.delete('page');onChange(next);setOpen(false)}}>
       {([['include_genres','discovery.includeGenres'],['exclude_genres','discovery.excludeGenres'],['include_themes','discovery.includeThemes'],['exclude_themes','discovery.excludeThemes']] as const).map(([key,label])=><label className="discovery-field" key={key}><span>{t(label)}</span><input name={key} defaultValue={params.getAll(key).join(', ')} maxLength={1000}/></label>)}

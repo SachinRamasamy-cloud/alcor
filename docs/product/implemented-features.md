@@ -29,3 +29,5 @@ Reporting/recovery slice: private history pages, saved-record statistics, soft l
 Profile/preferences slice: private display name, IANA timezone, explicit discovery preferences, notification opt-in, reduced motion and synopsis spoiler controls are implemented. User-set evidence thresholds do not imply a completed recommendation algorithm.
 
 Foundation F01: explicit personal modes now also filter Home's hero/rows and Browse shelves; failures/loading cannot claim confirmed eligibility. Public fallback is labelled. Existing layout/alignment is locked by the owner's 25 November Foundation request. Default-mode persistence and direct card completion follow separately; later Foundation stages remain outstanding.
+
+Foundation F02: signed-in discovery defaults to New to Me; explicit URL mode takes precedence over the saved discovery preference. Explicit search defaults Show All. The existing filter dialog saves mode with preference version checks; no layout change. Old clients cannot erase the saved mode by omitting the additive field. Human/live acceptance remains pending.

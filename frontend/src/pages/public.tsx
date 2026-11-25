@@ -17,7 +17,8 @@ import type { Media } from '../shared/api/client'
 import { t, formatDate, unitCount, type MessageKey } from '../shared/content'
 import { useCataloguePagination } from '../features/catalogue/pagination'
 import { Button, ErrorState, Loading, Pagination } from '../shared/ui'
-import {discoveryMode,discoveryLink,useDiscoveryVisibility,DiscoveryNotice} from '../features/catalogue/visibility'
+import {discoveryLink,useDiscoveryVisibility,DiscoveryNotice} from '../features/catalogue/visibility'
+import {useDiscoveryMode} from '../features/catalogue/policy'
 
 function PageTitle({ title }: { title: string }) {
   useEffect(() => { document.title = `${title} · ${t('brand')}` }, [title])
@@ -43,7 +44,7 @@ function filterLabel(key:string,value:string):string {
 }
 export function HomePage() {
   const home = useHome()
-  const [params]=useSearchParams(),mode=discoveryMode(params.get('mode'))
+  const [params]=useSearchParams(),mode=useDiscoveryMode(params)
   const candidates=home.data?[...(home.data.featured?[home.data.featured]:[]),...home.data.anime,...home.data.manga]:[]
   const visibility=useDiscoveryVisibility(candidates,mode)
   if (home.isPending) return <Loading variant="home" page />
@@ -76,9 +77,11 @@ export function CataloguePage() {
   const type = location.pathname === '/anime' ? 'anime' : location.pathname === '/manga' ? 'manga' : params.get('type')==='anime'?'anime':params.get('type')==='manga'?'manga':null
   const titleKey = type ? `catalogue.${type}` as const : location.pathname === '/search' ? 'catalogue.search' : 'catalogue.discover'
   const requestParams = new URLSearchParams(params)
+  const mode=useDiscoveryMode(params,location.pathname==='/search')
+  requestParams.set('mode',mode)
   const catalogue = useCatalogue(type ? `/${type}` : '/search', requestParams)
   const genres = useGenres()
-  const pagination = useCataloguePagination(catalogue.data?.next_cursor, catalogue.data?.has_more ?? false)
+  const pagination = useCataloguePagination(catalogue.data?.next_cursor, catalogue.data?.has_more ?? false,mode)
   function change(key: string, value: string) { setParams(previous => { const next = new URLSearchParams(previous); if (value) next.set(key, value); else next.delete(key); if (key !== 'cursor') {next.delete('cursor');next.delete('page')}; return next }) }
   function select(key:string,values:string[]){setParams(previous=>{const next=new URLSearchParams(previous);next.delete(key);if(key==='include_genres')next.delete('genre');values.forEach(value=>next.append(key,value));next.delete('page');next.delete('cursor');return next})}
   const options=(values:string[])=>values.map(value=>({value,label:value}))
@@ -92,7 +95,7 @@ export function CataloguePage() {
     </div>
   return <div className="shell page-body catalogue-page"><PageTitle title={t(titleKey)} /><div className="page-heading"><h1>{t(titleKey)}</h1></div>
     <div className="search-panel"><div className="search-and-filters"><SearchField key={location.pathname} value={params.get('q')??''} onCommit={value=>change('q',value)} busy={catalogue.isFetching}/></div>
-    <div className="catalogue-type-tabs" aria-label={t('catalogue.mediaType')}>{(['all','anime','manga'] as const).map(value=><button key={value} aria-pressed={value===(type??'all')} onClick={()=>{const next=new URLSearchParams(params);next.delete('type');next.delete('page');next.delete('cursor');if(value!=='all')next.set('type',value);if(location.pathname==='/anime'||location.pathname==='/manga')navigate(`/search?${next}`);else setParams(next)}}>{t(value==='all'?'catalogue.allMedia':value==='anime'?'nav.anime':'nav.manga')}</button>)}</div><div className="desktop-filters filters-toolbar">{filters}<DiscoveryControls params={params} onChange={setParams} items={catalogue.data?.data}/></div>{[...params].some(([key])=>!['page','cursor','q','type'].includes(key))&&<div className="active-filters" aria-label={t('catalogue.activeFilters')}>{[...params].filter(([key,value])=>!['page','cursor','q','type'].includes(key)&&value&&value!=='false'&&value!=='all').map(([key,value],index)=><button key={`${key}:${value}:${index}`} className="filter-chip" onClick={()=>{setParams(previous=>{const next=new URLSearchParams(previous);const remaining=next.getAll(key).filter(v=>v!==value);next.delete(key);remaining.forEach(v=>next.append(key,v));next.delete('page');next.delete('cursor');return next})}}>{filterLabel(key,value)}<span aria-hidden="true">&times;</span><span className="sr-only">{t('catalogue.removeFilter')}</span></button>)}</div>}
+    <div className="catalogue-type-tabs" aria-label={t('catalogue.mediaType')}>{(['all','anime','manga'] as const).map(value=><button key={value} aria-pressed={value===(type??'all')} onClick={()=>{const next=new URLSearchParams(params);next.delete('type');next.delete('page');next.delete('cursor');if(value!=='all')next.set('type',value);if(location.pathname==='/anime'||location.pathname==='/manga')navigate(`/search?${next}`);else setParams(next)}}>{t(value==='all'?'catalogue.allMedia':value==='anime'?'nav.anime':'nav.manga')}</button>)}</div><div className="desktop-filters filters-toolbar">{filters}<DiscoveryControls params={params} mode={mode} onChange={setParams} items={catalogue.data?.data}/></div>{[...params].some(([key])=>!['page','cursor','q','type'].includes(key))&&<div className="active-filters" aria-label={t('catalogue.activeFilters')}>{[...params].filter(([key,value])=>!['page','cursor','q','type'].includes(key)&&value&&value!=='false'&&value!=='all').map(([key,value],index)=><button key={`${key}:${value}:${index}`} className="filter-chip" onClick={()=>{setParams(previous=>{const next=new URLSearchParams(previous);const remaining=next.getAll(key).filter(v=>v!==value);next.delete(key);remaining.forEach(v=>next.append(key,v));next.delete('page');next.delete('cursor');return next})}}>{filterLabel(key,value)}<span aria-hidden="true">&times;</span><span className="sr-only">{t('catalogue.removeFilter')}</span></button>)}</div>}
     {[...params].some(([key])=>!['page','cursor','type'].includes(key))&&<button className="reset-button filter-reset" onClick={()=>setParams(type?{type}:{})}>{t('catalogue.reset')}</button>}</div>
     {params.get('q') && <p className="results-label">{t('catalogue.resultsFor', { query: params.get('q')! })}</p>}
     {catalogue.personalUnavailable&&<p role="status" className="coverage-note">{t('discovery.filterUnavailable')}</p>}

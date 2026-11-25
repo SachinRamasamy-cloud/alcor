@@ -58,6 +58,7 @@ class Preferences(BaseModel):
     motion: Literal["system", "reduced", "full"] = "system"
     notifications: bool = False
     include_planned: bool = True
+    discovery_mode: Literal["all", "hide_watched", "new_to_me"] = "new_to_me"
     spoiler_mode: bool = False
     preferred_genres: list[str] = Field(default_factory=list, max_length=50)
     preferred_themes: list[str] = Field(default_factory=list, max_length=50)

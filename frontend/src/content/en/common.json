@@ -335,6 +335,7 @@
   "discovery.backendFilter": "Sign in to use personal filters and saved searches.",
   "discovery.filterUnavailable": "Personal filtering is temporarily unavailable. General catalogue results may include titles in your history.",
   "discovery.partialPersonal": "More titles may be available. View all to continue through filtered results.",
+  "discovery.preferenceUnavailable": "This view changed, but your discovery preference couldn't be saved. Try again when personal services are available.",
   "discovery.unsupportedFilter": "These filters cannot be combined here. Try browsing anime or manga separately.",
   "discovery.randomScope": "Pick from this page",
   "discovery.sourceLimits": "Combine genres, tags, studio, years and ratings. Choose whether every included genre must match. Search your saved notes after signing in.",

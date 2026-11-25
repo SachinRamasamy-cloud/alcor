@@ -5,7 +5,7 @@ import { fromAniList } from '../shared/api/anilist'
 import type { SetupRead } from '../features/profile'
 const media=fromAniList({id:1,type:'ANIME',title:{english:'A favorite story'},genres:['Fantasy'],episodes:12})
 vi.mock('../features/catalogue',async original=>({...await original<typeof import('../features/catalogue')>(),useCatalogue:()=>({data:{data:[media]},isPending:false,isFetching:false,error:null})}))
-export const initial:SetupRead={profile:{display_name:'',version:0},preferences:{version:0,data:{timezone:'Asia/Kolkata',motion:'reduced',notifications:false,include_planned:true,spoiler_mode:false,preferred_genres:[],preferred_themes:[],preferred_studios:[],positive_rating_min:null,minimum_rating_votes:null,preferred_max_units:null,intelligence_profile:null}},favorites:[]}
+export const initial:SetupRead={profile:{display_name:'',version:0},preferences:{version:0,data:{timezone:'Asia/Kolkata',motion:'reduced',notifications:false,include_planned:true,discovery_mode:'new_to_me',spoiler_mode:false,preferred_genres:[],preferred_themes:[],preferred_studios:[],positive_rating_min:null,minimum_rating_votes:null,preferred_max_units:null,intelligence_profile:null}},favorites:[]}
 afterEach(cleanup)
 it('asks nine optional questions in three steps and preserves explicit likes and exclusions',()=>{
   const save=vi.fn(),questions:string[]=[]

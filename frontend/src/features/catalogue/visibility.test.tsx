@@ -13,7 +13,7 @@ const state=vi.hoisted(()=>({userId:'a' as string|null,ready:true}))
 const titles=[1,2,3].map(id=>fromAniList({id,type:'ANIME',title:{english:`Story ${id}`},status:'FINISHED'}))
 vi.mock('../../shared/auth',()=>({useAuth:()=>({userId:state.userId})}))
 vi.mock('../../shared/api/backend',()=>({useBackend:()=>({ready:state.ready})}))
-vi.mock('../../features/preferences',()=>({SpoilerText:({children}:{children:ReactNode})=>children}))
+vi.mock('../../features/preferences',()=>({SpoilerText:({children}:{children:ReactNode})=>children,usePreferences:()=>({data:undefined})}))
 vi.mock('../../widgets/continue',()=>({ContinueSections:()=> <p>Continue Story 2</p>}))
 vi.mock('../../features/library',()=>({SaveButton:()=>null}))
 vi.mock('.',()=>({useHome:()=>({data:{featured:titles[0],anime:titles,manga:[],genres:['Fantasy']},isPending:false})}))
@@ -53,9 +53,13 @@ it('keeps the general catalogue available with an explicit warning while persona
   expect(screen.getByRole('status')).toHaveTextContent('General catalogue results may include titles in your history')
   expect(fetcher).not.toHaveBeenCalled()
 })
-it.each(['/?mode=all','/'])('preserves Show All and the current default until the new default is approved (%s)',path=>{
-  const fetcher=vi.fn();vi.stubGlobal('fetch',fetcher);home(path)
+it('preserves an explicit Show All override',()=>{
+  const fetcher=vi.fn();vi.stubGlobal('fetch',fetcher);home('/?mode=all')
   expect(screen.getByRole('article',{name:'Story 1'})).toBeVisible();expect(fetcher).not.toHaveBeenCalled()
+})
+it('uses the approved New to Me default for signed-in Home',async()=>{
+  vi.stubGlobal('fetch',vi.fn(async()=>new Response('[1,2]')));home('/')
+  expect(await screen.findByRole('heading',{name:'Story 3',level:1})).toBeVisible()
 })
 it('keeps eligibility caches separate when switching accounts',async()=>{
   vi.stubGlobal('fetch',vi.fn(async()=>new Response(state.userId==='a'?'[1]':'[2]')))

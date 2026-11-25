@@ -1467,6 +1467,12 @@ export interface components {
         /** Preferences */
         Preferences: {
             /**
+             * Discovery Mode
+             * @default new_to_me
+             * @enum {string}
+             */
+            discovery_mode: "all" | "hide_watched" | "new_to_me";
+            /**
              * Include Planned
              * @default true
              */
