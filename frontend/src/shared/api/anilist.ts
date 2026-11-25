@@ -137,7 +137,7 @@ export async function aniDetails(type: string, id: string, signal?: AbortSignal)
 
 export async function aniCatalogue(path: string, params: URLSearchParams, signal?: AbortSignal): Promise<CataloguePage> {
   if(params.get('studio') || params.get('memory') === 'true') throw new ApiError(422, 'UNSUPPORTED_FILTER')
-  const page = params.get('cursor') ? Number(params.get('cursor')) : 1
+  const page = Number(params.get('page') || params.get('cursor') || 1)
   if (!Number.isSafeInteger(page) || page < 1 || page > 10000) throw new ApiError(422, 'INVALID_CURSOR')
   const variables: Record<string, unknown> = { page, type: path === '/anime' ? 'ANIME' : path === '/manga' ? 'MANGA' : undefined,
     search: params.get('q') || undefined,
@@ -165,9 +165,9 @@ export async function aniCatalogue(path: string, params: URLSearchParams, signal
   if (params.has('score_min')) arg('averageScore_greater', 'Int', Math.ceil(Number(params.get('score_min')) * 10) - 1)
   if (params.has('units_max') && variables.type) arg(variables.type === 'MANGA' ? 'chapters_lesser' : 'episodes_lesser', 'Int', Number(params.get('units_max')) + 1)
   if(params.has('units_max') && !variables.type) throw new ApiError(422, 'UNSUPPORTED_FILTER')
-  const result = await publicQuery<{ Page: { pageInfo: { hasNextPage: boolean }; media: AniMedia[] } }>(
-    `query AlcorCatalogue(${declarations.join(', ')}) { Page(page: $page, perPage: 24) { pageInfo { hasNextPage } media(${args.join(', ')}) { ${fields} } } }`, variables, signal)
-  return { data: result.Page.media.filter(m => !m.isAdult).map(fromAniList), has_more: result.Page.pageInfo.hasNextPage, next_cursor: result.Page.pageInfo.hasNextPage ? String(page + 1) : null, is_partial: true, is_stale: false, source: 'AniList' }
+  const result = await publicQuery<{ Page: { pageInfo: { hasNextPage: boolean; lastPage?: number; total?: number }; media: AniMedia[] } }>(
+    `query AlcorCatalogue(${declarations.join(', ')}) { Page(page: $page, perPage: 24) { pageInfo { hasNextPage lastPage total } media(${args.join(', ')}) { ${fields} } } }`, variables, signal)
+  return { page, total: result.Page.pageInfo.total ?? null, total_pages: result.Page.pageInfo.lastPage ?? (result.Page.pageInfo.hasNextPage?null:page), data: result.Page.media.filter(m => !m.isAdult).map(fromAniList), has_more: result.Page.pageInfo.hasNextPage, next_cursor: result.Page.pageInfo.hasNextPage ? String(page + 1) : null, is_partial: true, is_stale: false, source: 'AniList' }
 }
 
 export function mediaPath(media: Media) {

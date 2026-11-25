@@ -105,6 +105,18 @@ main:focus { outline: none; }
 .mobile-filter-button { display: none; }
 .coverage-note, .results-label { color: #626262; font-size: 11px; margin-block: 20px; }
 .pagination { display: flex; gap: 12px; justify-content: center; margin-top: 36px; }
+.pagination-control { display: flex; flex-direction: column; align-items: center; gap: 16px; margin-top: 40px; border-top: 1px solid var(--color-line); padding-top: 26px; }
+.pagination-summary { font-size: 12px; color: #555; }
+.pagination-buttons, .pagination-numbers { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 6px; }
+.page-button { min-height: 42px; min-width: 42px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 12px; border: 1px solid #dedede; border-radius: 5px; font-size: 12px; background: white; }
+.page-number { padding-inline: 10px; }
+.page-button.selected { background: #171717; border-color: #171717; color: white; }
+.page-button:not(:disabled):hover { border-color: #171717; }
+.page-ellipsis { padding-inline: 4px; color: #626262; }
+.pagination-jump { display: flex; align-items: center; flex-wrap: wrap; justify-content: center; gap: 10px; font-size: 12px; }
+.pagination-jump label { display: inline-flex; align-items: center; gap: 10px; }
+.pagination-jump input { width: 70px; height: 42px; border: 1px solid #dedede; border-radius: 5px; padding: 8px; }
+@media(max-width:539px) { .pagination-numbers { flex-basis: 100%; order: 3; margin-top: 5px; } .pagination-buttons { gap: 5px; } .page-button { padding-inline: 9px; min-height: 44px; } .pagination-previous-label { display: none; } }
 .state-box { min-height: 260px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 40px 24px; text-align: center; }
 .state-box h2 { font-size: 19px; font-weight: 500; letter-spacing: -.4px; }
 .state-box p { color: #626262; font-size: 13px; line-height: 1.7; max-width: 420px; }

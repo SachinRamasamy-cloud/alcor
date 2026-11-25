@@ -17,8 +17,9 @@ async def history(
     limit: int = Query(24, ge=1, le=100),
     cursor: str | None = Query(None, max_length=512),
     media_id: UUID | None = None,
+    page: int | None = Query(None, ge=1, le=10000),
 ):
-    return await request.app.state.reporting.history(user, limit, cursor, media_id)
+    return await request.app.state.reporting.history(user, limit, cursor, media_id, page)
 
 
 @router.get("/statistics", response_model=StatisticsRead)

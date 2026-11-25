@@ -44,8 +44,9 @@ async def library(
     status: LibraryStatus | None = None,
     limit: int = Query(24, ge=1, le=100),
     cursor: str | None = Query(None, max_length=512),
+    page: int | None = Query(None, ge=1, le=10000),
 ):
-    return await request.app.state.library.list_entries(user, status, limit, cursor)
+    return await request.app.state.library.list_entries(user, status, limit, cursor, page)
 
 
 @router.get("/wishlist", response_model=LibraryPage)
@@ -54,8 +55,9 @@ async def wishlist(
     user: User,
     limit: int = Query(24, ge=1, le=100),
     cursor: str | None = Query(None, max_length=512),
+    page: int | None = Query(None, ge=1, le=10000),
 ):
-    return await request.app.state.library.list_entries(user, "planned", limit, cursor)
+    return await request.app.state.library.list_entries(user, "planned", limit, cursor, page)
 
 
 @router.put("/library/{media_id}", response_model=LibraryMutation)

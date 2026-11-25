@@ -20,6 +20,7 @@ export function Modal({ open, onOpenChange, title, description, children }: { op
 }
 
 export { Loading, RouteSkeleton } from './skeleton'
+export { Pagination } from './pagination'
 export function ErrorState({ error, retry }: { error?: Error | null; retry?: () => void }) {
   return <div role="alert" className="state-box"><h2>{error?.message ?? t('errors.generic')}</h2>{retry && <Button variant="secondary" onClick={retry}>{t('common.retry')}</Button>}</div>
 }

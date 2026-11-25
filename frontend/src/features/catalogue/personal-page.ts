@@ -12,6 +12,7 @@ export async function personalPage(path: string, params: URLSearchParams, userId
   const data: CataloguePage['data'] = []
   for (let scanned = 0; scanned < 3; scanned++) {
     const next = new URLSearchParams(params)
+    next.delete('page')
     next.set('cursor', String(page))
     const result = await source(path, next, signal)
     const excluded = await exclude(result.data, params.get('mode')!, userId, signal)
@@ -21,13 +22,13 @@ export async function personalPage(path: string, params: URLSearchParams, userId
       if (data.length === 24) {
         const unread = i + 1 < result.data.length
         const more = unread || result.has_more
-        return { ...result, data, has_more: more, next_cursor: more ? `f:${unread ? page : page + 1}:${unread ? i + 1 : 0}` : null }
+        return { ...result, total:null, total_pages:null, data, has_more: more, next_cursor: more ? `f:${unread ? page : page + 1}:${unread ? i + 1 : 0}` : null }
       }
     }
-    if (!result.has_more) return { ...result, data, has_more: false, next_cursor: null }
+    if (!result.has_more) return { ...result, total:null, total_pages:null, data, has_more: false, next_cursor: null }
     page++; offset = 0
   }
-  return { data, has_more: true, next_cursor: `f:${page}:0`, source: 'AniList', is_partial: true, is_stale: false }
+  return { page:Number(params.get('page'))||1, data, has_more: true, next_cursor: `f:${page}:0`, source: 'AniList', is_partial: true, is_stale: false }
 }
 
 async function exclusions(items: CataloguePage['data'], mode: string, userId: string, signal?: AbortSignal) {

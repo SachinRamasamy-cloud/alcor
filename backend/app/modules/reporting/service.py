@@ -27,7 +27,9 @@ class ReportingService:
     def __init__(self, database):
         self.database = database
 
-    async def history(self, user, limit=24, cursor=None, media_id=None):
+    async def history(self, user, limit=24, cursor=None, media_id=None, page=None):
+        if page is not None and cursor:
+            raise AppError(422, "INVALID_REQUEST", "Choose a page or cursor, not both.")
         stamp, last = None, None
         if cursor:
             try:
@@ -42,7 +44,7 @@ class ReportingService:
                 (
                     await session.execute(
                         text(
-                            "SELECT a.*,m.payload->>'title' AS title,(u.activity_id IS NOT NULL) AS undone FROM personal.activity a LEFT JOIN catalogue.media m ON m.id=a.media_id LEFT JOIN personal.undo_actions u ON(u.user_id,u.activity_id)=(a.user_id,a.id) WHERE a.user_id=:user AND(CAST(:media AS uuid) IS NULL OR a.media_id=:media) AND(CAST(:stamp AS timestamptz) IS NULL OR(a.occurred_at,a.id)<(CAST(:stamp AS timestamptz),CAST(:last AS uuid))) ORDER BY a.occurred_at DESC,a.id DESC LIMIT :limit"
+                            "SELECT a.*,m.payload->>'title' AS title,(u.activity_id IS NOT NULL) AS undone FROM personal.activity a LEFT JOIN catalogue.media m ON m.id=a.media_id LEFT JOIN personal.undo_actions u ON(u.user_id,u.activity_id)=(a.user_id,a.id) WHERE a.user_id=:user AND(CAST(:media AS uuid) IS NULL OR a.media_id=:media) AND(CAST(:stamp AS timestamptz) IS NULL OR(a.occurred_at,a.id)<(CAST(:stamp AS timestamptz),CAST(:last AS uuid))) ORDER BY a.occurred_at DESC,a.id DESC LIMIT :limit OFFSET :offset"
                         ),
                         {
                             "user": user,
@@ -50,6 +52,7 @@ class ReportingService:
                             "stamp": stamp,
                             "last": last,
                             "limit": limit + 1,
+                            "offset": ((page or 1) - 1) * limit,
                         },
                     )
                 )
@@ -83,7 +86,19 @@ class ReportingService:
                 if len(rows) > limit
                 else None
             )
-            return HistoryPage(data=data, next_cursor=next_cursor)
+            total = await session.scalar(
+                text(
+                    "SELECT count(*) FROM personal.activity WHERE user_id=:user AND(CAST(:media AS uuid) IS NULL OR media_id=:media)"
+                ),
+                {"user": user, "media": media_id},
+            )
+            return HistoryPage(
+                data=data,
+                next_cursor=next_cursor,
+                total=total,
+                page=page or 1,
+                total_pages=max(1, (total + limit - 1) // limit),
+            )
 
     async def undo(self, user, activity_id, version):
         async with self.database.transaction(user) as session:

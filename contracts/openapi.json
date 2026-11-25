@@ -165,10 +165,37 @@
             ],
             "title": "Next Cursor"
           },
+          "page": {
+            "default": 1,
+            "title": "Page",
+            "type": "integer"
+          },
           "source": {
             "default": "Development snapshot",
             "title": "Source",
             "type": "string"
+          },
+          "total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total"
+          },
+          "total_pages": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Pages"
           }
         },
         "required": [
@@ -284,6 +311,21 @@
               }
             ],
             "title": "Next Cursor"
+          },
+          "page": {
+            "default": 1,
+            "title": "Page",
+            "type": "integer"
+          },
+          "total": {
+            "default": 0,
+            "title": "Total",
+            "type": "integer"
+          },
+          "total_pages": {
+            "default": 1,
+            "title": "Total Pages",
+            "type": "integer"
           }
         },
         "required": [
@@ -562,6 +604,21 @@
               }
             ],
             "title": "Next Cursor"
+          },
+          "page": {
+            "default": 1,
+            "title": "Page",
+            "type": "integer"
+          },
+          "total": {
+            "default": 0,
+            "title": "Total",
+            "type": "integer"
+          },
+          "total_pages": {
+            "default": 1,
+            "title": "Total Pages",
+            "type": "integer"
           }
         },
         "required": [
@@ -951,8 +1008,18 @@
             ],
             "title": "Next Cursor"
           },
+          "page": {
+            "default": 1,
+            "title": "Page",
+            "type": "integer"
+          },
           "total": {
             "title": "Total",
+            "type": "integer"
+          },
+          "total_pages": {
+            "default": 1,
+            "title": "Total Pages",
             "type": "integer"
           }
         },
@@ -1298,6 +1365,11 @@
             ],
             "title": "Next Cursor"
           },
+          "page": {
+            "default": 1,
+            "title": "Page",
+            "type": "integer"
+          },
           "personal_status": {
             "additionalProperties": {
               "$ref": "#/components/schemas/StatusOverlay"
@@ -1309,6 +1381,28 @@
             "default": "Development snapshot",
             "title": "Source",
             "type": "string"
+          },
+          "total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total"
+          },
+          "total_pages": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Pages"
           }
         },
         "required": [
@@ -1435,6 +1529,19 @@
             ],
             "title": "Mode",
             "type": "string"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "maximum": 10000.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
           },
           "q": {
             "default": "",
@@ -1908,6 +2015,11 @@
           },
           "summary": {
             "$ref": "#/components/schemas/ProgressSummary"
+          },
+          "total_units": {
+            "default": 0,
+            "title": "Total Units",
+            "type": "integer"
           },
           "units": {
             "items": {
@@ -2472,6 +2584,24 @@
           },
           {
             "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 10000,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Page"
+            }
+          },
+          {
+            "in": "query",
             "name": "include_genres",
             "required": false,
             "schema": {
@@ -2982,6 +3112,24 @@
           },
           {
             "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 10000,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Page"
+            }
+          },
+          {
+            "in": "query",
             "name": "include_genres",
             "required": false,
             "schema": {
@@ -3384,6 +3532,24 @@
           },
           {
             "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 10000,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Page"
+            }
+          },
+          {
+            "in": "query",
             "name": "include_genres",
             "required": false,
             "schema": {
@@ -3774,6 +3940,24 @@
                 }
               ],
               "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 10000,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Page"
             }
           }
         ],
@@ -4289,6 +4473,24 @@
           },
           {
             "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 10000,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Page"
+            }
+          },
+          {
+            "in": "query",
             "name": "include_genres",
             "required": false,
             "schema": {
@@ -4651,6 +4853,24 @@
               ],
               "title": "Media Id"
             }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 10000,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Page"
+            }
           }
         ],
         "responses": {
@@ -4736,6 +4956,24 @@
                 }
               ],
               "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 10000,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Page"
             }
           }
         ],
@@ -6034,6 +6272,24 @@
               ],
               "title": "Cursor"
             }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 10000,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Page"
+            }
           }
         ],
         "responses": {
@@ -6303,6 +6559,24 @@
                 }
               ],
               "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 10000,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Page"
             }
           },
           {

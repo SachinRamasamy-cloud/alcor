@@ -93,5 +93,6 @@ class SessionRead(BaseModel):
     final_total: int | None
     summary: ProgressSummary
     units: list[UnitRead]
+    total_units: int = 0
     next_offset: int | None
     updated_at: datetime

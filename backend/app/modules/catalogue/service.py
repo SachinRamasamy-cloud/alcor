@@ -76,7 +76,7 @@ def select_page(
     fingerprint = hashlib.sha256(
         json.dumps(
             {
-                **query.model_dump(exclude={"cursor", "limit"}),
+                **query.model_dump(exclude={"cursor", "limit", "page"}),
                 "media_type": media_type,
                 "context": context,
                 "excluded": sorted(str(i) for i in excluded or []),
@@ -84,7 +84,9 @@ def select_page(
             sort_keys=True,
         ).encode()
     ).hexdigest()[:16]
-    offset = 0
+    offset = ((query.page or 1) - 1) * query.limit
+    if query.page is not None and query.cursor:
+        raise AppError(422, "INVALID_REQUEST", "Choose a page or cursor, not both.")
     if query.cursor:
         try:
             payload = json.loads(
@@ -110,4 +112,11 @@ def select_page(
         if has_more
         else None
     )
-    return CataloguePage(data=data, has_more=has_more, next_cursor=cursor)
+    return CataloguePage(
+        data=data,
+        has_more=has_more,
+        next_cursor=cursor,
+        page=offset // query.limit + 1,
+        total=len(filtered),
+        total_pages=max(1, (len(filtered) + query.limit - 1) // query.limit),
+    )

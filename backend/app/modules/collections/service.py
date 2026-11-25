@@ -63,21 +63,32 @@ class CollectionService:
         async with self.database.transaction(user) as session:
             return await self.read_in_transaction(session, user, collection_id, offset)
 
-    async def list(self, user, after=None):
+    async def list(self, user, after=None, page=None):
+        if page is not None and after:
+            raise AppError(422, "INVALID_REQUEST", "Choose a page or cursor, not both.")
         async with self.database.transaction(user) as session:
             rows = (
                 (
                     await session.execute(
                         text(
-                            "SELECT c.id,c.name,c.version,count(i.media_id) AS total FROM personal.collections c LEFT JOIN personal.collection_items i ON(i.user_id,i.collection_id)=(c.user_id,c.id) WHERE c.user_id=:user AND c.deleted_at IS NULL AND(CAST(:after AS uuid) IS NULL OR c.id>:after) GROUP BY c.id,c.name,c.version ORDER BY c.id LIMIT 101"
+                            "SELECT c.id,c.name,c.version,count(i.media_id) AS total FROM personal.collections c LEFT JOIN personal.collection_items i ON(i.user_id,i.collection_id)=(c.user_id,c.id) WHERE c.user_id=:user AND c.deleted_at IS NULL AND(CAST(:after AS uuid) IS NULL OR c.id>:after) GROUP BY c.id,c.name,c.version ORDER BY c.id LIMIT 101 OFFSET :offset"
                         ),
-                        {"user": user, "after": after},
+                        {"user": user, "after": after, "offset": ((page or 1) - 1) * 100},
                     )
                 )
                 .mappings()
                 .all()
             )
+            total = await session.scalar(
+                text(
+                    "SELECT count(*) FROM personal.collections WHERE user_id=:user AND deleted_at IS NULL"
+                ),
+                {"user": user},
+            )
             return {
+                "total": total,
+                "page": page or 1,
+                "total_pages": max(1, (total + 99) // 100),
                 "data": [CollectionRead.model_validate(r) for r in rows[:100]],
                 "next_cursor": str(rows[99]["id"]) if len(rows) > 100 else None,
             }

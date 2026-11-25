@@ -49,6 +49,9 @@ class Episode(BaseModel):
 
 class CataloguePage(BaseModel):
     data: list[Media]
+    page: int = 1
+    total: int | None = None
+    total_pages: int | None = None
     next_cursor: str | None = None
     has_more: bool = False
     is_partial: bool = True
@@ -91,6 +94,7 @@ class CatalogueQuery(BaseModel):
     sort: Literal["popular", "score", "title", "year"] = "popular"
     limit: int = Field(default=24, ge=1, le=100)
     cursor: str | None = Field(default=None, max_length=512)
+    page: int | None = Field(default=None, ge=1, le=10000)
     include_genres: list[str] = Field(default_factory=list, max_length=50)
     exclude_genres: list[str] = Field(default_factory=list, max_length=50)
     include_themes: list[str] = Field(default_factory=list, max_length=50)

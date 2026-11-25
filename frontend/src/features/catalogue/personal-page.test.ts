@@ -6,7 +6,7 @@ import type { CataloguePage } from '../../shared/api/client'
 const items = Array.from({length:72},(_,i)=>fromAniList({id:i+1,type:'ANIME',title:{english:`Title ${i+1}`}}))
 const source = async (_:string,params:URLSearchParams):Promise<CataloguePage> => {
   const page=Number(params.get('cursor'))
-  return {data:items.slice((page-1)*24,page*24),has_more:page<3,next_cursor:page<3?String(page+1):null,source:'AniList',is_partial:true,is_stale:false}
+  return {page,data:items.slice((page-1)*24,page*24),has_more:page<3,next_cursor:page<3?String(page+1):null,source:'AniList',is_partial:true,is_stale:false}
 }
 it('excludes completed titles before assembling the final page and retains overflow',async()=>{
   const exclude=async()=>Array.from({length:30},(_,i)=>i+1)

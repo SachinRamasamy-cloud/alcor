@@ -17,8 +17,13 @@ User = Annotated[UUID, Depends(current_user)]
 
 
 @router.get("", response_model=CollectionList)
-async def collections(request: Request, user: User, cursor: UUID | None = None):
-    return await request.app.state.collections.list(user, cursor)
+async def collections(
+    request: Request,
+    user: User,
+    cursor: UUID | None = None,
+    page: int | None = Query(None, ge=1, le=10000),
+):
+    return await request.app.state.collections.list(user, cursor, page)
 
 
 @router.post("", response_model=CollectionDetail)

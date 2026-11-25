@@ -832,10 +832,19 @@ export interface components {
             /** Next Cursor */
             next_cursor?: string | null;
             /**
+             * Page
+             * @default 1
+             */
+            page: number;
+            /**
              * Source
              * @default Development snapshot
              */
             source: string;
+            /** Total */
+            total?: number | null;
+            /** Total Pages */
+            total_pages?: number | null;
         };
         /** CollectionCreate */
         CollectionCreate: {
@@ -877,6 +886,21 @@ export interface components {
             data: components["schemas"]["CollectionRead"][];
             /** Next Cursor */
             next_cursor: string | null;
+            /**
+             * Page
+             * @default 1
+             */
+            page: number;
+            /**
+             * Total
+             * @default 0
+             */
+            total: number;
+            /**
+             * Total Pages
+             * @default 1
+             */
+            total_pages: number;
         };
         /** CollectionRead */
         CollectionRead: {
@@ -992,6 +1016,21 @@ export interface components {
             data: components["schemas"]["ActivityRead"][];
             /** Next Cursor */
             next_cursor: string | null;
+            /**
+             * Page
+             * @default 1
+             */
+            page: number;
+            /**
+             * Total
+             * @default 0
+             */
+            total: number;
+            /**
+             * Total Pages
+             * @default 1
+             */
+            total_pages: number;
         };
         /** HomeResponse */
         HomeResponse: {
@@ -1106,8 +1145,18 @@ export interface components {
             data: components["schemas"]["LibraryEntry"][];
             /** Next Cursor */
             next_cursor: string | null;
+            /**
+             * Page
+             * @default 1
+             */
+            page: number;
             /** Total */
             total: number;
+            /**
+             * Total Pages
+             * @default 1
+             */
+            total_pages: number;
         };
         /** LibraryWrite */
         LibraryWrite: {
@@ -1241,6 +1290,11 @@ export interface components {
             is_stale: boolean;
             /** Next Cursor */
             next_cursor?: string | null;
+            /**
+             * Page
+             * @default 1
+             */
+            page: number;
             /** Personal Status */
             personal_status: {
                 [key: string]: components["schemas"]["StatusOverlay"];
@@ -1250,6 +1304,10 @@ export interface components {
              * @default Development snapshot
              */
             source: string;
+            /** Total */
+            total?: number | null;
+            /** Total Pages */
+            total_pages?: number | null;
         };
         /** PersonalQuery */
         PersonalQuery: {
@@ -1287,6 +1345,8 @@ export interface components {
              * @enum {string}
              */
             mode: "all" | "hide_watched" | "new_to_me";
+            /** Page */
+            page?: number | null;
             /**
              * Q
              * @default
@@ -1448,6 +1508,11 @@ export interface components {
             /** Skip Counts */
             skip_counts: boolean;
             summary: components["schemas"]["ProgressSummary"];
+            /**
+             * Total Units
+             * @default 0
+             */
+            total_units: number;
             /** Units */
             units: components["schemas"]["UnitRead"][];
             /**
@@ -1625,6 +1690,7 @@ export interface operations {
                 sort?: "popular" | "score" | "title" | "year";
                 limit?: number;
                 cursor?: string | null;
+                page?: number | null;
                 include_genres?: string[];
                 exclude_genres?: string[];
                 include_themes?: string[];
@@ -1771,6 +1837,7 @@ export interface operations {
                 sort?: "popular" | "score" | "title" | "year";
                 limit?: number;
                 cursor?: string | null;
+                page?: number | null;
                 include_genres?: string[];
                 exclude_genres?: string[];
                 include_themes?: string[];
@@ -1882,6 +1949,7 @@ export interface operations {
                 sort?: "popular" | "score" | "title" | "year";
                 limit?: number;
                 cursor?: string | null;
+                page?: number | null;
                 include_genres?: string[];
                 exclude_genres?: string[];
                 include_themes?: string[];
@@ -2044,6 +2112,7 @@ export interface operations {
         parameters: {
             query?: {
                 cursor?: string | null;
+                page?: number | null;
             };
             header?: never;
             path?: never;
@@ -2329,6 +2398,7 @@ export interface operations {
                 sort?: "popular" | "score" | "title" | "year";
                 limit?: number;
                 cursor?: string | null;
+                page?: number | null;
                 include_genres?: string[];
                 exclude_genres?: string[];
                 include_themes?: string[];
@@ -2410,6 +2480,7 @@ export interface operations {
                 limit?: number;
                 cursor?: string | null;
                 media_id?: string | null;
+                page?: number | null;
             };
             header?: never;
             path?: never;
@@ -2443,6 +2514,7 @@ export interface operations {
                 status?: ("planned" | "in_progress" | "completed" | "on_hold" | "dropped" | "not_interested") | null;
                 limit?: number;
                 cursor?: string | null;
+                page?: number | null;
             };
             header?: never;
             path?: never;
@@ -3316,6 +3388,7 @@ export interface operations {
             query?: {
                 limit?: number;
                 cursor?: string | null;
+                page?: number | null;
             };
             header?: never;
             path?: never;
@@ -3443,6 +3516,7 @@ export interface operations {
                 sort?: "popular" | "score" | "title" | "year";
                 limit?: number;
                 cursor?: string | null;
+                page?: number | null;
                 include_genres?: string[];
                 exclude_genres?: string[];
                 include_themes?: string[];

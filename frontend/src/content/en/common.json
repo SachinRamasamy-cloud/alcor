@@ -305,5 +305,15 @@
   "discovery.sourceLimits": "Genre, tag, date, score, format and season filters use AniList. Unit limits need an anime or manga page. Saved-note search needs sign-in and personal services.",
   "catalogue.batchEmpty": "No eligible titles in this batch",
   "catalogue.batchEmptyBody": "Your personal filters removed these results. Continue to check the next batch.",
-  "catalogue.savedCoverage": "Searching your saved titles and private notes. This search uses personal services."
+  "catalogue.savedCoverage": "Searching your saved titles and private notes. This search uses personal services.",
+  "pagination.navigation": "Pagination",
+  "pagination.pageOf": "Page {page} of {total}",
+  "pagination.page": "Page {page}",
+  "pagination.first": "First",
+  "pagination.previous": "Previous",
+  "pagination.next": "Next",
+  "pagination.last": "Last",
+  "pagination.goTo": "Go to page {page}",
+  "pagination.jump": "Go to page",
+  "pagination.go": "Go"
 }

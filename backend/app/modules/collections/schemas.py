@@ -39,6 +39,9 @@ class CollectionRead(BaseModel):
 class CollectionList(BaseModel):
     data: list[CollectionRead]
     next_cursor: str | None
+    total: int = 0
+    page: int = 1
+    total_pages: int = 1
 
 
 class CollectionItem(BaseModel):

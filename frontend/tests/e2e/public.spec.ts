@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
-import { mockCatalogue, snapshots } from './catalogue-fixture'
+import { mockCatalogue, snapshots, titles } from './catalogue-fixture'
 
 test.beforeEach(async ({page}) => { await mockCatalogue(page) })
 
@@ -65,6 +65,27 @@ test('public home, search and details remain usable while personal server is una
   await expect(page.getByText('AniList score',{exact:true})).toBeVisible()
   await page.goto('/manga')
   await expect(page.locator('.media-card')).toHaveCount(6)
+})
+
+test('numbered catalogue navigation supports last, first and custom page jumps',async({page})=>{
+  await page.route('https://graphql.anilist.co',route=>{
+    const {query,variables}=route.request().postDataJSON()
+    if(!query.includes('AlcorCatalogue'))return route.fallback()
+    const current=variables.page??1
+    return route.fulfill({contentType:'application/json',body:JSON.stringify({data:{Page:{pageInfo:{hasNextPage:current<3,lastPage:3,total:72},media:Array.from({length:24},(_,i)=>({...titles[0],id:(current-1)*24+i+1,title:{english:`Page ${current} title ${i+1}`}}))}}})})
+  })
+  await page.goto('/anime?genre=Action')
+  const nav=page.getByRole('navigation',{name:'Pagination'})
+  await expect(nav.getByText('Page 1 of 3')).toBeVisible()
+  await nav.getByRole('button',{name:'Last',exact:true}).click()
+  await expect(nav.getByText('Page 3 of 3')).toBeVisible({timeout:10000})
+  await expect(page).toHaveURL(/genre=Action.*page=3/)
+  await nav.getByRole('spinbutton',{name:'Go to page'}).fill('2')
+  await nav.getByRole('button',{name:'Go',exact:true}).click()
+  await expect(nav.getByText('Page 2 of 3')).toBeVisible({timeout:10000})
+  await nav.getByRole('button',{name:'First',exact:true}).click()
+  await expect(nav.getByText('Page 1 of 3')).toBeVisible({timeout:10000})
+  await expect(page).toHaveURL('/anime?genre=Action')
 })
 
 for(const width of [320,375,768,1024,1440]) {

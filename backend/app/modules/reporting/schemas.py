@@ -18,6 +18,9 @@ class ActivityRead(BaseModel):
 class HistoryPage(BaseModel):
     data: list[ActivityRead]
     next_cursor: str | None
+    total: int = 0
+    page: int = 1
+    total_pages: int = 1
 
 
 class UndoRequest(BaseModel):

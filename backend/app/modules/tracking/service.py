@@ -188,6 +188,7 @@ class TrackingService:
             final_total=row["final_total"],
             summary=summary,
             units=units[offset : offset + 100],
+            total_units=len(units),
             next_offset=offset + 100 if len(units) > offset + 100 else None,
             updated_at=row["updated_at"],
         )

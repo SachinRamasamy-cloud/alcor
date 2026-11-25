@@ -13,12 +13,13 @@ export type Entry = components['schemas']['LibraryEntry']
 export { PersonalDetails } from './details'
 export type LibraryPageData = components['schemas']['LibraryPage']
 type Result = components['schemas']['LibraryMutation']
-export function useLibrary(wishlist: boolean, cursor = '', status = '') {
+export function useLibrary(wishlist: boolean, cursor = '', status = '', page = 1) {
   const { userId } = useAuth()
   const params = new URLSearchParams()
   if (cursor) params.set('cursor', cursor)
+  else params.set('page',String(page))
   if (status && !wishlist) params.set('status', status)
-  return useQuery({ queryKey: ['private', userId, wishlist ? 'wishlist' : 'library', cursor, status], enabled: Boolean(userId), queryFn: ({ signal }) => api<LibraryPageData>(`/me/${wishlist ? 'wishlist' : 'library'}?${params}`, { signal, accountId: userId! }), staleTime: 30000 })
+  return useQuery({ queryKey: ['private', userId, wishlist ? 'wishlist' : 'library', cursor, status, page], enabled: Boolean(userId), queryFn: ({ signal }) => api<LibraryPageData>(`/me/${wishlist ? 'wishlist' : 'library'}?${params}`, { signal, accountId: userId! }), staleTime: 30000 })
 }
 export function useLibraryWrite() {
   const queries = useQueryClient()

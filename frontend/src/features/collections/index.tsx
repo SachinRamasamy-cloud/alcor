@@ -9,9 +9,9 @@ import { Button, ErrorState } from '../../shared/ui'
 
 export type Collection = components['schemas']['CollectionRead']
 export type Detail = components['schemas']['CollectionDetail']
-export function useCollections(cursor='') {
+export function useCollections(cursor='',page=1) {
   const {userId}=useAuth()
-  return useQuery({queryKey:['private',userId,'collections',cursor],enabled:Boolean(userId),queryFn:({signal})=>api<{data:Collection[];next_cursor:string|null}>(`/me/collections${cursor?'?cursor='+encodeURIComponent(cursor):''}`,{signal,accountId:userId!})})
+  return useQuery({queryKey:['private',userId,'collections',cursor,page],enabled:Boolean(userId),queryFn:({signal})=>api<components['schemas']['CollectionList']>(`/me/collections${cursor?'?cursor='+encodeURIComponent(cursor):'?page='+page}`,{signal,accountId:userId!})})
 }
 export function useCollection(id:string,offset=0) {
   const {userId}=useAuth()

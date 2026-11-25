@@ -106,7 +106,16 @@ class LibraryService:
                 result = LibraryMutation(entry=entry, changed=True)
         return result
 
-    async def list_entries(self, user_id: UUID, status: str | None, limit: int, cursor: str | None):
+    async def list_entries(
+        self,
+        user_id: UUID,
+        status: str | None,
+        limit: int,
+        cursor: str | None,
+        page: int | None = None,
+    ):
+        if page is not None and cursor:
+            raise AppError(422, "INVALID_REQUEST", "Choose a page or cursor, not both.")
         last = None
         if cursor:
             try:
@@ -118,9 +127,15 @@ class LibraryService:
                 (
                     await session.execute(
                         text(
-                            "SELECT e.*,m.payload FROM personal.library_entries e JOIN catalogue.media m ON m.id=e.media_id WHERE e.user_id=:user AND e.deleted_at IS NULL AND (CAST(:status AS text) IS NULL OR e.status=:status) AND (CAST(:cursor AS uuid) IS NULL OR e.media_id>CAST(:cursor AS uuid)) ORDER BY e.media_id LIMIT :limit"
+                            "SELECT e.*,m.payload FROM personal.library_entries e JOIN catalogue.media m ON m.id=e.media_id WHERE e.user_id=:user AND e.deleted_at IS NULL AND (CAST(:status AS text) IS NULL OR e.status=:status) AND (CAST(:cursor AS uuid) IS NULL OR e.media_id>CAST(:cursor AS uuid)) ORDER BY e.media_id LIMIT :limit OFFSET :offset"
                         ),
-                        {"user": user_id, "status": status, "cursor": last, "limit": limit + 1},
+                        {
+                            "user": user_id,
+                            "status": status,
+                            "cursor": last,
+                            "limit": limit + 1,
+                            "offset": ((page or 1) - 1) * limit,
+                        },
                     )
                 )
                 .mappings()
@@ -138,7 +153,13 @@ class LibraryService:
                 if len(rows) > limit
                 else None
             )
-            return LibraryPage(data=entries, total=total, next_cursor=next_cursor)
+            return LibraryPage(
+                data=entries,
+                total=total,
+                next_cursor=next_cursor,
+                page=page or 1,
+                total_pages=max(1, (total + limit - 1) // limit),
+            )
 
     async def change(
         self,

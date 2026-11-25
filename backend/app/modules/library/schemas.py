@@ -42,6 +42,8 @@ class LibraryPage(BaseModel):
     data: list[LibraryEntry]
     next_cursor: str | None
     total: int
+    page: int = 1
+    total_pages: int = 1
 
 
 class LibraryMutation(BaseModel):
