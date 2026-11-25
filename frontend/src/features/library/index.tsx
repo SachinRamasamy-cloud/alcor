@@ -8,6 +8,7 @@ import { t } from '../../shared/content'
 import { Button } from '../../shared/ui'
 
 export type Entry = components['schemas']['LibraryEntry']
+export { PersonalDetails } from './details'
 export type LibraryPageData = components['schemas']['LibraryPage']
 type Result = components['schemas']['LibraryMutation']
 export function useLibrary(wishlist: boolean, cursor = '', status = '') {

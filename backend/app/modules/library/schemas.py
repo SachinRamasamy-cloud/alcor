@@ -31,6 +31,7 @@ class LibraryEntry(BaseModel):
     rating: int | None
     notes: str | None
     favorite: bool
+    tags: list[str] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
     completed_at: datetime | None
@@ -46,3 +47,13 @@ class LibraryPage(BaseModel):
 class LibraryMutation(BaseModel):
     entry: LibraryEntry
     changed: bool
+
+
+class LibraryDetails(BaseModel):
+    expected_version: int = Field(ge=1)
+    rating: int | None = Field(default=None, ge=1, le=10)
+    notes: str | None = Field(default=None, max_length=10000)
+    favorite: bool | None = None
+    tags: list[str] | None = Field(default=None, max_length=30)
+    priority: Literal["high", "normal", "low"] | None = None
+    reason: str | None = Field(default=None, max_length=1000)

@@ -37,3 +37,5 @@ Final checkpoint: E006–E010 and E012–E014 were resolved by the recorded pass
 
 - E022: A documentation patch used stale context and was rejected without changing files. Reapplied the record at its actual location.
 - E023: Collection UI typecheck exposed an omitted OpenAPI collection-list response model. Added the explicit CollectionList response, regenerated contracts sequentially and reran typecheck/build successfully; no hand-written substitute for generated types was introduced.
+
+- E024: A per-unit query patch expected an outdated quoting style and was rejected without changing files. Used `rg` to locate the actual query, applied the bounded change and reran the database tests successfully.

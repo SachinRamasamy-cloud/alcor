@@ -6,7 +6,7 @@ import { useCatalogue, useEpisodes, useGenres, useHome, useMedia } from '../feat
 import { ContinueSections } from '../widgets/continue'
 import { CollectionPicker } from '../features/collections'
 import { Tracker } from '../features/tracking'
-import { SaveButton } from '../features/library'
+import { PersonalDetails, SaveButton } from '../features/library'
 import { MediaGrid, Poster } from '../entities/media'
 import type { Media } from '../shared/api/client'
 import { t, formatDate, unitCount, type MessageKey } from '../shared/content'
@@ -78,6 +78,7 @@ export function DetailsPage() {
   return <div className="shell page-body"><PageTitle title={media.title} /><SnapshotNotice /><Link className="subtle-link mb-8 inline-flex" to={`/${mediaType}`}>{t('common.back')}</Link><div className="details-layout"><div className="detail-poster"><Poster media={media} priority /></div><div className="detail-main"><p className="eyebrow">{media.format} {media.year && ` / ${media.year}`}</p><h1>{media.title}</h1>{media.original_title && <p className="detail-original">{media.original_title}</p>}<div className="hero-metadata"><span><Star size={14} />{media.score ?? t('media.notRated')}</span><span>{t('media.score')}</span><span>{unitCount(media.total_units ?? null, media.media_type)}</span></div><div className="hero-actions"><SaveButton media={media} kind="library" /><SaveButton media={media} /></div><div className="hero-genres">{media.genres.map(g => <Link key={g} to={`/${mediaType}?genre=${encodeURIComponent(g)}`}>{g}</Link>)}</div><section className="synopsis-section"><h2>{t('media.synopsis')}</h2><p>{media.synopsis ?? t('media.noSynopsis')}</p></section><dl className="detail-facts"><div><dt>{t('media.status')}</dt><dd>{media.status ?? t('media.notAvailable')}</dd></div><div><dt>{t('media.studio')}</dt><dd>{media.studios?.join(', ') || t('media.notAvailable')}</dd></div></dl></div></div>
     <section className="episode-section"><h2>{t(mediaType === 'anime' ? 'media.episodes' : 'media.chapters')}</h2>{mediaType === 'anime' && episodes.isPending ? <Loading /> : mediaType === 'anime' && episodes.error ? <ErrorState error={episodes.error} retry={() => { void episodes.refetch() }} /> : mediaType === 'anime' && episodes.data?.data.length ? <ol className="episode-list">{episodes.data.data.map(ep => <li key={ep.key}><span className="tabular-nums text-muted">{ep.label}</span><span>{ep.title ?? t('media.notAvailable')}</span></li>)}</ol> : <p className="mt-4 text-sm text-muted">{t(mediaType === 'anime' ? 'media.episodesMissing' : 'media.chaptersMissing')}</p>}</section>
     <CollectionPicker media={media} />
+    <PersonalDetails media={media} />
     <Tracker media={media} />
     <div className="source-note"><span>{t('media.source')}: {media.source.name}</span><span>{t('media.updated', { date: formatDate(media.source.retrieved_at) })}</span><a href={media.source.url} target="_blank" rel="noreferrer">{t('media.external')}<ArrowUpRight size={12} /></a></div>
   </div>

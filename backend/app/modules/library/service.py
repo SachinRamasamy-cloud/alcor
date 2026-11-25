@@ -24,6 +24,65 @@ class LibraryService:
     def __init__(self, database: Database, provider: MetadataProvider):
         self.database, self.provider = database, provider
 
+    async def overlay(self, user, ids):
+        async with self.database.transaction(user) as session:
+            rows = (
+                (
+                    await session.execute(
+                        text(
+                            "SELECT e.*,m.payload FROM personal.library_entries e JOIN catalogue.media m ON m.id=e.media_id WHERE e.user_id=:user AND e.media_id=ANY(CAST(:ids AS uuid[])) AND e.deleted_at IS NULL"
+                        ),
+                        {"user": user, "ids": ids},
+                    )
+                )
+                .mappings()
+                .all()
+            )
+            return [repo.to_entry(r) for r in rows]
+
+    async def details(self, user, media_id, body):
+        values = body.model_dump(exclude_unset=True, exclude={"expected_version"})
+        for required in ("favorite", "tags", "priority"):
+            if required in values and values[required] is None:
+                raise AppError(422, "INVALID_REQUEST", "Check the submitted values.")
+        if "tags" in values:
+            values["tags"] = list(
+                dict.fromkeys(tag.strip() for tag in values["tags"] if tag.strip())
+            )
+            if any(len(tag) > 50 for tag in values["tags"]):
+                raise AppError(422, "INVALID_REQUEST", "Tags must be at most 50 characters.")
+        async with self.database.transaction(user) as session:
+            row = await repo.lock_entry(session, user, media_id)
+            if row is None or row["deleted_at"] is not None:
+                raise AppError(404, "NOT_FOUND", "This item is not available.")
+            changed = any(row[key] != value for key, value in values.items())
+            if not changed:
+                result = LibraryMutation(
+                    entry=await repo.read_entry(session, user, media_id), changed=False
+                )
+            else:
+                if row["version"] != body.expected_version:
+                    raise AppError(409, "CONFLICT", "Review the latest state and try again.")
+                allowed = {"rating", "notes", "favorite", "tags", "priority", "reason"}
+                assignments = ",".join(f"{key}=:{key}" for key in values if key in allowed)
+                await session.execute(
+                    text(
+                        f"UPDATE personal.library_entries SET {assignments},version=version+1,updated_at=now() WHERE user_id=:user AND media_id=:media"
+                    ),
+                    {**values, "user": user, "media": media_id},
+                )
+                entry = await repo.read_entry(session, user, media_id)
+                await repo.record_activity(
+                    session,
+                    user,
+                    media_id,
+                    "library.details",
+                    dict(row),
+                    entry.model_dump(mode="json", exclude={"media"}),
+                )
+                result = LibraryMutation(entry=entry, changed=True)
+        return result
+
     async def list_entries(self, user_id: UUID, status: str | None, limit: int, cursor: str | None):
         last = None
         if cursor:

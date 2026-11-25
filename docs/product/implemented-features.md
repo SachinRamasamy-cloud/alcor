@@ -21,3 +21,5 @@ Account frontend (25 November): library/wishlist pages, versioned start/remove, 
 Tracking slice (25 November): sessions, sparse episode/chapter progress, manual string/decimal targets, skips, bounded bulk marking/unmark, optimistic versions, explicit completion, preserved repeat history and continue queues are implemented and locally tested. The details page has a shared tracker. Further scope remains in `docs/engineering/remaining-scope.md`.
 
 Collections slice: private create/rename/reorder/add/remove/soft-delete, paginated collection pages and a title-page picker are implemented. Real PostgreSQL tests verify ownership and preservation of library/history when deleting a collection.
+
+Personal details slice: title and episode/chapter ratings/notes, favorites, tags and wishlist priority/reason are implemented with ownership and version checks. Unit notes remain independent of progress.

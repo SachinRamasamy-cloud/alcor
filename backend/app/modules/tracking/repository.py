@@ -22,7 +22,7 @@ async def targets(session, user, session_id):
         (
             await session.execute(
                 text(
-                    "SELECT u.key,u.label,u.sort_order AS \"order\",u.released,u.title,u.released_at,u.provenance,COALESCE(p.state,'unresolved') AS state FROM personal.tracking_units u LEFT JOIN personal.unit_progress p ON (p.user_id,p.session_id,p.unit_key)=(u.user_id,u.session_id,u.key) WHERE u.user_id=:user AND u.session_id=:id ORDER BY u.sort_order,u.key"
+                    "SELECT u.key,u.label,u.sort_order AS \"order\",u.released,u.title,u.released_at,u.provenance,u.rating,u.notes,COALESCE(p.state,'unresolved') AS state FROM personal.tracking_units u LEFT JOIN personal.unit_progress p ON (p.user_id,p.session_id,p.unit_key)=(u.user_id,u.session_id,u.key) WHERE u.user_id=:user AND u.session_id=:id ORDER BY u.sort_order,u.key"
                 ),
                 {"user": user, "id": session_id},
             )

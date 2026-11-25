@@ -15,6 +15,47 @@ class TrackingService:
     def __init__(self, database, provider):
         self.database, self.provider = database, provider
 
+    async def unit_details(self, user, session_id, key, body):
+        values = body.model_dump(exclude_unset=True, exclude={"expected_version"})
+        async with self.database.transaction(user) as session:
+            row = await repo.session_row(session, user, session_id, lock=True)
+            if row is None:
+                raise AppError(404, "NOT_FOUND", "This session is not available.")
+            unit = next(
+                (u for u in await repo.targets(session, user, session_id) if u["key"] == key), None
+            )
+            if unit is None:
+                raise AppError(404, "NOT_FOUND", "This target is not available.")
+            changed = any(unit[k] != v for k, v in values.items())
+            if changed:
+                if row["version"] != body.expected_version:
+                    raise AppError(409, "CONFLICT", "Review the latest session state.")
+                assignments = ",".join(f"{k}=:{k}" for k in values if k in {"rating", "notes"})
+                await session.execute(
+                    text(
+                        f"UPDATE personal.tracking_units SET {assignments} WHERE user_id=:user AND session_id=:id AND key=:key"
+                    ),
+                    {**values, "user": user, "id": session_id, "key": key},
+                )
+                await session.execute(
+                    text(
+                        "UPDATE personal.tracking_sessions SET version=version+1,updated_at=now() WHERE user_id=:user AND id=:id"
+                    ),
+                    {"user": user, "id": session_id},
+                )
+                await library.record_activity(
+                    session,
+                    user,
+                    row["media_id"],
+                    "tracking.unit_details",
+                    {"session_id": str(session_id), "key": key, "version": row["version"]},
+                    {"session_id": str(session_id), "key": key, "fields": sorted(values)},
+                )
+            result = await self.read_in_transaction(
+                session, user, await repo.session_row(session, user, session_id)
+            )
+        return result
+
     async def continue_queue(self, user, media_type):
         async with self.database.transaction(user) as session:
             rows = (

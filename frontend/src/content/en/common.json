@@ -184,5 +184,19 @@
   "collections.count": "{count} titles",
   "collections.empty": "No collections yet",
   "collections.deleteQuestion": "Delete collection?",
-  "collections.deleteHelp": "Titles in this collection will remain in your library."
+  "collections.deleteHelp": "Titles in this collection will remain in your library.",
+  "personal.saved": "Personal details saved.",
+  "personal.title": "Your details",
+  "personal.rating": "Your rating",
+  "personal.favorite": "Favorite",
+  "personal.tags": "Tags, separated by commas",
+  "personal.priority": "Wishlist priority",
+  "personal.high": "High",
+  "personal.normal": "Normal",
+  "personal.low": "Low",
+  "personal.notes": "Private notes",
+  "personal.reason": "Wishlist reason",
+  "personal.reload": "Reload saved details",
+  "personal.unitDetails": "Rating and notes",
+  "personal.unitDetailsLabel": "Rating and notes for {label}"
 }

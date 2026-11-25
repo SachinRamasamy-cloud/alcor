@@ -80,3 +80,11 @@ Date: 25 November 2026. Baseline `078acfc`. Risk L2 behavior/L4 ownership. Requi
 Executed: local Alembic upgrade, backend ruff/format and `ALCOR_RUN_INTEGRATION=1 python -m uv run pytest -q`; sequential OpenAPI export and frontend contract generation; frontend lint/test/build and public browser suite. Results: 24 Python tests and 20 frontend tests passed. Collection tests cover create retry/no-op, optimistic conflict, two-account RLS and retained completed-library evidence after collection deletion. UI checks cover creation identity and service-error distinction. All 8 public Playwright regressions passed, including five widths and accessibility checks. Known build-size warning remains; no threshold weakened.
 
 Status: implemented and locally verified on the review branch; independent human security/editorial acceptance and real authenticated browser validation remain pending. Collection recovery UI and the remaining organization/discovery/operations scope are separate work.
+
+## Personal details vertical slice
+
+Date: 25 November 2026. Baseline `e498a42`; L2 behavior/L4 ownership. Implemented additive local migration 004, account-bounded media-status overlay, versioned title rating/notes/favorite/tags/wishlist details, and independent per-unit ratings/notes. The details page has a controlled editor with explicit reload; drafts retain their original version when another device changes saved data. Unit notes do not imply watched/read status.
+
+Verification: backend ruff and actual local PostgreSQL tests passed (26 total Python tests); OpenAPI exported before TypeScript generation. Frontend lint/build and 21 unit/component tests passed; all 8 public browser regressions passed. Tests verify private note isolation, stale versions, no-op reconciliation, rating bounds and unresolved episode notes without progress changes. Existing tests retained. Known bundle-size warning remains within the stated initial gzip budget. No new dependency, live auth or remote DB mutation.
+
+Status: implemented/locally verified on the review branch; independent security/editorial acceptance and real private browser-to-API validation remain pending. Remaining scope is tracked separately.

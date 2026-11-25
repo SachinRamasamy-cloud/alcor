@@ -260,6 +260,24 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
+        /** Details */
+        patch: operations["details_api_v1_me_library__media_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/me/media-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Overlay */
+        get: operations["overlay_api_v1_me_media_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
         patch?: never;
         trace?: never;
     };
@@ -349,6 +367,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/reading-sessions/{session_id}/chapters/{key}/details": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Details Chapters */
+        put: operations["details_chapters_api_v1_me_reading_sessions__session_id__chapters__key__details_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/reading-sessions/{session_id}/complete": {
         parameters: {
             query?: never;
@@ -429,6 +464,23 @@ export interface paths {
         put?: never;
         /** Update Watch-Sessions */
         post: operations["update_watch_sessions_api_v1_me_watch_sessions__session_id__episodes_bulk_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/watch-sessions/{session_id}/episodes/{key}/details": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Details Episodes */
+        put: operations["details_episodes_api_v1_me_watch_sessions__session_id__episodes__key__details_put"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -655,6 +707,23 @@ export interface components {
              */
             position: number;
         };
+        /** LibraryDetails */
+        LibraryDetails: {
+            /** Expected Version */
+            expected_version: number;
+            /** Favorite */
+            favorite?: boolean | null;
+            /** Notes */
+            notes?: string | null;
+            /** Priority */
+            priority?: ("high" | "normal" | "low") | null;
+            /** Rating */
+            rating?: number | null;
+            /** Reason */
+            reason?: string | null;
+            /** Tags */
+            tags?: string[] | null;
+        };
         /** LibraryEntry */
         LibraryEntry: {
             /** Completed At */
@@ -687,6 +756,8 @@ export interface components {
              * @enum {string}
              */
             status: "planned" | "in_progress" | "completed" | "on_hold" | "dropped" | "not_interested";
+            /** Tags */
+            tags?: string[];
             /**
              * Updated At
              * Format: date-time
@@ -917,12 +988,23 @@ export interface components {
              */
             skip_counts: boolean;
         };
+        /** UnitDetails */
+        UnitDetails: {
+            /** Expected Version */
+            expected_version: number;
+            /** Notes */
+            notes?: string | null;
+            /** Rating */
+            rating?: number | null;
+        };
         /** UnitRead */
         UnitRead: {
             /** Key */
             key: string;
             /** Label */
             label: string;
+            /** Notes */
+            notes?: string | null;
             /** Order */
             order: number;
             /**
@@ -930,6 +1012,8 @@ export interface components {
              * @enum {string}
              */
             provenance: "manual" | "provider";
+            /** Rating */
+            rating?: number | null;
             /** Released */
             released: boolean;
             /** Released At */
@@ -1553,6 +1637,72 @@ export interface operations {
             };
         };
     };
+    details_api_v1_me_library__media_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                media_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LibraryDetails"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LibraryMutation"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    overlay_api_v1_me_media_status_get: {
+        parameters: {
+            query: {
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LibraryEntry"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     manual_chapters_api_v1_me_media__media_id__manual_chapters_post: {
         parameters: {
             query?: never;
@@ -1757,6 +1907,42 @@ export interface operations {
             };
         };
     };
+    details_chapters_api_v1_me_reading_sessions__session_id__chapters__key__details_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UnitDetails"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     complete_reading_sessions_api_v1_me_reading_sessions__session_id__complete_post: {
         parameters: {
             query?: never;
@@ -1938,6 +2124,42 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["ProgressWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    details_episodes_api_v1_me_watch_sessions__session_id__episodes__key__details_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UnitDetails"];
             };
         };
         responses: {

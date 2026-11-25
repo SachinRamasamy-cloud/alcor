@@ -70,6 +70,14 @@ class UnitRead(BaseModel):
     released_at: datetime | None
     provenance: Literal["manual", "provider"]
     state: Literal["watched", "read", "skipped", "unresolved"]
+    rating: int | None = None
+    notes: str | None = None
+
+
+class UnitDetails(BaseModel):
+    expected_version: int = Field(ge=1)
+    rating: int | None = Field(default=None, ge=1, le=10)
+    notes: str | None = Field(default=None, max_length=10000)
 
 
 class SessionRead(BaseModel):

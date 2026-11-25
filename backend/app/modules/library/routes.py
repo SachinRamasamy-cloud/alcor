@@ -5,6 +5,8 @@ from fastapi import APIRouter, Depends, Query, Request
 
 from app.core.auth import current_user
 from app.modules.library.schemas import (
+    LibraryDetails,
+    LibraryEntry,
     LibraryMutation,
     LibraryPage,
     LibraryStatus,
@@ -14,6 +16,18 @@ from app.modules.library.schemas import (
 
 router = APIRouter(prefix="/api/v1/me", tags=["library"])
 User = Annotated[UUID, Depends(current_user)]
+
+
+@router.get("/media-status", response_model=list[LibraryEntry])
+async def overlay(
+    request: Request, user: User, ids: Annotated[list[UUID], Query(min_length=1, max_length=100)]
+):
+    return await request.app.state.library.overlay(user, ids)
+
+
+@router.patch("/library/{media_id}", response_model=LibraryMutation)
+async def details(request: Request, user: User, media_id: UUID, body: LibraryDetails):
+    return await request.app.state.library.details(user, media_id, body)
 
 
 @router.get("/library", response_model=LibraryPage)

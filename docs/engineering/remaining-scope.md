@@ -21,3 +21,7 @@ Risk: L2 tracking behavior; L4 private ownership/DB boundaries. Baseline `459a03
 ## Collections execution contract
 
 Risk L2 behavior/L4 private ownership. Scope: additive migration 003, collections module, narrow library metadata integration, collection UI and tests. Existing plan requires create/rename/delete/reorder/add/remove, independent membership and retained history. Acceptance: creation retry deduplication, no-op item idempotence, optimistic conflicts, real PostgreSQL RLS isolation, and collection deletion never deleting library/history. Soft deletion preserves recovery potential. No new dependency or production mutation.
+
+## Personal details execution contract
+
+Risk L2/L4 ownership. Reuse existing library/session version controls. Add explicit title rating, notes, favorite, tags, wishlist priority/reason, and independent episode/chapter details. Expectations: edits do not change progress; notes never enter public metadata; stale versions fail; two-account overlay/details cannot leak; rating bounds and text/tag limits validated; no-op writes do not increment versions. Additive local migration 004 only; no new dependency or remote write.

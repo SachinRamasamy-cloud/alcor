@@ -11,6 +11,8 @@ from app.modules.tracking.schemas import (
     SessionRead,
     SessionVersion,
     StartSession,
+    UnitDetails,
+    canonical_key,
 )
 
 router = APIRouter(prefix="/api/v1/me", tags=["tracking"])
@@ -18,6 +20,23 @@ User = Annotated[UUID, Depends(current_user)]
 
 
 def install_routes(name: str, media_type: str, unit: str):
+    async def unit_details(
+        request: Request, user: User, session_id: UUID, key: str, body: UnitDetails
+    ) -> SessionRead:
+        await read(request, user, session_id, 0)
+        try:
+            key = canonical_key(key)
+        except ValueError as exc:
+            raise AppError(422, "INVALID_REQUEST", "Check the target label.") from exc
+        return await request.app.state.tracking.unit_details(user, session_id, key, body)
+
+    router.add_api_route(
+        f"/{name}/{{session_id}}/{unit}/{{key}}/details",
+        unit_details,
+        methods=["PUT"],
+        name=f"details_{unit}",
+    )
+
     async def continue_queue(request: Request, user: User) -> list[dict]:
         return await request.app.state.tracking.continue_queue(user, media_type)
 
