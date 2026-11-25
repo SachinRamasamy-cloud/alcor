@@ -23,6 +23,7 @@ describe('library integration', () => {
     const fetcher = vi.fn().mockImplementation((_url, init) => Promise.resolve(new Response(JSON.stringify(init.method === 'PUT' ? { entry: { ...entry, status: 'in_progress' }, changed: true } : { data: [entry], total: 1, next_cursor: null }), { status: 200 })))
     vi.stubGlobal('fetch', fetcher)
     const queries = mount()
+    fireEvent.click(await screen.findByRole('button',{name:'Manage Test title'}))
     fireEvent.click(await screen.findByRole('button', { name: 'Start watching' }))
     await waitFor(() => expect(state.notify).toHaveBeenCalledWith('Added to your library.'))
     const write = fetcher.mock.calls.find(([, init]) => init.method === 'PUT')!
@@ -34,6 +35,18 @@ describe('library integration', () => {
     mount()
     expect(await screen.findByRole('alert')).toHaveTextContent('temporarily unavailable')
     expect(screen.queryByText('Your wishlist is empty')).toBeNull()
+  })
+  it('keeps status inside the canonical card and requires confirmation before removal',async()=>{
+    const fetcher=vi.fn(async(_url,init)=>new Response(JSON.stringify(init.method==='DELETE'?{entry:{...entry,deleted_at:'2026-11-25T00:00:00Z'},changed:true}:{data:[entry],total:1,next_cursor:null})))
+    vi.stubGlobal('fetch',fetcher);mount()
+    const manage=await screen.findByRole('button',{name:'Manage Test title'})
+    expect(screen.getByText('Planned').closest('.media-card')).toBeTruthy()
+    fireEvent.click(manage);fireEvent.click(screen.getByRole('button',{name:'Remove'}))
+    expect(screen.getByRole('heading',{name:'Remove from wishlist?'})).toBeVisible()
+    expect(fetcher.mock.calls.some(([,init])=>init.method==='DELETE')).toBe(false)
+    fireEvent.click(screen.getByRole('button',{name:'Remove'}))
+    await waitFor(()=>expect(state.notify).toHaveBeenCalledWith('Removed from wishlist.'))
+    expect(String(fetcher.mock.calls.find(([,init])=>init.method==='DELETE')![0])).toContain('expected_version=7')
   })
   it('guest action requests sign-in without a write', async () => {
     state.userId = null

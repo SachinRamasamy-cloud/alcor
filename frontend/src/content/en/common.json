@@ -80,6 +80,7 @@
   "common.cancel": "Cancel",
   "common.close": "Close",
   "common.loading": "Loading\u2026",
+  "media.manageLabel": "Manage {title}",
   "common.back": "Back",
   "common.save": "Save changes",
   "common.saving": "Saving\u2026",

@@ -4,6 +4,26 @@ import { mockCatalogue, snapshots, titles } from './catalogue-fixture'
 
 test.beforeEach(async ({page}) => { await mockCatalogue(page) })
 
+for(const width of [375,1440]){
+  test(`personal cards retain the locked design at ${width}px`,async({page})=>{
+    await page.setViewportSize({width,height:1000})
+    await page.goto('/tests/e2e/personal-preview.html')
+    await expect(page.locator('.media-grid > .media-card')).toHaveCount(2)
+    await expect(page.locator('.media-card .personal-card-status')).toHaveCount(2)
+    await expect(page.locator('.media-card .button')).toHaveCount(0)
+    const card=page.locator('.media-card').first();await card.hover()
+    const manage=card.getByRole('button',{name:'Manage Personal title 1'})
+    const box=await manage.boundingBox(),art=await card.boundingBox()
+    expect(box!.height).toBe(44);expect(box!.y-art!.y).toBeLessThan(14)
+    await manage.click();await expect(page.getByRole('dialog')).toBeVisible()
+    await page.keyboard.press('Escape');await expect(manage).toBeFocused()
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
+    const accessibility=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()
+    expect(accessibility.violations.map(v=>v.id)).toEqual([])
+    await page.screenshot({path:test.info().outputPath('personal-cards.png'),fullPage:true})
+  })
+}
+
 test('favorite identity lookups honor cooldown and pace requests before setup can save',async({page})=>{
   const calls:{id:number;at:number}[]=[]
   await page.route('**/api/v1/me/media/resolve',async route=>{

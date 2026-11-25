@@ -12,7 +12,7 @@ export function Poster({ media, priority = false }: { media: Media; priority?: b
     ? <img src={media.image_url} alt="" width="300" height="450" loading={priority ? 'eager' : 'lazy'} fetchPriority={priority ? 'high' : 'auto'} className="poster" onError={()=>setFailedSource(media.image_url!)} />
     : <div className="poster poster-empty" role="img" aria-label={t('media.noImage')}><ImageOff size={26} aria-hidden="true"/><span>{t('media.noImage')}</span></div>
 }
-export function MediaCard({ media, actions }: { media: Media; actions?: ReactNode }) {
+export function MediaCard({ media, actions, context }: { media: Media; actions?: ReactNode; context?:ReactNode }) {
   const titleId=useId()
   return <article className="media-card" aria-labelledby={titleId}><m.div className="poster-wrap" whileHover={{ scale: 1.02 }} transition={{ duration: .16 }}>
     <Link to={mediaPath(media)} aria-label={t('media.open', { title: media.title })}><Poster media={media} /></Link>
@@ -21,6 +21,7 @@ export function MediaCard({ media, actions }: { media: Media; actions?: ReactNod
     <p className="card-meta">{[media.format, media.year].filter(Boolean).join(' · ') || t('media.notAvailable')}</p>
     <p className="card-unit-count">{unitCount(media.total_units??null,media.media_type)}</p>
     <div className="card-genres">{(media.genres??[]).slice(0,2).map(genre=><span key={genre} title={genre}>{genre}</span>)}</div>
+    {context&&<div className="card-context">{context}</div>}
   </div>
     {actions&&<div className="card-actions">{actions}</div>}
   </article>
